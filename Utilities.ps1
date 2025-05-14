@@ -1,7 +1,9 @@
+. $PSScriptRoot\ConsoleCallException.ps1
+
 function Write-ConsoleLog {
     [CmdletBinding()]
     param (
-        [Parameter(Position = 0, Mandatory)]
+        [Parameter(Mandatory, Position = 0)]
         [ValidateSet("Info", "Warn", "Error", "Debug")]
         [string]$Level,
 
@@ -27,7 +29,7 @@ function Write-ConsoleLog {
 function Write-Log {
     [CmdletBinding()]
     param (
-        [Parameter(Position = 0, Mandatory)]
+        [Parameter(Mandatory, Position = 0)]
         [ValidateSet("Info", "Warn", "Error", "Debug")]
         [string]$Level,
 
@@ -37,35 +39,22 @@ function Write-Log {
         [Parameter(Position = 2)]
         [string]$OutputFile
     )
+    # Prevent usage from interactive terminal
+    if (-not $MyInvocation.PSScriptRoot) {
+        throw [ConsoleCallException]::new((Get-PSCallStack)[0].FunctionName)
+    }
 
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $defaultLogFile = "Default.log"
-    $scriptPath = $MyInvocation.PSCommandPath
-    $scriptLogFile = "$(
-        [System.IO.Path]::GetFileNameWithoutExtension($scriptPath)
-    ).log"
+    $scriptFile = Split-Path -Leaf $MyInvocation.PSCommandPath
+    $scriptLogFile = $scriptFile -replace '\.ps1$', '.log'
 
     # If OutputFile is not exist, then init OutputFile
-    if (-not $OutputFile) {
-        $OutputFile = `
-            if ($scriptPath) { $scriptLogFile } `
-            else { $defaultLogFile }
-    }
+    $OutputFile = if (-not $OutputFile) { $scriptLogFile }
 
     # If OutputFile is not the current scriptLogFile, add a log prefix
-    if ($OutputFile -ne $scriptLogFile) {
-        $fileName = "[$(
-            if ($scriptPath) { Split-Path -Leaf $scriptPath }
-            else { "Console" }
-        )] "
-    }
+    $fileName = if ($OutputFile -ne $scriptLogFile) { "[$($scriptFile)] " }
 
-    # If OutputFile is the default file, then do not create a prefix in the log
-    if ($OutputFile -eq $defaultLogFile) {
-        $fileName = ""
-    }
-
-    $entry = "$($timestamp) [$($Level.ToLower())]`t$($fileName)$($Message)"
+    $entry = "$($timestamp) $($Level.ToUpper())`t$($fileName)$($Message)"
 
     # Write into file log
     Add-Content -Path $OutputFile -Value $entry
@@ -77,14 +66,7 @@ function Write-Log {
 <# 
 # Testcases
 Write-Log Info "Test info" -OutputFile "info.log"
-Write-Log Warn "Test warn" -OutputFile "Logger.log"
-Write-Log Error "Test error" -OutputFile "Default.log"
+Write-Log Warn "Test warn" -OutputFile "Utilities.log"
+Write-Log Error "Test error" -OutputFile "Remove-CleanArchitecture.log"
 Write-Log Debug "Test debug"
-
-PS C:\Path_to_my_project> 
->> . .\Logger.ps1
->> Write-Log Info "Test info (From Console)" -OutputFile "info.log"
->> Write-Log Warn "Test warn (From Console)" -OutputFile "Logger.log"
->> Write-Log Error "Test error (From Console)" -OutputFile "Default.log"
->> Write-Log Debug "Test debug (From Console)"
  #>
