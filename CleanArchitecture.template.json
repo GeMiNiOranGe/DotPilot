@@ -1,0 +1,43 @@
+{
+    "solutionName": "Example",
+    "layers": [
+        {
+            "name": "Core",
+            "type": "classlib"
+        },
+        {
+            "name": "UseCases",
+            "type": "classlib",
+            "packages": [
+                "AutoMapper"
+            ],
+            "projectReferences": [
+                "Core"
+            ]
+        },
+        {
+            "name": "Infrastructure",
+            "type": "classlib",
+            "packages": [
+                "Microsoft.EntityFrameworkCore",
+                "Microsoft.EntityFrameworkCore.SqlServer"
+            ],
+            "projectReferences": [
+                "Core"
+            ]
+        },
+        {
+            "name": "WebApi",
+            "type": "webapi",
+            "extraArguments": "--use-controllers",
+            "packages": [
+                "NSwag.AspNetCore",
+                "Scalar.AspNetCore"
+            ],
+            "projectReferences": [
+                "Infrastructure",
+                "UseCases"
+            ]
+        }
+    ]
+}

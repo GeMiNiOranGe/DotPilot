@@ -1,49 +1,61 @@
+param (
+    [string]$TemplateJsonPath = "$PSScriptRoot\CleanArchitecture.template.json"
+)
+
 . $PSScriptRoot\Utilities.ps1
 
-# Define the solution name
-$solutionName = "Example"
+# Load and parse JSON config
+if (-not (Test-Path $TemplateJsonPath)) {
+    throw [System.Exception]::new(
+        "Configuration file '$TemplateJsonPath' not found."
+    )
+}
 
-# Define layers and their types
-$layers = @(
-    @{
-        name = "Core";
-        type = "classlib"
-    },
-    @{
-        name     = "UseCases";
-        type     = "classlib";
-        packages = @(
-            "AutoMapper"
-        );
-        projects = @(
-            "Core"
-        )
-    },
-    @{
-        name     = "Infrastructure";
-        type     = "classlib";
-        packages = @(
-            "Microsoft.EntityFrameworkCore",
-            "Microsoft.EntityFrameworkCore.SqlServer"
-        );
-        projects = @(
-            "Core"
-        )
-    },
-    @{
-        name           = "WebApi";
-        type           = "webapi";
-        extraArguments = "--use-controllers";
-        packages       = @(
-            "NSwag.AspNetCore",
-            "Scalar.AspNetCore"
-        );
-        projects       = @(
-            "Infrastructure",
-            "UseCases"
+try {
+    $template = Get-Content -Raw -Path $TemplateJsonPath | ConvertFrom-Json
+}
+catch {
+    $fileName = [System.IO.Path]::GetFileNameWithoutExtension(
+        $MyInvocation.MyCommand.Path
+    )
+
+    throw [System.Exception]::new(
+        "$fileName : Invalid JSON format in file '$TemplateJsonPath'."
+    )
+}
+
+# Validate required fields
+if (-not $template.solutionName) {
+    throw [System.Exception]::new(
+        "Missing 'solutionName' in JSON template."
+    )
+}
+
+if (-not $template.layers -or $template.layers.Count -eq 0) {
+    throw [System.Exception]::new(
+        "Missing or empty 'layers' array in JSON template."
+    )
+}
+
+foreach ($layer in $template.layers) {
+    if (-not $layer.name) {
+        throw [System.Exception]::new(
+            "Each layer must have a 'name' field."
         )
     }
-)
+
+    if (-not $layer.type) {
+        throw [System.Exception]::new(
+            "Each layer must have a 'type' field."
+        )
+    }
+}
+
+# Define the solution name
+$solutionName = $template.solutionName
+
+# Define layers and their types
+$layers = $template.layers
 
 # Create `Directory.Build.props` file
 Add-Content `
@@ -59,11 +71,11 @@ Add-Content `
 )
 
 # Create the `gitignore`
-Write-ConsoleLog info "Creating gitignore"
+Write-ConsoleLog Info "Creating gitignore"
 dotnet new gitignore
 
 # Create the Solution
-Write-ConsoleLog info "Creating solution '$($solutionName)'"
+Write-ConsoleLog Info "Creating solution '$($solutionName)'"
 dotnet new sln --name $solutionName
 
 # Loop through each layer to create projects and add them to the solution
@@ -77,16 +89,16 @@ foreach ($layer in $layers) {
         $arguments += $extraArguments
     }
 
-    Write-ConsoleLog info "Creating '$($projectName)' project"
+    Write-ConsoleLog Info "Creating '$($projectName)' project"
     dotnet @arguments
 
-    Write-ConsoleLog info "Adding '$($projectName)' project to '$($solutionName).sln'"
+    Write-ConsoleLog Info "Adding '$($projectName)' project to '$($solutionName).sln'"
     dotnet sln "$($solutionName).sln" add "$($projectName)/$($projectName).csproj"
 
     # Install NuGet packages if specified
     if ($layer.packages) {
         foreach ($package in $layer.packages) {
-            Write-ConsoleLog info "Installing '$($package)' for '$($projectName)'"
+            Write-ConsoleLog Info "Installing '$($package)' for '$($projectName)'"
             dotnet add "$($projectName)/$($projectName).csproj" package $package
         }
     }
@@ -96,12 +108,12 @@ foreach ($layer in $layers) {
 foreach ($layer in $layers) {
     $projectName = "$($solutionName).$($layer.name)"
 
-    if ($layer.projects) {
-        foreach ($project in $layer.projects) {
-            Write-ConsoleLog info "Adding reference '$($projectName)' project to '$($solutionName).$($project)'"
-            dotnet add $projectName reference "$($solutionName).$($project)"
+    if ($layer.projectReferences) {
+        foreach ($projectReference in $layer.projectReferences) {
+            Write-ConsoleLog Info "Adding reference '$($projectName)' project to '$($solutionName).$($projectReference)'"
+            dotnet add $projectName reference "$($solutionName).$($projectReference)"
         }
     }
 }
 
-Write-ConsoleLog info "Clean Architecture project setup completed!"
+Write-ConsoleLog Info "Clean Architecture project setup completed!"
