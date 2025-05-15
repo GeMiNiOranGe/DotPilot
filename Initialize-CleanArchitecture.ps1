@@ -1,5 +1,6 @@
 param (
-    [string]$TemplateJsonPath = "$PSScriptRoot\CleanArchitecture.template.json"
+    [string]$TemplateJsonPath = "$PSScriptRoot\CleanArchitecture.template.json",
+    [switch]$LogToFile
 )
 
 . $PSScriptRoot\Utilities.ps1
@@ -57,6 +58,19 @@ $solutionName = $template.solutionName
 # Define layers and their types
 $layers = $template.layers
 
+$Log = if ($LogToFile) {
+    {
+        param($Level, $Message)
+        Write-Log -Level $Level -Message $Message -OutputFile "$solutionName.log"
+    }
+}
+else {
+    {
+        param($Level, $Message)
+        Write-ConsoleLog -Level $Level -Message $Message
+    }
+}
+
 # Create `Directory.Build.props` file
 Add-Content `
     -Path "Directory.Build.props" `
@@ -71,11 +85,11 @@ Add-Content `
 )
 
 # Create the `gitignore`
-Write-ConsoleLog Info "Creating gitignore"
+& $Log Info "Creating gitignore"
 dotnet new gitignore
 
 # Create the Solution
-Write-ConsoleLog Info "Creating solution '$($solutionName)'"
+& $Log Info "Creating solution '$($solutionName)'"
 dotnet new sln --name $solutionName
 
 # Loop through each layer to create projects and add them to the solution
@@ -89,16 +103,16 @@ foreach ($layer in $layers) {
         $arguments += $extraArguments
     }
 
-    Write-ConsoleLog Info "Creating '$($projectName)' project"
+    & $Log Info "Creating '$($projectName)' project"
     dotnet @arguments
 
-    Write-ConsoleLog Info "Adding '$($projectName)' project to '$($solutionName).sln'"
+    & $Log Info "Adding '$($projectName)' project to '$($solutionName).sln'"
     dotnet sln "$($solutionName).sln" add "$($projectName)/$($projectName).csproj"
 
     # Install NuGet packages if specified
     if ($layer.packages) {
         foreach ($package in $layer.packages) {
-            Write-ConsoleLog Info "Installing '$($package)' for '$($projectName)'"
+            & $Log Info "Installing '$($package)' for '$($projectName)'"
             dotnet add "$($projectName)/$($projectName).csproj" package $package
         }
     }
@@ -110,10 +124,10 @@ foreach ($layer in $layers) {
 
     if ($layer.projectReferences) {
         foreach ($projectReference in $layer.projectReferences) {
-            Write-ConsoleLog Info "Adding reference '$($projectName)' project to '$($solutionName).$($projectReference)'"
+            & $Log Info "Adding reference '$($projectName)' project to '$($solutionName).$($projectReference)'"
             dotnet add $projectName reference "$($solutionName).$($projectReference)"
         }
     }
 }
 
-Write-ConsoleLog Info "Clean Architecture project setup completed!"
+& $Log Info "Clean Architecture project setup completed!"

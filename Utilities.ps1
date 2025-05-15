@@ -45,11 +45,11 @@ function Write-Log {
     }
 
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $scriptFile = Split-Path -Leaf $MyInvocation.PSCommandPath
+    $scriptFile = [System.IO.Path]::GetFileName($MyInvocation.PSCommandPath)
     $scriptLogFile = $scriptFile -replace '\.ps1$', '.log'
 
     # If OutputFile is not exist, then init OutputFile
-    $OutputFile = if (-not $OutputFile) { $scriptLogFile }
+    $OutputFile = if ($OutputFile) { $OutputFile } else { $scriptLogFile }
 
     # If OutputFile is not the current scriptLogFile, add a log prefix
     $fileName = if ($OutputFile -ne $scriptLogFile) { "[$($scriptFile)] " }
