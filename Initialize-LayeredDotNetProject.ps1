@@ -1,14 +1,23 @@
 param (
-    [string]$TemplateJsonPath = "$PSScriptRoot\CleanArchitecture.template.json",
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$TemplateJsonPath,
     [switch]$LogToFile
 )
 
 . $PSScriptRoot\Utilities.ps1
 
+if (Test-WhiteSpace $TemplateJsonPath) {
+    throw [System.Exception]::new(
+        "Your string contains only spaces."
+    )
+}
+
 # Load and parse JSON config
 if (-not (Test-Path $TemplateJsonPath)) {
     throw [System.Exception]::new(
-        "Configuration file '$TemplateJsonPath' not found."
+        "Configuration file '$TemplateJsonPath' not found. " +
+        "Use the `New-LayeredDotnetTemplate` command to create one if needed."
     )
 }
 
