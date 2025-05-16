@@ -39,7 +39,7 @@ $targetOutputPath = `
     else { ".\layers.template.json" }
 
 $directory = [System.IO.Path]::GetDirectoryName($targetOutputPath)
-if (-not (Test-Path $directory)) {
+if ($directory -ne "" -and -not (Test-Path $directory)) {
     $fileName = [System.IO.Path]::GetFileNameWithoutExtension(
         $MyInvocation.MyCommand.Path
     )

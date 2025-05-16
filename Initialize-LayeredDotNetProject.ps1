@@ -130,4 +130,4 @@ foreach ($layer in $layers) {
     }
 }
 
-& $Log Info "Clean Architecture project setup completed!"
+& $Log Info "Layered .NET project '$solutionName' initialized successfully!"
