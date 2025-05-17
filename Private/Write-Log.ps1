@@ -1,31 +1,3 @@
-. $PSScriptRoot\ConsoleCallException.ps1
-
-function Write-ConsoleLog {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory, Position = 0)]
-        [ValidateSet("Info", "Warn", "Error", "Debug")]
-        [string]$Level,
-
-        [Parameter(Position = 1)]
-        [string]$Message
-    )
-
-    $colorMap = @{
-        "Info"  = @{ ForegroundColor = "Black"; BackgroundColor = "Cyan" }
-        "Warn"  = @{ ForegroundColor = "Black"; BackgroundColor = "Yellow" }
-        "Error" = @{ ForegroundColor = "Black"; BackgroundColor = "Red" }
-        "Debug" = @{ ForegroundColor = "Black"; BackgroundColor = "White" }
-    }
-
-    $color = $colorMap[$Level]
-
-    Write-Host $Level.ToLower() -NoNewline `
-        -ForegroundColor $color.ForegroundColor `
-        -BackgroundColor $color.BackgroundColor
-    Write-Host " $($Message)"
-}
-
 function Write-Log {
     [CmdletBinding()]
     param (
@@ -63,24 +35,10 @@ function Write-Log {
     Write-ConsoleLog -Level $Level $Message
 }
 
-<# 
+<#
 # Testcases
 Write-Log Info "Test info" -OutputFile "info.log"
 Write-Log Warn "Test warn" -OutputFile "Utilities.log"
 Write-Log Error "Test error" -OutputFile "Remove-CleanArchitecture.log"
 Write-Log Debug "Test debug"
  #>
-
-function Test-WhiteSpace {
-    param (
-        [string]$Value
-    )
-
-    for ($i = 0; $i -lt $Value.Length; $i++) {
-        if (![char]::IsWhiteSpace($Value[$i])) {
-            return $false
-        }
-    }
-
-    return $true
-}

@@ -1,5 +1,3 @@
-. $PSScriptRoot\Utilities.ps1
-
 function Initialize-LayeredDotnetProject {
     param (
         [Parameter(Mandatory)]

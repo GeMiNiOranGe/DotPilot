@@ -1,5 +1,3 @@
-. $PSScriptRoot\Utilities.ps1
-
 function New-LayeredDotnetTemplate {
     param (
         [string]$OutputPath
