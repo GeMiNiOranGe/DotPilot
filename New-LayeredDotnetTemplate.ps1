@@ -1,10 +1,11 @@
-param (
-    [string]$OutputPath
-)
-
 . $PSScriptRoot\Utilities.ps1
 
-$template = @'
+function New-LayeredDotnetTemplate {
+    param (
+        [string]$OutputPath
+    )
+
+    $template = @'
 {
     "solutionName": "MySolution",
     "layers": [
@@ -34,20 +35,21 @@ $template = @'
     ]
 }
 '@
-$targetOutputPath = `
-    if ($OutputPath) { $OutputPath } `
-    else { ".\layers.template.json" }
+    $targetOutputPath = `
+        if ($OutputPath) { $OutputPath } `
+        else { ".\layers.template.json" }
+    $directory = [System.IO.Path]::GetDirectoryName($targetOutputPath)
 
-$directory = [System.IO.Path]::GetDirectoryName($targetOutputPath)
-if ($directory -ne "" -and -not (Test-Path $directory)) {
-    $fileName = [System.IO.Path]::GetFileNameWithoutExtension(
-        $MyInvocation.MyCommand.Path
-    )
+    if ($directory -ne "" -and -not (Test-Path $directory)) {
+        $fileName = [System.IO.Path]::GetFileNameWithoutExtension(
+            $MyInvocation.MyCommand.Path
+        )
 
-    throw [System.IO.DirectoryNotFoundException]::new(
-        "$fileName : The directory '$directory' does not exist."
-    )
+        throw [System.IO.DirectoryNotFoundException]::new(
+            "$fileName : The directory '$directory' does not exist."
+        )
+    }
+
+    Set-Content -Path $targetOutputPath -Value $template -Encoding UTF8
+    Write-ConsoleLog Info "Template created successfully at: $targetOutputPath"
 }
-
-Set-Content -Path $targetOutputPath -Value $template -Encoding UTF8
-Write-ConsoleLog Info "Template created successfully at: $targetOutputPath"
