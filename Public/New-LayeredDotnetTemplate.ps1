@@ -48,6 +48,6 @@ function New-LayeredDotnetTemplate {
         )
     }
 
-    Set-Content -Path $targetOutputPath -Value $template -Encoding UTF8
+    Set-Content -Path $targetOutputPath -Value $template
     Write-ConsoleLog Info "Template created successfully at: $targetOutputPath"
 }
