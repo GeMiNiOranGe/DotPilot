@@ -3,6 +3,7 @@ function Initialize-LayeredDotnetProject {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$TemplateJsonPath,
+        [switch]$NoDirectoryBuildFile,
         [switch]$LogToFile
     )
 
@@ -80,17 +81,17 @@ function Initialize-LayeredDotnetProject {
     }
 
     # Create `Directory.Build.props` file
-    Add-Content `
-        -Path "Directory.Build.props" `
-        -Value @(
-        "<Project>",
-        "  <ItemDefinitionGroup>",
-        "    <ProjectReference>",
-        "      <PrivateAssets>all</PrivateAssets>",
-        "    </ProjectReference>",
-        "  </ItemDefinitionGroup>",
-        "</Project>"
-    )
+    if (-not $NoDirectoryBuildFile) {
+        Add-Content -Path "Directory.Build.props" -Value @(
+            "<Project>",
+            "  <ItemDefinitionGroup>",
+            "    <ProjectReference>",
+            "      <PrivateAssets>all</PrivateAssets>",
+            "    </ProjectReference>",
+            "  </ItemDefinitionGroup>",
+            "</Project>"
+        )
+    }
 
     # Create the `gitignore`
     & $Log Info "Creating gitignore"
