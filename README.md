@@ -4,4 +4,4 @@ DotPilot is a toolset that automates project setup and resource management using
 
 ## Requirements
 
-- **PowerShell:** Version 5 and above recommended
+- **PowerShell:** Version 7.4 and above recommended

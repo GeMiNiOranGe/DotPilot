@@ -1,22 +1,17 @@
 function Initialize-LayeredDotnetProject {
     param (
         [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateNotNullOrWhiteSpace()]
         [string]$TemplateJsonPath,
         [switch]$NoDirectoryBuildFile,
         [switch]$LogToFile
     )
-
-    if (Test-WhiteSpace $TemplateJsonPath) {
-        throw [System.Exception]::new(
-            "Your string contains only spaces."
-        )
-    }
+    $functionName = (Get-PSCallStack)[0].FunctionName
 
     # Load and parse JSON config
     if (-not (Test-Path $TemplateJsonPath)) {
         throw [System.Exception]::new(
-            "Configuration file '$TemplateJsonPath' not found. " +
+            "$functionName : Configuration file '$TemplateJsonPath' not found. " +
             "Use the `New-LayeredDotnetTemplate` command to create one if needed."
         )
     }
@@ -25,38 +20,34 @@ function Initialize-LayeredDotnetProject {
         $template = Get-Content -Raw -Path $TemplateJsonPath | ConvertFrom-Json
     }
     catch {
-        $fileName = [System.IO.Path]::GetFileNameWithoutExtension(
-            $MyInvocation.MyCommand.Path
-        )
-
         throw [System.Exception]::new(
-            "$fileName : Invalid JSON format in file '$TemplateJsonPath'."
+            "$functionName : Invalid JSON format in file '$TemplateJsonPath'."
         )
     }
 
     # Validate required fields
     if (-not $template.solutionName) {
         throw [System.Exception]::new(
-            "Missing 'solutionName' in JSON template."
+            "$functionName : Missing 'solutionName' in JSON template."
         )
     }
 
     if (-not $template.layers -or $template.layers.Count -eq 0) {
         throw [System.Exception]::new(
-            "Missing or empty 'layers' array in JSON template."
+            "$functionName : Missing or empty 'layers' array in JSON template."
         )
     }
 
     foreach ($layer in $template.layers) {
         if (-not $layer.name) {
             throw [System.Exception]::new(
-                "Each layer must have a 'name' field."
+                "$functionName : Each layer must have a 'name' field."
             )
         }
 
         if (-not $layer.type) {
             throw [System.Exception]::new(
-                "Each layer must have a 'type' field."
+                "$functionName : Each layer must have a 'type' field."
             )
         }
     }
@@ -70,7 +61,10 @@ function Initialize-LayeredDotnetProject {
     $Log = if ($LogToFile) {
         {
             param($Level, $Message)
-            Write-Log -Level $Level -Message $Message -OutputFile "$solutionName.log"
+            Write-Log `
+                -Level $Level `
+                -Message $Message `
+                -OutputFile "$solutionName.log"
         }
     }
     else {
@@ -116,13 +110,17 @@ function Initialize-LayeredDotnetProject {
         dotnet @arguments
 
         & $Log Info "Adding '$($projectName)' project to '$($solutionName).sln'"
-        dotnet sln "$($solutionName).sln" add "$($projectName)/$($projectName).csproj"
+        dotnet `
+            sln "$($solutionName).sln" `
+            add "$($projectName)/$($projectName).csproj"
 
         # Install NuGet packages if specified
         if ($layer.packages) {
             foreach ($package in $layer.packages) {
                 & $Log Info "Installing '$($package)' for '$($projectName)'"
-                dotnet add "$($projectName)/$($projectName).csproj" package $package
+                dotnet `
+                    add "$($projectName)/$($projectName).csproj" `
+                    package $package
             }
         }
     }
@@ -133,8 +131,12 @@ function Initialize-LayeredDotnetProject {
 
         if ($layer.projectReferences) {
             foreach ($projectReference in $layer.projectReferences) {
-                & $Log Info "Adding reference '$($projectName)' project to '$($solutionName).$($projectReference)'"
-                dotnet add $projectName reference "$($solutionName).$($projectReference)"
+                & $Log Info `
+                    "Adding reference '$($projectName)'" + `
+                    " project to '$($solutionName).$($projectReference)'"
+                dotnet `
+                    add $projectName `
+                    reference "$($solutionName).$($projectReference)"
             }
         }
     }
