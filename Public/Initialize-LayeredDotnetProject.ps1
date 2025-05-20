@@ -6,49 +6,89 @@ function Initialize-LayeredDotnetProject {
         [switch]$NoDirectoryBuildFile,
         [switch]$LogToFile
     )
-    $functionName = (Get-PSCallStack)[0].FunctionName
-
     # Load and parse JSON config
     if (-not (Test-Path $TemplateJsonPath)) {
-        throw [System.Exception]::new(
-            "$functionName : Configuration file '$TemplateJsonPath' not found. " +
-            "Use the `New-LayeredDotnetTemplate` command to create one if needed."
+        $exception = [System.IO.FileNotFoundException]::new(
+            "Configuration file '$TemplateJsonPath' not found. Use the " +
+            "`New-LayeredDotnetTemplate` command to create one if needed."
         )
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $exception,
+            "FileNotFound",
+            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+            $TemplateJsonPath
+        )
+        $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
 
     try {
         $template = Get-Content -Raw -Path $TemplateJsonPath | ConvertFrom-Json
     }
     catch {
-        throw [System.Exception]::new(
-            "$functionName : Invalid JSON format in file '$TemplateJsonPath'."
+        $exception = [System.IO.InvalidDataException]::new(
+            "Invalid JSON format in file '$TemplateJsonPath'."
         )
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $exception,
+            "InvalidJson",
+            [System.Management.Automation.ErrorCategory]::InvalidData,
+            $TemplateJsonPath
+        )
+        $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
 
     # Validate required fields
     if (-not $template.solutionName) {
-        throw [System.Exception]::new(
-            "$functionName : Missing 'solutionName' in JSON template."
+        $exception = [System.Exception]::new(
+            "Missing 'solutionName' in JSON template."
         )
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $exception,
+            "MissingSolutionName",
+            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+            $template.solutionName
+        )
+        $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
 
     if (-not $template.layers -or $template.layers.Count -eq 0) {
-        throw [System.Exception]::new(
-            "$functionName : Missing or empty 'layers' array in JSON template."
+        $exception = [System.Exception]::new(
+            "Missing or empty 'layers' array in JSON template."
         )
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $exception,
+            "MissingOrEmptyLayers",
+            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+            $template.layers
+        )
+        $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
 
     foreach ($layer in $template.layers) {
         if (-not $layer.name) {
-            throw [System.Exception]::new(
-                "$functionName : Each layer must have a 'name' field."
+            $exception = [System.Exception]::new(
+                "Each layer must have a 'name' field."
             )
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $exception,
+                "MissingLayerName",
+                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                $layer.name
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
 
         if (-not $layer.type) {
-            throw [System.Exception]::new(
-                "$functionName : Each layer must have a 'type' field."
+            $exception = [System.Exception]::new(
+                "Each layer must have a 'type' field."
             )
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $exception,
+                "MissingLayerType",
+                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                $layer.type
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
     }
 
@@ -76,7 +116,7 @@ function Initialize-LayeredDotnetProject {
 
     # Create `Directory.Build.props` file
     if (-not $NoDirectoryBuildFile) {
-        Add-Content -Path "Directory.Build.props" -Value @(
+        Set-Content -Path "Directory.Build.props" -Value @(
             "<Project>",
             "  <ItemDefinitionGroup>",
             "    <ProjectReference>",
