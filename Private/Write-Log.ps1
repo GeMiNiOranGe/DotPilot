@@ -11,11 +11,6 @@ function Write-Log {
         [Parameter(Position = 2)]
         [string]$OutputFile
     )
-    # Prevent usage from interactive terminal
-    if (-not $MyInvocation.PSScriptRoot) {
-        throw [ConsoleCallException]::new((Get-PSCallStack)[0].FunctionName)
-    }
-
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $scriptFile = [System.IO.Path]::GetFileName($MyInvocation.PSCommandPath)
     $scriptLogFile = $scriptFile -replace '\.ps1$', '.log'

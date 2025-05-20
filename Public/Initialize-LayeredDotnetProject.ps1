@@ -1,4 +1,5 @@
 function Initialize-LayeredDotnetProject {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
         [ValidateNotNullOrWhiteSpace()]

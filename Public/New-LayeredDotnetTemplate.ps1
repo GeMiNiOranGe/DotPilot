@@ -1,5 +1,7 @@
 function New-LayeredDotnetTemplate {
+    [CmdletBinding()]
     param (
+        [ValidateNotNullOrWhiteSpace()]
         [string]$OutputPath
     )
 
@@ -39,13 +41,16 @@ function New-LayeredDotnetTemplate {
     $directory = [System.IO.Path]::GetDirectoryName($targetOutputPath)
 
     if ($directory -ne "" -and -not (Test-Path $directory)) {
-        $fileName = [System.IO.Path]::GetFileNameWithoutExtension(
-            $MyInvocation.MyCommand.Path
+        $exception = [System.IO.DirectoryNotFoundException]::new(
+            "The directory '$directory' does not exist."
         )
-
-        throw [System.IO.DirectoryNotFoundException]::new(
-            "$fileName : The directory '$directory' does not exist."
+        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+            $exception,
+            "DirectoryNotFound",
+            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+            $OutputPath
         )
+        $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
 
     Set-Content -Path $targetOutputPath -Value $template
