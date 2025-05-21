@@ -1,40 +1,12 @@
 function New-LayeredDotnetTemplate {
     [CmdletBinding()]
     param (
+        [ValidateSet("Clean")]
+        [string]$Architecture,
+
         [ValidateNotNullOrWhiteSpace()]
         [string]$OutputPath
     )
-
-    $template = @'
-{
-    "solutionName": "MySolution",
-    "layers": [
-        {
-            "name": "LayerOne",
-            "type": "classlib"
-        },
-        {
-            "name": "LayerTwo",
-            "type": "classlib",
-            "projects": [
-                "LayerOne"
-            ]
-        },
-        {
-            "name": "LayerThree",
-            "type": "webapi",
-            "extraArguments": "--use-controllers",
-            "packages": [
-                "NSwag.AspNetCore",
-                "Scalar.AspNetCore"
-            ],
-            "projects": [
-                "LayerThree"
-            ]
-        }
-    ]
-}
-'@
     $targetOutputPath = `
         if ($OutputPath) { $OutputPath } `
         else { ".\layers.template.json" }
@@ -53,6 +25,18 @@ function New-LayeredDotnetTemplate {
         $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
 
-    Set-Content -Path $targetOutputPath -Value $template
+    $template = switch ($Architecture) {
+        "Clean" {
+            "CleanArchitecture.template.json"
+            break
+        }
+        default {
+            "DefaultLayers.template.json"
+            break
+        }
+    }
+    $templatePath = Resolve-Path -Path "$PSScriptRoot\..\Template\Dotnet\$template"
+
+    Copy-Item -Path $templatePath -Destination $targetOutputPath
     Write-ConsoleLog Info "Template created successfully at: $targetOutputPath"
 }

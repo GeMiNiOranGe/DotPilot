@@ -1,0 +1,25 @@
+{
+    "solutionName": "MySolution",
+    "layers": [
+        {
+            "name": "LayerOne",
+            "type": "classlib"
+        },
+        {
+            "name": "LayerTwo",
+            "type": "classlib",
+            "projects": [
+                "LayerOne"
+            ]
+        },
+        {
+            "name": "LayerThree",
+            "type": "webapi",
+            "extraArguments": "",
+            "packages": [],
+            "projects": [
+                "LayerThree"
+            ]
+        }
+    ]
+}
