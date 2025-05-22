@@ -1,6 +1,9 @@
 function New-LayeredDotnetTemplate {
     [CmdletBinding()]
     param (
+        [ValidateNotNullOrWhiteSpace()]
+        [string]$SolutionName = "Example",
+
         [ValidateSet("Clean")]
         [string]$Architecture,
 
@@ -36,7 +39,9 @@ function New-LayeredDotnetTemplate {
         }
     }
     $templatePath = Resolve-Path -Path "$PSScriptRoot\..\Template\Dotnet\$template"
+    $templateContent = Get-Content -Raw -Path $templatePath
+    $templateContent = $templateContent -replace "{{solutionName}}", $SolutionName
 
-    Copy-Item -Path $templatePath -Destination $targetOutputPath
+    Set-Content -Path $targetOutputPath -Value $templateContent
     Write-ConsoleLog Info "Template created successfully at: $targetOutputPath"
 }

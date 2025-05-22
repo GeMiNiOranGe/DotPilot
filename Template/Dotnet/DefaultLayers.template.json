@@ -1,5 +1,5 @@
 {
-    "solutionName": "MySolution",
+    "solutionName": "{{solutionName}}",
     "layers": [
         {
             "name": "LayerOne",
