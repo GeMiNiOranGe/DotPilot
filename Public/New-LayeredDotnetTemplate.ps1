@@ -38,8 +38,8 @@ function New-LayeredDotnetTemplate {
             break
         }
     }
-    $templatePath = Resolve-Path -Path "$PSScriptRoot\..\Template\Dotnet\$template"
-    $templateContent = Get-Content -Raw -Path $templatePath
+    $templateContent = Get-Content -Raw `
+        -Path "$PSScriptRoot\..\Template\Dotnet\$template"
     $templateContent = $templateContent -replace "{{solutionName}}", $SolutionName
 
     Set-Content -Path $targetOutputPath -Value $templateContent
