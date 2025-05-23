@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
-Initializes a layered .NET project based on a JSON configuration file.
+Initializes a layered .NET project based on a JSON template file.
 
 .DESCRIPTION
-The `Initialize-LayeredDotnetProject` function creates a new .NET solution and projects based on the configuration defined in a JSON file. The function supports creating multiple layers (projects) with different project types and optional NuGet package references.
+The `Initialize-LayeredDotnetProject` function creates a new .NET solution and projects based on the template defined in a JSON file. The function supports creating multiple layers (projects) with different project types and optional NuGet package references.
 
 .PARAMETER TemplateJsonPath
-Specifies the path to the JSON configuration file that defines the solution and project structure.
+Specifies the path to the JSON template file that defines the solution and project structure.
 
 .PARAMETER NoDirectoryBuildFile
 Specifies whether to skip creating the `Directory.Build.props` file.
@@ -20,8 +20,14 @@ Initialize-LayeredDotnetProject -TemplateJsonPath 'C:\Projects\MyProject\templat
 .EXAMPLE
 Initialize-LayeredDotnetProject -TemplateJsonPath 'C:\Projects\MyProject\template.json' -NoDirectoryBuildFile -LogToFile
 
+.INPUTS
+None. You can't pipe objects to `Initialize-LayeredDotnetProject`.
+
+.OUTPUTS
+None. This function does not return any output, but it creates a .NET solution and projects based on the provided template.
+
 .NOTES
-The JSON configuration file should be created using the `New-LayeredDotnetTemplate` command.
+The JSON template file should be created using the `New-LayeredDotnetTemplate` command.
 #>
 function Initialize-LayeredDotnetProject {
     [CmdletBinding()]
@@ -37,7 +43,7 @@ function Initialize-LayeredDotnetProject {
     # Load and parse JSON config
     if (-not (Test-Path $TemplateJsonPath)) {
         $exception = [System.IO.FileNotFoundException]::new(
-            "Configuration file '$TemplateJsonPath' not found. Use the " +
+            "Template file '$TemplateJsonPath' not found. Use the " +
             "`New-LayeredDotnetTemplate` command to create one if needed."
         )
         $errorRecord = [System.Management.Automation.ErrorRecord]::new(

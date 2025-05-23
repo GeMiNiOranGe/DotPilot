@@ -1,0 +1,25 @@
+. $PSScriptRoot\Private\Write-ConsoleLog.ps1
+
+$moduleName = "DotPilot"
+$modulePath = "$PSScriptRoot\DotPilot.psd1"
+$docsPath = "$PSScriptRoot\Docs"
+
+if (-not (Get-Module -ListAvailable -Name platyPS)) {
+    Install-Module -Name platyPS -Scope CurrentUser -RequiredVersion 0.14.2
+}
+
+Import-Module platyPS
+
+Import-Module $modulePath -Force
+New-MarkdownHelp -Module $moduleName -OutputFolder $docsPath -Force
+
+# Remove escaped backticks from all '*.md' files
+Get-ChildItem $docsPath -Filter *.md -Recurse | ForEach-Object {
+    $content = Get-Content $_.FullName -Raw
+    $content = $content -replace '\\`', '`'
+    $content = $content -replace '\\\[', '['
+    $content = $content -replace '\\\]', ']'
+    Set-Content $_.FullName -Value $content
+}
+
+Write-ConsoleLog Info "Removed escape characters from documentation files."

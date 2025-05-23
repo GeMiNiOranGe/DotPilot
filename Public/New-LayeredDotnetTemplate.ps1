@@ -20,11 +20,17 @@ New-LayeredDotnetTemplate
 .EXAMPLE
 New-LayeredDotnetTemplate -OutputPath 'C:\Projects\MyProject\template.json' -Architecture Clean -SolutionName 'MyProject'
 
+.INPUTS
+None. You can't pipe objects to `New-LayeredDotnetTemplate`.
+
+.OUTPUTS
+None. This function does not return any output, but it creates a JSON template file with the specified template.
+
 .NOTES
 The generated JSON template file will have the following structure:
-
+```json
 {
-    "solutionName": "{{solutionName}}",
+    "solutionName": "Example",
     "layers": [
         {
             "name": "LayerOne",
@@ -35,7 +41,7 @@ The generated JSON template file will have the following structure:
             "type": "classlib",
             "extraArguments": [
                 "--framework", "net6.0"
-            ]
+            ],
             "projectReferences": [
                 "LayerOne"
             ]
@@ -51,8 +57,8 @@ The generated JSON template file will have the following structure:
         }
     ]
 }
-
-The template can be customized by modifying the "layers" array to include the desired project structure and configurations.
+```
+The template can be customized by modifying the "layers" array to include the desired project structure and templates.
 #>
 function New-LayeredDotnetTemplate {
     [CmdletBinding()]
