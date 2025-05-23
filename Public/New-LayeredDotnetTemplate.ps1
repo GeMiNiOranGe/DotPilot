@@ -2,17 +2,15 @@ function New-LayeredDotnetTemplate {
     [CmdletBinding()]
     param (
         [ValidateNotNullOrWhiteSpace()]
-        [string]$SolutionName = "Example",
+        [string]$OutputPath,
 
         [ValidateSet("Clean")]
         [string]$Architecture,
 
         [ValidateNotNullOrWhiteSpace()]
-        [string]$OutputPath
+        [string]$SolutionName = "Example"
     )
-    $targetOutputPath = `
-        if ($OutputPath) { $OutputPath } `
-        else { ".\layers.template.json" }
+    $targetOutputPath = $OutputPath ? $OutputPath : ".\layers.template.json"
     $directory = [System.IO.Path]::GetDirectoryName($targetOutputPath)
 
     if ($directory -ne "" -and -not (Test-Path $directory)) {

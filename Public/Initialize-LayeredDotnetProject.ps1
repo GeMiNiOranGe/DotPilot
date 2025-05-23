@@ -4,7 +4,9 @@ function Initialize-LayeredDotnetProject {
         [Parameter(Mandatory)]
         [ValidateNotNullOrWhiteSpace()]
         [string]$TemplateJsonPath,
+
         [switch]$NoDirectoryBuildFile,
+
         [switch]$LogToFile
     )
     # Load and parse JSON config
@@ -99,20 +101,12 @@ function Initialize-LayeredDotnetProject {
     # Define layers and their types
     $layers = $template.layers
 
-    $Log = if ($LogToFile) {
-        {
-            param($Level, $Message)
-            Write-Log `
-                -Level $Level `
-                -Message $Message `
-                -OutputFile "$solutionName.log"
-        }
-    }
-    else {
-        {
-            param($Level, $Message)
-            Write-ConsoleLog -Level $Level -Message $Message
-        }
+    $Log = $LogToFile ? {
+        param($Level, $Message)
+        Write-Log -Level $Level -Message $Message -OutputFile "$solutionName.log"
+    } : {
+        param($Level, $Message)
+        Write-ConsoleLog -Level $Level -Message $Message
     }
 
     # Create `Directory.Build.props` file
@@ -133,12 +127,12 @@ function Initialize-LayeredDotnetProject {
     dotnet new gitignore
 
     # Create the Solution
-    & $Log Info "Creating solution '$($solutionName)'"
+    & $Log Info "Creating solution '$solutionName'"
     dotnet new sln --name $solutionName
 
     # Loop through each layer to create projects and add them to the solution
     foreach ($layer in $layers) {
-        $projectName = "$($solutionName).$($layer.name)"
+        $projectName = "$solutionName.$($layer.name)"
         $projectType = $layer.type
         $extraArguments = $layer.extraArguments
 
@@ -147,37 +141,30 @@ function Initialize-LayeredDotnetProject {
             $arguments += $extraArguments
         }
 
-        & $Log Info "Creating '$($projectName)' project"
+        & $Log Info "Creating '$projectName' project"
         dotnet @arguments
 
-        & $Log Info "Adding '$($projectName)' project to '$($solutionName).sln'"
-        dotnet `
-            sln "$($solutionName).sln" `
-            add "$($projectName)/$($projectName).csproj"
+        & $Log Info "Adding '$projectName' project to '$solutionName.sln'"
+        dotnet sln "$solutionName.sln" add "$projectName/$projectName.csproj"
 
         # Install NuGet packages if specified
         if ($layer.packages) {
             foreach ($package in $layer.packages) {
-                & $Log Info "Installing '$($package)' for '$($projectName)'"
-                dotnet `
-                    add "$($projectName)/$($projectName).csproj" `
-                    package $package
+                & $Log Info "Installing '$package' for '$projectName'"
+                dotnet add "$projectName/$projectName.csproj" package $package
             }
         }
     }
 
     # Loop through each layer to reference projects
     foreach ($layer in $layers) {
-        $projectName = "$($solutionName).$($layer.name)"
+        $projectName = "$solutionName.$($layer.name)"
 
         if ($layer.projectReferences) {
             foreach ($projectReference in $layer.projectReferences) {
-                & $Log Info `
-                    "Adding reference '$($projectName)'" + `
-                    " project to '$($solutionName).$($projectReference)'"
-                dotnet `
-                    add $projectName `
-                    reference "$($solutionName).$($projectReference)"
+                $projRef = "$solutionName.$projectReference"
+                & $Log Info "Adding reference '$projectName' project to '$projRef'"
+                dotnet add $projectName reference "$projRef"
             }
         }
     }
