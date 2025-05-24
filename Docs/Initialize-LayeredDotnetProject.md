@@ -1,7 +1,7 @@
 ---
 external help file: DotPilot-help.xml
 Module Name: DotPilot
-online version:
+online version: https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Initialize-LayeredDotnetProject.md
 schema: 2.0.0
 ---
 
@@ -25,13 +25,26 @@ The function supports creating multiple layers (projects) with different project
 
 ### EXAMPLE 1
 ```
-Initialize-LayeredDotnetProject -TemplateJsonPath 'C:\Projects\MyProject\template.json'
+Initialize-LayeredDotnetProject -TemplateJsonPath '.\MyProject.template.json'
 ```
 
-### EXAMPLE 2
+Output
+```powershell
+info Creating gitignore
+The template "dotnet gitignore file" was created successfully.
+
+info Creating solution 'MyProject'
+The template "Solution File" was created successfully.
+
+info Creating 'MyProject.Core' project
+The template "Class Library" was created successfully.
+
+# ...
+# other console logs
+# ...
 ```
-Initialize-LayeredDotnetProject -TemplateJsonPath 'C:\Projects\MyProject\template.json' -NoDirectoryBuildFile -LogToFile
-```
+
+Prints command messages during project initialization.
 
 ## PARAMETERS
 
@@ -108,4 +121,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 The JSON template file should be created using the `New-LayeredDotnetTemplate` command.
 
 ## RELATED LINKS
+
+[Online version](https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Initialize-LayeredDotnetProject.md)
+
+[New-LayeredDotnetTemplate]()
+
 

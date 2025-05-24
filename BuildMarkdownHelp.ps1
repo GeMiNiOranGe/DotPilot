@@ -4,6 +4,10 @@ $moduleName = "DotPilot"
 $modulePath = "$PSScriptRoot\DotPilot.psd1"
 $docsPath = "$PSScriptRoot\Docs"
 
+$module = Import-PowerShellDataFile -Path $modulePath
+
+$remoteDocsUrl = "$($module.PrivateData.PSData.ProjectUri)/blob/main/Docs"
+
 if (-not (Get-Module -ListAvailable -Name platyPS)) {
     Install-Module -Name platyPS -Scope CurrentUser -RequiredVersion 0.14.2
 }
@@ -19,6 +23,10 @@ Get-ChildItem $docsPath -Filter *.md -Recurse | ForEach-Object {
     $content = $content -replace '\\`', '`'
     $content = $content -replace '\\\[', '['
     $content = $content -replace '\\\]', ']'
+    $content = $content.Replace(
+        "[$remoteDocsUrl/$($_.BaseName).md]($remoteDocsUrl/$($_.BaseName).md)",
+        "[Online version]($remoteDocsUrl/$($_.BaseName).md)"
+    )
     Set-Content $_.FullName -Value $content
 }
 

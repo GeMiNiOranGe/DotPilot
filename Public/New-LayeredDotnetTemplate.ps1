@@ -17,8 +17,22 @@ Specifies the name of the solution for the layered project. The default value is
 .EXAMPLE
 New-LayeredDotnetTemplate
 
+Output
+```
+info Template created successfully at: .\layers.template.json
+```
+
+Creates the default template in the current directory.
+
 .EXAMPLE
-New-LayeredDotnetTemplate -OutputPath 'C:\Projects\MyProject\template.json' -Architecture Clean -SolutionName 'MyProject'
+New-LayeredDotnetTemplate -OutputPath '.\MyProject.template.json' -Architecture Clean -SolutionName 'MyProject'
+
+Output
+```
+info Template created successfully at: .\MyProject.template.json
+```
+
+Creates a template with the Clean architecture in the current directory, with the file name "MyProject.template.json" and the solution name "MyProject".
 
 .INPUTS
 None. You can't pipe objects to `New-LayeredDotnetTemplate`.
@@ -39,10 +53,22 @@ The generated JSON template file will have the following structure:
             "packages": [],
             "projectReferences": []
         }
+        // define other layers ...
     ]
 }
 ```
 The template can be customized by modifying the "layers" array to include the desired project structure and templates.
+
+Property            | Type     | Description
+------------------- | -------- | -----------------------------------------------------------------
+`name`              | string   | The name of the project.
+`type`              | string   | The type of project, `webapi` indicates it's a Web API project.
+`extraArguments`    | string   | Additional command-line arguments used when creating the project.
+`packages`          | array    | A list of NuGet packages that the project depends on.
+`projectReferences` | array    | A list of other projects this project references.
+
+.LINK
+https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/New-LayeredDotnetTemplate.md
 #>
 function New-LayeredDotnetTemplate {
     [CmdletBinding()]

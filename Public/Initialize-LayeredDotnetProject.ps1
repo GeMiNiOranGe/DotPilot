@@ -15,10 +15,25 @@ Specifies whether to skip creating the `Directory.Build.props` file.
 Specifies whether to log the output to a file instead of the console.
 
 .EXAMPLE
-Initialize-LayeredDotnetProject -TemplateJsonPath 'C:\Projects\MyProject\template.json'
+Initialize-LayeredDotnetProject -TemplateJsonPath '.\MyProject.template.json'
 
-.EXAMPLE
-Initialize-LayeredDotnetProject -TemplateJsonPath 'C:\Projects\MyProject\template.json' -NoDirectoryBuildFile -LogToFile
+Output
+```powershell
+info Creating gitignore
+The template "dotnet gitignore file" was created successfully.
+
+info Creating solution 'MyProject'
+The template "Solution File" was created successfully.
+
+info Creating 'MyProject.Core' project
+The template "Class Library" was created successfully.
+
+# ...
+# other console logs
+# ...
+```
+
+Prints command messages during project initialization.
 
 .INPUTS
 None. You can't pipe objects to `Initialize-LayeredDotnetProject`.
@@ -28,6 +43,12 @@ None. This function does not return any output, but it creates a .NET solution a
 
 .NOTES
 The JSON template file should be created using the `New-LayeredDotnetTemplate` command.
+
+.LINK
+https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Initialize-LayeredDotnetProject.md
+
+.LINK
+New-LayeredDotnetTemplate
 #>
 function Initialize-LayeredDotnetProject {
     [CmdletBinding()]

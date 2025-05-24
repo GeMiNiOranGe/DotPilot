@@ -1,7 +1,7 @@
 ---
 external help file: DotPilot-help.xml
 Module Name: DotPilot
-online version:
+online version: https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/New-LayeredDotnetTemplate.md
 schema: 2.0.0
 ---
 
@@ -28,10 +28,24 @@ The template can be customized with different project architectures and solution
 New-LayeredDotnetTemplate
 ```
 
+Output
+```
+info Template created successfully at: .\layers.template.json
+```
+
+Creates the default template in the current directory.
+
 ### EXAMPLE 2
 ```
-New-LayeredDotnetTemplate -OutputPath 'C:\Projects\MyProject\template.json' -Architecture Clean -SolutionName 'MyProject'
+New-LayeredDotnetTemplate -OutputPath '.\MyProject.template.json' -Architecture Clean -SolutionName 'MyProject'
 ```
+
+Output
+```
+info Template created successfully at: .\MyProject.template.json
+```
+
+Creates a template with the Clean architecture in the current directory, with the file name "MyProject.template.json" and the solution name "MyProject".
 
 ## PARAMETERS
 
@@ -114,32 +128,28 @@ The generated JSON template file will have the following structure:
     "solutionName": "Example",
     "layers": [
         {
-            "name": "LayerOne",
-            "type": "classlib"
-        },
-        {
-            "name": "LayerTwo",
-            "type": "classlib",
-            "extraArguments": [
-                "--framework", "net6.0"
-            ],
-            "projectReferences": [
-                "LayerOne"
-            ]
-        },
-        {
-            "name": "LayerThree",
+            "name": "App",
             "type": "webapi",
-            "extraArguments": "",
+            "extraArguments": "--use-controllers",
             "packages": [],
-            "projectReferences": [
-                "LayerThree"
-            ]
+            "projectReferences": []
         }
+        // define other layers ...
     ]
 }
 ```
 The template can be customized by modifying the "layers" array to include the desired project structure and templates.
 
+Property            | Type     | Description
+------------------- | -------- | -----------------------------------------------------------------
+`name`              | string   | The name of the project.
+`type`              | string   | The type of project, `webapi` indicates it's a Web API project.
+`extraArguments`    | string   | Additional command-line arguments used when creating the project.
+`packages`          | array    | A list of NuGet packages that the project depends on.
+`projectReferences` | array    | A list of other projects this project references.
+
 ## RELATED LINKS
+
+[Online version](https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/New-LayeredDotnetTemplate.md)
+
 

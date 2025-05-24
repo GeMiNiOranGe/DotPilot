@@ -16,8 +16,8 @@ You can find detailed documentation [here](Docs).
 Create .NET Project
 
 ```powershell
-New-LayeredDotnetTemplate -SolutionName "MyBiggestProject" -Architecture Clean
-Initialize-LayeredDotnetProject -TemplateJsonPath .\layers.template.json
+New-LayeredDotnetTemplate -OutputPath ".\MyBiggestProject.template.json" -SolutionName "MyBiggestProject" -Architecture Clean
+Initialize-LayeredDotnetProject -TemplateJsonPath ".\MyBiggestProject.template.json" -LogToFile
 ```
 
 ### Install from the PowerShell Gallery (recommended)
