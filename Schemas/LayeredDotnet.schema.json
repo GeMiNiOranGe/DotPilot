@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "schema:layered-dotnet",
+    "type": "object",
+    "properties": {
+        "solutionName": {
+            "type": "string"
+        },
+        "layers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "extraArguments": {
+                        "type": "string"
+                    },
+                    "packages": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "projectReferences": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "type",
+                    "extraArguments",
+                    "packages",
+                    "projectReferences"
+                ]
+            },
+            "minItems": 1
+        }
+    },
+    "required": [
+        "solutionName",
+        "layers"
+    ]
+}

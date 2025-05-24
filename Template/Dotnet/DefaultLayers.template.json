@@ -3,11 +3,16 @@
     "layers": [
         {
             "name": "LayerOne",
-            "type": "classlib"
+            "type": "classlib",
+            "extraArguments": "",
+            "packages": [],
+            "projectReferences": []
         },
         {
             "name": "LayerTwo",
             "type": "classlib",
+            "extraArguments": "",
+            "packages": [],
             "projectReferences": [
                 "LayerOne"
             ]
@@ -18,7 +23,7 @@
             "extraArguments": "",
             "packages": [],
             "projectReferences": [
-                "LayerThree"
+                "LayerTwo"
             ]
         }
     ]

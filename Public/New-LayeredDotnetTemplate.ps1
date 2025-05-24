@@ -33,27 +33,11 @@ The generated JSON template file will have the following structure:
     "solutionName": "Example",
     "layers": [
         {
-            "name": "LayerOne",
-            "type": "classlib"
-        },
-        {
-            "name": "LayerTwo",
-            "type": "classlib",
-            "extraArguments": [
-                "--framework", "net6.0"
-            ],
-            "projectReferences": [
-                "LayerOne"
-            ]
-        },
-        {
-            "name": "LayerThree",
+            "name": "App",
             "type": "webapi",
-            "extraArguments": "",
+            "extraArguments": "--use-controllers",
             "packages": [],
-            "projectReferences": [
-                "LayerThree"
-            ]
+            "projectReferences": []
         }
     ]
 }

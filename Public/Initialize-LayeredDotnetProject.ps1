@@ -55,83 +55,22 @@ function Initialize-LayeredDotnetProject {
         $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
 
+    # Validate required fields
     try {
-        $template = Get-Content -Raw -Path $TemplateJsonPath | ConvertFrom-Json
+        Test-Json `
+            -Path $TemplateJsonPath `
+            -SchemaFile "$PSScriptRoot\..\Schemas\LayeredDotnet.schema.json" `
+            -ErrorAction Stop
     }
     catch {
-        $exception = [System.IO.InvalidDataException]::new(
-            "Invalid JSON format in file '$TemplateJsonPath'."
-        )
-        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            $exception,
-            "InvalidJson",
-            [System.Management.Automation.ErrorCategory]::InvalidData,
-            $TemplateJsonPath
-        )
-        $PSCmdlet.ThrowTerminatingError($errorRecord)
+        $PSCmdlet.ThrowTerminatingError($_)
     }
 
-    # Validate required fields
-    if (-not $template.solutionName) {
-        $exception = [System.Exception]::new(
-            "Missing 'solutionName' in JSON template."
-        )
-        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            $exception,
-            "MissingSolutionName",
-            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-            $template.solutionName
-        )
-        $PSCmdlet.ThrowTerminatingError($errorRecord)
-    }
+    $template = Get-Content -Raw -Path $TemplateJsonPath | ConvertFrom-Json
 
-    if (-not $template.layers -or $template.layers.Count -eq 0) {
-        $exception = [System.Exception]::new(
-            "Missing or empty 'layers' array in JSON template."
-        )
-        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            $exception,
-            "MissingOrEmptyLayers",
-            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-            $template.layers
-        )
-        $PSCmdlet.ThrowTerminatingError($errorRecord)
-    }
-
-    foreach ($layer in $template.layers) {
-        if (-not $layer.name) {
-            $exception = [System.Exception]::new(
-                "Each layer must have a 'name' field."
-            )
-            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-                $exception,
-                "MissingLayerName",
-                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                $layer.name
-            )
-            $PSCmdlet.ThrowTerminatingError($errorRecord)
-        }
-
-        if (-not $layer.type) {
-            $exception = [System.Exception]::new(
-                "Each layer must have a 'type' field."
-            )
-            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-                $exception,
-                "MissingLayerType",
-                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                $layer.type
-            )
-            $PSCmdlet.ThrowTerminatingError($errorRecord)
-        }
-    }
-
-    # Define the solution name
+    # Define variables
     $solutionName = $template.solutionName
-
-    # Define layers and their types
     $layers = $template.layers
-
     $Log = $LogToFile ? {
         param($Level, $Message)
         Write-Log -Level $Level -Message $Message -OutputFile "$solutionName.log"
@@ -179,11 +118,9 @@ function Initialize-LayeredDotnetProject {
         dotnet sln "$solutionName.sln" add "$projectName/$projectName.csproj"
 
         # Install NuGet packages if specified
-        if ($layer.packages) {
-            foreach ($package in $layer.packages) {
-                & $Log Info "Installing '$package' for '$projectName'"
-                dotnet add "$projectName/$projectName.csproj" package $package
-            }
+        foreach ($package in $layer.packages) {
+            & $Log Info "Installing '$package' for '$projectName'"
+            dotnet add "$projectName/$projectName.csproj" package $package
         }
     }
 
@@ -191,12 +128,10 @@ function Initialize-LayeredDotnetProject {
     foreach ($layer in $layers) {
         $projectName = "$solutionName.$($layer.name)"
 
-        if ($layer.projectReferences) {
-            foreach ($projectReference in $layer.projectReferences) {
-                $projRef = "$solutionName.$projectReference"
-                & $Log Info "Adding reference '$projectName' project to '$projRef'"
-                dotnet add $projectName reference "$projRef"
-            }
+        foreach ($projectReference in $layer.projectReferences) {
+            $projRef = "$solutionName.$projectReference"
+            & $Log Info "Adding reference '$projectName' project to '$projRef'"
+            dotnet add $projectName reference "$projRef"
         }
     }
 
