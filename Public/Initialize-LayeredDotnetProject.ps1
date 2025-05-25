@@ -76,10 +76,12 @@ function Initialize-LayeredDotnetProject {
         $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
 
+    $templateJsonRaw = Get-Content -Raw -Path $TemplateJsonPath
+
     # Validate required fields
     try {
-        Test-Json `
-            -Path $TemplateJsonPath `
+        $null = Test-Json `
+            -Json $templateJsonRaw `
             -SchemaFile "$PSScriptRoot\..\Schemas\LayeredDotnet.schema.json" `
             -ErrorAction Stop
     }
@@ -87,7 +89,7 @@ function Initialize-LayeredDotnetProject {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 
-    $template = Get-Content -Raw -Path $TemplateJsonPath | ConvertFrom-Json
+    $template = $templateJsonRaw | ConvertFrom-Json
 
     # Define variables
     $solutionName = $template.solutionName
