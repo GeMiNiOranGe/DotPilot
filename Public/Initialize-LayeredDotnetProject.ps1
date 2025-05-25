@@ -61,6 +61,8 @@ function Initialize-LayeredDotnetProject {
 
         [switch]$LogToFile
     )
+    Assert-CliInstalled -CommandName "dotnet" -Cmdlet $PSCmdlet
+
     # Load and parse JSON config
     if (-not (Test-Path $TemplateJsonPath)) {
         $exception = [System.IO.FileNotFoundException]::new(
