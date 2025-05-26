@@ -1,7 +1,7 @@
 . $PSScriptRoot\Private\Write-ConsoleLog.ps1
 
 $moduleName = "DotPilot"
-$modulePath = "$PSScriptRoot\DotPilot.psd1"
+$modulePath = "$PSScriptRoot\Src\DotPilot.psd1"
 $docsPath = "$PSScriptRoot\Docs"
 
 $module = Import-PowerShellDataFile -Path $modulePath

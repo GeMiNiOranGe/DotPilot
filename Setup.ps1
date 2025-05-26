@@ -6,7 +6,8 @@ if (-not (Test-Path $profilePath)) {
 }
 
 $profileContent = Get-Content $profilePath
-$pattern = "Import-Module\s+$($PSScriptRoot.Replace('\', '\\'))"
+$modulePath = "$PSScriptRoot\Src\DotPilot.psd1"
+$pattern = "Import-Module\s+$($modulePath.Replace('\', '\\'))"
 $aliasExists = $profileContent | Select-String -Pattern $pattern
 
 if ($aliasExists) {
@@ -15,6 +16,6 @@ if ($aliasExists) {
 else {
     Add-Content `
         -Path $profilePath `
-        -Value "Import-Module $PSScriptRoot"
+        -Value "Import-Module $modulePath"
     Write-Host "Imported 'DotPilot' into profile."
 }
