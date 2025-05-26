@@ -32,7 +32,7 @@
     Description       = 'DotPilot is a toolset that automates project setup and resource management'
 
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '5.1'
+    PowerShellVersion = '7.4'
 
     # Name of the Windows PowerShell host required by this module
     # PowerShellHostName = ''

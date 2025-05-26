@@ -61,6 +61,7 @@ function Initialize-LayeredDotnetProject {
 
         [switch]$LogToFile
     )
+    # Assert required CLI tools
     Assert-CliInstalled -CommandName "dotnet" -Cmdlet $PSCmdlet
 
     # Load and parse JSON config
