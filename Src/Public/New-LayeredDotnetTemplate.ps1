@@ -112,6 +112,14 @@ function New-LayeredDotnetTemplate {
         -Path "$PSScriptRoot\..\Template\Dotnet\$template"
     $templateContent = $templateContent -replace "{{solutionName}}", $SolutionName
 
-    Set-Content -Path $targetOutputPath -Value $templateContent
+    try {
+        Set-Content `
+            -Path $targetOutputPath `
+            -Value $templateContent `
+            -ErrorAction Stop
+    }
+    catch {
+        $PSCmdlet.ThrowTerminatingError($_)
+    }
     Write-ConsoleLog Info "Template created successfully at: $targetOutputPath"
 }

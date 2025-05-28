@@ -31,8 +31,18 @@ Describe "New-LayeredDotnetTemplate" {
             Should -Throw -ErrorId "DirectoryNotFound,New-LayeredDotnetTemplate"
         }
 
-        # TODO: Check "Creates a template at filename without extention"
-        # Create at '.\test\template.json' but 'test' is a file, not directory
+        It "Throws an error when the output path points to a file instead of a directory" {
+            $directoryName = "DirectoryIsFile"
+            $directoryPath = "$env:TEMP\$directoryName"
+
+            # Create a file with the same name as the intended directory
+            [void](New-Item -Path $env:TEMP -Name $directoryName -ItemType File)
+
+            { New-LayeredDotnetTemplate -OutputPath "$directoryPath\Template.json" } |
+            Should -Throw -ErrorId "GetContentWriterDirectoryNotFoundError,New-LayeredDotnetTemplate"
+
+            Remove-Item $directoryPath
+        }
     }
 
     Context "When replacing the '{{solutionName}}' placeholder" {
