@@ -1,4 +1,4 @@
-$srcPath = "$PSScriptRoot\..\Src"
+$script:srcPath = "$PSScriptRoot\..\Src"
 
 Describe "Template Validation" {
     Context "Layered Dotnet Template" {
