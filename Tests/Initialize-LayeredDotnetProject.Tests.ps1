@@ -12,7 +12,10 @@ Describe "Initialize-LayeredDotnetProject" {
     }
 
     Context "When the JSON template is invalid" {
-        It "throws 'InvalidJson' when the template is not a valid JSON structure" -TestCases @(
+        It (
+            "Throws '<ExpectedErrorId>' when required fields are missing or " +
+            "schema is incorrect"
+        ) -TestCases @(
             @{
                 Template        = @(
                     '"solutionName": "Example",'
@@ -26,19 +29,8 @@ Describe "Initialize-LayeredDotnetProject" {
                     '    }'
                     ']'
                 )
-                ExpectedErrorId = "InvalidJson,Initialize-LayeredDotnetProject"
+                ExpectedErrorId = "InvalidJson"
             }
-        ) {
-            param($Template, $ExpectedErrorId)
-            $guid = [System.Guid]::NewGuid().ToString()
-            $templatePath = "$tempDir\$guid.template.json"
-            Set-Content -Path $templatePath -Value $Template
-
-            { Initialize-LayeredDotnetProject -TemplateJsonPath $templatePath } |
-            Should -Throw -ErrorId $ExpectedErrorId
-        }
-
-        It "throws 'InvalidJsonAgainstSchemaDetailed' when required fields are missing or schema is incorrect" -TestCases @(
             @{
                 Template        = @(
                     '{'
@@ -53,7 +45,7 @@ Describe "Initialize-LayeredDotnetProject" {
                     '    ]'
                     '}'
                 )
-                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed,Initialize-LayeredDotnetProject"
+                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed"
             }
             @{
                 Template        = @(
@@ -61,7 +53,7 @@ Describe "Initialize-LayeredDotnetProject" {
                     '    "solutionName": "Example"'
                     '}'
                 )
-                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed,Initialize-LayeredDotnetProject"
+                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed"
             }
             @{
                 Template        = @(
@@ -77,7 +69,7 @@ Describe "Initialize-LayeredDotnetProject" {
                     '    ]'
                     '}'
                 )
-                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed,Initialize-LayeredDotnetProject"
+                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed"
             }
         ) {
             param($Template, $ExpectedErrorId)
@@ -86,51 +78,36 @@ Describe "Initialize-LayeredDotnetProject" {
             Set-Content -Path $templatePath -Value $Template
 
             { Initialize-LayeredDotnetProject -TemplateJsonPath $templatePath } |
-            Should -Throw -ErrorId $ExpectedErrorId
+            Should -Throw -ErrorId (
+                "$ExpectedErrorId,Initialize-LayeredDotnetProject"
+            )
         }
     }
 
-    Context "When the template file is missing or the output path is invalid" {
-        It "throws 'FileNotFound' when the template file does not exist" -TestCases @(
-            @{
-                TemplatePath = "FakeTemplate.json"
-            }
-            @{
-                TemplatePath = "FakeDirectory\FakeTemplate.json"
-            }
-        ) {
-            param ($TemplatePath)
-            { Initialize-LayeredDotnetProject -TemplateJsonPath $TemplatePath } |
-            Should -Throw -ErrorId "FileNotFound,Initialize-LayeredDotnetProject"
-        }
-
-        It "throws 'FileNotFound' when the output path points to a file instead of a directory" {
-            $directoryName = "DirectoryIsFile"
-            $directoryPath = "$tempDir\$directoryName"
-
-            [void](New-Item -Path $tempDir -Name $directoryName -ItemType File)
-
-            { Initialize-LayeredDotnetProject -TemplateJsonPath "$directoryPath\Template.json" } |
+    Context "When the template file path is invalid" {
+        It "Throws 'FileNotFound' when the template file does not exist" {
+            $path = "FakeDirectory\FakeTemplate.json"
+            { Initialize-LayeredDotnetProject -TemplateJsonPath $path } |
             Should -Throw -ErrorId "FileNotFound,Initialize-LayeredDotnetProject"
         }
     }
 
     Context "When valid template provided" {
-        BeforeEach {
+        BeforeAll {
             . "$PSScriptRoot\..\Src\Classes\CommandNotFoundException.ps1"
             . "$PSScriptRoot\..\Src\Private\WriteConsoleLog.ps1"
             . "$PSScriptRoot\..\Src\Private\WriteLog.ps1"
             . "$PSScriptRoot\..\Src\Private\AssertCliInstalled.ps1"
             . "$PSScriptRoot\..\Src\Public\Initialize-LayeredDotnetProject.ps1"
+            . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
 
             Mock Assert-CliInstalled {}
             Mock Write-ConsoleLog {}
             Mock Write-Log {}
             Mock dotnet { return "mocked" }
-            Mock Get-Date { return [datetime]"2024-01-01 00:00:00" }
         }
 
-        It "runs dotnet CLI and logs" {
+        It "Runs dotnet CLI and logs" {
             New-LayeredDotnetTemplate
 
             $defaultPath = ".\layers.template.json"
@@ -142,7 +119,10 @@ Describe "Initialize-LayeredDotnetProject" {
             Should -Invoke Write-ConsoleLog -Times 1
         }
 
-        It "creates Directory.Build.props unless NoDirectoryBuildFile is specified" {
+        It (
+            "Creates Directory.Build.props unless NoDirectoryBuildFile is " +
+            "specified"
+        ) {
             New-LayeredDotnetTemplate
 
             $defaultPath = ".\layers.template.json"

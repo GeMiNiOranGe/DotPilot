@@ -1,4 +1,11 @@
 Describe "New-LayeredDotnetTemplate" {
+    BeforeAll {
+        . "$PSScriptRoot\..\Src\Private\WriteConsoleLog.ps1"
+        . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
+
+        Mock Write-ConsoleLog {}
+    }
+
     Context "When using a valid '-OutputPath' option" {
         It "Creates the default template file in current directory" {
             $defaultPath = ".\layers.template.json"
@@ -24,14 +31,20 @@ Describe "New-LayeredDotnetTemplate" {
     }
 
     Context "When using an invalid '-OutputPath' option" {
-        It "Throws a DirectoryNotFound error if the output directory does not exist" {
+        It (
+            "Throws a DirectoryNotFound error if the output directory does " +
+            "not exist"
+        ) {
             $invalidPath = "$env:TEMP\DirectoryNotExist\Template.json"
 
             { New-LayeredDotnetTemplate -OutputPath $invalidPath } |
             Should -Throw -ErrorId "DirectoryNotFound,New-LayeredDotnetTemplate"
         }
 
-        It "Throws an error when the output path points to a file instead of a directory" {
+        It (
+            "Throws an error when the output path points to a file instead " +
+            "of a directory"
+        ) {
             $directoryName = "DirectoryIsFile"
             $directoryPath = "$env:TEMP\$directoryName"
 
@@ -39,22 +52,22 @@ Describe "New-LayeredDotnetTemplate" {
             [void](New-Item -Path $env:TEMP -Name $directoryName -ItemType File)
 
             { New-LayeredDotnetTemplate -OutputPath "$directoryPath\Template.json" } |
-            Should -Throw -ErrorId "GetContentWriterDirectoryNotFoundError,New-LayeredDotnetTemplate"
+            Should -Throw -ErrorId (
+                "GetContentWriterDirectoryNotFoundError,New-LayeredDotnetTemplate"
+            )
 
             Remove-Item $directoryPath
         }
     }
 
     Context "When replacing the '{{solutionName}}' placeholder" {
-        It "Replaces '{{solutionName}}' with the default value 'Example' for different architectures (Architecture: <TemplateArguments.Architecture>)" -TestCases @(
-            @{
-                TemplateArguments = @{
-                    Architecture = "Clean"
-                }
-            }
-            @{
-                TemplateArguments = @{}
-            }
+        It (
+            "Replaces '{{solutionName}}' with the default value 'Example' " +
+            "for different architectures (Architecture: " +
+            "<TemplateArguments.Architecture>)"
+        ) -TestCases @(
+            @{ TemplateArguments = @{ Architecture = "Clean" } }
+            @{ TemplateArguments = @{} }
         ) {
             param ($TemplateArguments)
 
@@ -71,9 +84,12 @@ Describe "New-LayeredDotnetTemplate" {
 
     <#
     Context "When passing placeholder value" {
-        # TODO: Check not to pass `-SolutionName` is `"{{solutionName}}"`
-        # which means not allowed to pass the correct placeholder in the template
-        It "Ensures '{{solutionName}}' is not replaced even if passed explicitly as a value" {
+        # TODO: Check not to pass `-SolutionName` is `"{{solutionName}}"` which
+        # means not allowed to pass the correct placeholder in the template
+        It (
+            "Ensures '{{solutionName}}' is not replaced even if passed " +
+            "explicitly as a value"
+        ) {
             $defaultPath = ".\layers.template.json"
             New-LayeredDotnetTemplate -SolutionName "{{solutionName}}"
             $content = Get-Content $defaultPath -Raw
