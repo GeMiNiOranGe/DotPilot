@@ -38,3 +38,4 @@ If you want to try out the latest features:
 ## Shout out
 
 * Documentation is automatically generated using [platyPS](https://github.com/PowerShell/platyPS).
+* Automatic testing by [Pester](https://github.com/pester/Pester)
