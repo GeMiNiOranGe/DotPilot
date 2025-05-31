@@ -7,7 +7,7 @@ Describe "Template Validation" {
                 ArchitectureTemplate = "CleanArchitecture.template.json"
             }
             @{
-                ArchitectureTemplate = "DefaultLayers.template.json"
+                ArchitectureTemplate = "DefaultArchitecture.template.json"
             }
         ) {
             param($ArchitectureTemplate)

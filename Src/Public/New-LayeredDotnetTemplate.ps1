@@ -104,7 +104,7 @@ function New-LayeredDotnetTemplate {
             break
         }
         default {
-            "DefaultLayers.template.json"
+            "DefaultArchitecture.template.json"
             break
         }
     }
