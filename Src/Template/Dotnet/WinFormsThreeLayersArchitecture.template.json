@@ -1,0 +1,30 @@
+{
+    "solutionName": "{{solutionName}}",
+    "layers": [
+        {
+            "name": "DataAccess",
+            "type": "winformslib",
+            "extraArguments": "",
+            "packages": [],
+            "projectReferences": []
+        },
+        {
+            "name": "Business",
+            "type": "winformslib",
+            "extraArguments": "",
+            "packages": [],
+            "projectReferences": [
+                "DataAccess"
+            ]
+        },
+        {
+            "name": "Presentation",
+            "type": "winforms",
+            "extraArguments": "",
+            "packages": [],
+            "projectReferences": [
+                "Business"
+            ]
+        }
+    ]
+}

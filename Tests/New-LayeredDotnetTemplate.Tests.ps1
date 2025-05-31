@@ -67,6 +67,7 @@ Describe "New-LayeredDotnetTemplate" {
             "<TemplateArguments.Architecture>)"
         ) -TestCases @(
             @{ TemplateArguments = @{ Architecture = "Clean" } }
+            @{ TemplateArguments = @{ Architecture = "WinFormsThreeLayers" } }
             @{ TemplateArguments = @{} }
         ) {
             param ($TemplateArguments)

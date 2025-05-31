@@ -7,6 +7,9 @@ Describe "Template Validation" {
                 ArchitectureTemplate = "CleanArchitecture.template.json"
             }
             @{
+                ArchitectureTemplate = "WinFormsThreeLayersArchitecture.template.json"
+            }
+            @{
                 ArchitectureTemplate = "DefaultArchitecture.template.json"
             }
         ) {

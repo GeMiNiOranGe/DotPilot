@@ -9,7 +9,7 @@ The `New-LayeredDotnetTemplate` function generates a JSON template file that can
 Specifies the output path for the generated JSON template file. If not provided, the file will be created in the current directory with the name "layers.template.json".
 
 .PARAMETER Architecture
-Specifies the architecture of the layered project. Currently, the only supported value is "Clean".
+Specifies the architecture of the layered project. Currently, the supported value is "Clean", "WinFormsThreeLayers".
 
 .PARAMETER SolutionName
 Specifies the name of the solution for the layered project. The default value is "Example".
@@ -76,7 +76,7 @@ function New-LayeredDotnetTemplate {
         [ValidateNotNullOrWhiteSpace()]
         [string]$OutputPath,
 
-        [ValidateSet("Clean")]
+        [ValidateSet("Clean", "WinFormsThreeLayers")]
         [string]$Architecture,
 
         [ValidateNotNullOrWhiteSpace()]
@@ -103,6 +103,10 @@ function New-LayeredDotnetTemplate {
             "CleanArchitecture.template.json"
             break
         }
+        "WinFormsThreeLayers" {
+            "WinFormsThreeLayersArchitecture.template.json"
+            break
+        }
         default {
             "DefaultArchitecture.template.json"
             break
@@ -116,6 +120,7 @@ function New-LayeredDotnetTemplate {
         Set-Content `
             -Path $targetOutputPath `
             -Value $templateContent `
+            -NoNewline `
             -ErrorAction Stop
     }
     catch {

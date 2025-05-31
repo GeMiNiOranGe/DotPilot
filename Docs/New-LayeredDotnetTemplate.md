@@ -67,7 +67,7 @@ Accept wildcard characters: False
 
 ### -Architecture
 Specifies the architecture of the layered project.
-Currently, the only supported value is "Clean".
+Currently, the supported value is "Clean", "WinFormsThreeLayers".
 
 ```yaml
 Type: String

@@ -1,4 +1,4 @@
-. $PSScriptRoot\Private\Write-ConsoleLog.ps1
+. $PSScriptRoot\Src\Private\WriteConsoleLog.ps1
 
 $moduleName = "DotPilot"
 $modulePath = "$PSScriptRoot\Src\DotPilot.psd1"
