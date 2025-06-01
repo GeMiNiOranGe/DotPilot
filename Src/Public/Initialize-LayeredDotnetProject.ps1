@@ -92,11 +92,11 @@ function Initialize-LayeredDotnetProject {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 
-    $template = $templateJsonRaw | ConvertFrom-Json
+    $template = [DotnetTemplate]($templateJsonRaw | ConvertFrom-Json)
 
     # Define variables
-    $solutionName = $template.solutionName
-    $layers = $template.layers
+    $solutionName = $template.SolutionName
+    $layers = $template.Layers
     $Log = $LogToFile ? {
         param($Level, $Message)
         Write-Log -Level $Level -Message $Message -OutputFile "$solutionName.log"
@@ -128,9 +128,9 @@ function Initialize-LayeredDotnetProject {
 
     # Loop through each layer to create projects and add them to the solution
     foreach ($layer in $layers) {
-        $projectName = "$solutionName.$($layer.name)"
-        $projectType = $layer.type
-        $extraArguments = $layer.extraArguments
+        $projectName = "$solutionName.$($layer.Name)"
+        $projectType = $layer.Type
+        $extraArguments = $layer.ExtraArguments
 
         $arguments = @("new", $projectType, "--name", $projectName)
         if ($extraArguments) {
@@ -144,7 +144,7 @@ function Initialize-LayeredDotnetProject {
         dotnet sln "$solutionName.sln" add "$projectName/$projectName.csproj"
 
         # Install NuGet packages if specified
-        foreach ($package in $layer.packages) {
+        foreach ($package in $layer.Packages) {
             & $Log Info "Installing '$package' for '$projectName'"
             dotnet add "$projectName/$projectName.csproj" package $package
         }
@@ -152,9 +152,9 @@ function Initialize-LayeredDotnetProject {
 
     # Loop through each layer to reference projects
     foreach ($layer in $layers) {
-        $projectName = "$solutionName.$($layer.name)"
+        $projectName = "$solutionName.$($layer.Name)"
 
-        foreach ($projectReference in $layer.projectReferences) {
+        foreach ($projectReference in $layer.ProjectReferences) {
             $projRef = "$solutionName.$projectReference"
             & $Log Info "Adding reference '$projectName' project to '$projRef'"
             dotnet add $projectName reference "$projRef"
