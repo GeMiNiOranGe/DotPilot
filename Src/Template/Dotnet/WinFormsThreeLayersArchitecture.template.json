@@ -2,11 +2,20 @@
     "solutionName": "{{solutionName}}",
     "layers": [
         {
-            "name": "DataAccess",
+            "name": "DTOs",
             "type": "winformslib",
             "extraArguments": "",
             "packages": [],
             "projectReferences": []
+        },
+        {
+            "name": "DataAccess",
+            "type": "winformslib",
+            "extraArguments": "",
+            "packages": [],
+            "projectReferences": [
+                "DTOs"
+            ]
         },
         {
             "name": "Business",
@@ -14,6 +23,7 @@
             "extraArguments": "",
             "packages": [],
             "projectReferences": [
+                "DTOs",
                 "DataAccess"
             ]
         },
@@ -23,6 +33,7 @@
             "extraArguments": "",
             "packages": [],
             "projectReferences": [
+                "DTOs",
                 "Business"
             ]
         }
