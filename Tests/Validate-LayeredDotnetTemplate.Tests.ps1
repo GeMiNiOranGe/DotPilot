@@ -1,7 +1,7 @@
 $script:srcPath = "$PSScriptRoot\..\Src"
 
 Describe "Template Validation" {
-    Context "Layered Dotnet Template" {
+    Context "Layered Dotnet Template" -Tag "Dotnet" {
         It "Should be valid according to LayeredDotnet schema - <ArchitectureTemplate>" -TestCases @(
             @{
                 ArchitectureTemplate = "CleanArchitecture.template.json"

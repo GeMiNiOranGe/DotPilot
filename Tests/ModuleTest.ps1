@@ -1,3 +1,11 @@
+# NOTE: `.\ModuleTest.ps1 -Tags "Dotnet"`
+
+[CmdletBinding()]
+param (
+    [Parameter()]
+    [string[]]$Tags
+)
+
 $rootPath = Resolve-Path "$PSScriptRoot\.."
 $modulePath = Join-Path $rootPath "Src\DotPilot.psd1"
 
@@ -13,5 +21,6 @@ Import-Module Pester
 
 $config = [PesterConfiguration]::new()
 $config.Output.Verbosity = "Detailed"
+$config.Filter.Tag = $Tags
 
 Invoke-Pester -Configuration $config

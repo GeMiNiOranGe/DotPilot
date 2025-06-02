@@ -1,6 +1,6 @@
 $script:tempDir = "$PSScriptRoot\Temp"
 
-Describe "Initialize-LayeredDotnetProject" {
+Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
     BeforeEach {
         [void](New-Item -Path $tempDir -ItemType Directory)
         Set-Location $tempDir
