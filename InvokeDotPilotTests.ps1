@@ -1,4 +1,4 @@
-# NOTE: `.\ModuleTest.ps1 -Tags "Dotnet"`
+# NOTE: `.\InvokeDotPilotTests.ps1 -Tags "Dotnet"`
 
 [CmdletBinding()]
 param (
@@ -6,7 +6,7 @@ param (
     [string[]]$Tags
 )
 
-$rootPath = Resolve-Path "$PSScriptRoot\.."
+$rootPath = Resolve-Path "$PSScriptRoot"
 $modulePath = Join-Path $rootPath "Src\DotPilot.psd1"
 
 Import-Module $modulePath -Force -ErrorAction Stop
