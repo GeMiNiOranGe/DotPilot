@@ -108,13 +108,13 @@ function Initialize-LayeredDotnetProject {
     # Create `Directory.Build.props` file
     if (-not $NoDirectoryBuildFile) {
         Set-Content -Path "Directory.Build.props" -Value @(
-            "<Project>",
-            "  <ItemDefinitionGroup>",
-            "    <ProjectReference>",
-            "      <PrivateAssets>all</PrivateAssets>",
-            "    </ProjectReference>",
-            "  </ItemDefinitionGroup>",
-            "</Project>"
+            '<Project>'
+            '  <ItemDefinitionGroup>'
+            '    <ProjectReference>'
+            '      <PrivateAssets>all</PrivateAssets>'
+            '    </ProjectReference>'
+            '  </ItemDefinitionGroup>'
+            '</Project>'
         )
     }
 
