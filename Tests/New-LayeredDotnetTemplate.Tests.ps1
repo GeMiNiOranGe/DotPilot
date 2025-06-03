@@ -82,21 +82,4 @@ Describe "New-LayeredDotnetTemplate" -Tag "Dotnet" {
             Remove-Item $defaultPath
         }
     }
-
-    <#
-    Context "When passing placeholder value" {
-        # TODO: Check not to pass `-SolutionName` is `"{{solutionName}}"` which
-        # means not allowed to pass the correct placeholder in the template
-        It (
-            "Ensures '{{solutionName}}' is not replaced even if passed " +
-            "explicitly as a value"
-        ) {
-            $defaultPath = ".\layers.template.json"
-            New-LayeredDotnetTemplate -SolutionName "{{solutionName}}"
-            $content = Get-Content $defaultPath -Raw
-            $content | Should -Not -Match '"{{solutionName}}"'
-            Remove-Item $defaultPath
-        }
-    }
-     #>
 }

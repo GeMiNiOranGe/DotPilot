@@ -56,11 +56,3 @@ function Write-Log {
     # Write on console
     Write-ConsoleLog -Level $Level $Message
 }
-
-<#
-# Testcases
-Write-Log Info "Test info" -OutputFile "info.log"
-Write-Log Warn "Test warn" -OutputFile "Utilities.log"
-Write-Log Error "Test error" -OutputFile "Remove-CleanArchitecture.log"
-Write-Log Debug "Test debug"
- #>
