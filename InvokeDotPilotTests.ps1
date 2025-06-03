@@ -6,6 +6,8 @@ param (
     [string[]]$Tags
 )
 
+. "$PSScriptRoot\Src\Config\Defaults.ps1"
+
 $rootPath = Resolve-Path "$PSScriptRoot"
 $modulePath = Join-Path $rootPath "Src\DotPilot.psd1"
 

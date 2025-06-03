@@ -19,7 +19,7 @@ New-LayeredDotnetTemplate
 
 Output
 ```
-info Template created successfully at: .\layers.template.json
+info Template created successfully at: .\Default.template.json
 ```
 
 Creates the default template in the current directory.
@@ -82,7 +82,7 @@ function New-LayeredDotnetTemplate {
         [ValidateNotNullOrWhiteSpace()]
         [string]$SolutionName = "Example"
     )
-    $targetOutputPath = $OutputPath ? $OutputPath : ".\layers.template.json"
+    $targetOutputPath = $OutputPath ? $OutputPath : $DefaultTemplateOutputPath
     $directory = [System.IO.Path]::GetDirectoryName($targetOutputPath)
 
     if ($directory -ne "" -and -not (Test-Path $directory)) {

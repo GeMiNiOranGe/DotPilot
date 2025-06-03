@@ -110,9 +110,8 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
         It "Runs dotnet CLI and logs" {
             New-LayeredDotnetTemplate
 
-            $defaultPath = ".\layers.template.json"
-
-            Initialize-LayeredDotnetProject -TemplateJsonPath $defaultPath
+            Initialize-LayeredDotnetProject `
+                -TemplateJsonPath $DefaultTemplateOutputPath
 
             Should -Invoke Assert-CliInstalled -Times 1 -Exactly
             Should -Invoke dotnet -Times 1
@@ -125,9 +124,8 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
         ) {
             New-LayeredDotnetTemplate
 
-            $defaultPath = ".\layers.template.json"
-
-            Initialize-LayeredDotnetProject -TemplateJsonPath $defaultPath
+            Initialize-LayeredDotnetProject `
+                -TemplateJsonPath $DefaultTemplateOutputPath
 
             Test-Path "Directory.Build.props" | Should -BeTrue
         }

@@ -20,14 +20,15 @@ Describe "New-LayeredDotnetTemplate" -Tag "Dotnet" {
 
     Context "When using a valid '-OutputPath' option" {
         It "Creates the default template file in current directory" {
-            $defaultPath = ".\layers.template.json"
-
             New-LayeredDotnetTemplate
 
-            Test-Path $defaultPath | Should -BeTrue
-            Get-Content $defaultPath -Raw | Should -Match '"Example"'
+            $isValidPath = Test-Path $DefaultTemplateOutputPath
+            $isValidPath | Should -BeTrue
 
-            Remove-Item $defaultPath
+            $content = Get-Content $DefaultTemplateOutputPath -Raw
+            $content | Should -Match '"Example"'
+
+            Remove-Item $DefaultTemplateOutputPath
         }
 
         It "Creates the template file at the specified output path" {
@@ -84,14 +85,12 @@ Describe "New-LayeredDotnetTemplate" -Tag "Dotnet" {
         ) {
             param ($TemplateArguments)
 
-            $defaultPath = ".\layers.template.json"
-
             New-LayeredDotnetTemplate @TemplateArguments
 
-            $content = Get-Content $defaultPath -Raw
+            $content = Get-Content $DefaultTemplateOutputPath -Raw
             $content | Should -Match '"Example"'
 
-            Remove-Item $defaultPath
+            Remove-Item $DefaultTemplateOutputPath
         }
     }
 }

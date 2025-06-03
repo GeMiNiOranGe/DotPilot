@@ -1,26 +1,31 @@
 # Dot source classes/public/private
 $classes = @(
     Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Classes/*.ps1'
+        Join-Path -Path $PSScriptRoot -ChildPath 'Classes\*.ps1'
     ) -Recurse -ErrorAction Stop
 )
 $private = @(
     Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Private/*.ps1'
+        Join-Path -Path $PSScriptRoot -ChildPath 'Private\*.ps1'
     ) -Recurse -ErrorAction Stop
 )
 $public = @(
     Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Public/*.ps1'
+        Join-Path -Path $PSScriptRoot -ChildPath 'Public\*.ps1'
     )  -Recurse -ErrorAction Stop
+)
+$config = @(
+    Get-ChildItem -Path (
+        Join-Path -Path $PSScriptRoot -ChildPath 'Config\*.ps1'
+    ) -Recurse -ErrorAction Stop
 )
 $types = @(
     Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Types/*.ps1'
+        Join-Path -Path $PSScriptRoot -ChildPath 'Types\*.ps1'
     )  -Recurse -ErrorAction Stop
 )
 
-foreach ($import in @($classes + $private + $public + $types)) {
+foreach ($import in @($classes + $private + $public + $config + $types)) {
     try {
         . $import.FullName
     }

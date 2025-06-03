@@ -30,7 +30,7 @@ New-LayeredDotnetTemplate
 
 Output
 ```
-info Template created successfully at: .\layers.template.json
+info Template created successfully at: .\Default.template.json
 ```
 
 Creates the default template in the current directory.
