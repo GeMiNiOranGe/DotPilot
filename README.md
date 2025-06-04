@@ -58,3 +58,7 @@ Initialize-LayeredDotnetProject `
 
 * Documentation is automatically generated using [platyPS](https://github.com/PowerShell/platyPS).
 * Automatic testing by [Pester](https://github.com/pester/Pester)
+
+## CHANGELOG
+
+See [CHANGELOG.md](CHANGELOG.md)
