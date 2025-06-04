@@ -11,15 +11,6 @@ DotPilot is a toolset that automates project setup and resource management.
 
 You can find detailed documentation [here](Docs).
 
-### Example
-
-Create .NET Project
-
-```powershell
-New-LayeredDotnetTemplate -OutputPath ".\MyBiggestProject.template.json" -SolutionName "MyBiggestProject" -Architecture Clean
-Initialize-LayeredDotnetProject -TemplateJsonPath ".\MyBiggestProject.template.json" -LogToFile
-```
-
 ### Install from the PowerShell Gallery (recommended)
 
 Not available
@@ -34,6 +25,34 @@ If you want to try out the latest features:
 .\Setup.ps1
 ```
 3. You're all set! Read the documentation and dive in—yayyyyyyyyyy ○( ＾皿＾)っ Hehehe...
+
+### Example
+
+#### Create .NET Project
+
+- Step 1: Create a Clean Architecture template with the solution name `MyProject`.
+
+```powershell
+New-LayeredDotnetTemplate `
+    -OutputPath MyProject.template.json `
+    -SolutionName "MyProject" `
+    -Architecture Clean
+```
+
+- Step 2: Initialize the project using the created template.
+
+```powershell
+Initialize-LayeredDotnetProject `
+    -TemplateJsonPath MyProject.template.json `
+    -LogToFile
+```
+
+<details>
+    <summary>Output</summary>
+
+![dotnet](Images/Dotnet.png)
+
+</details>
 
 ## Shout out
 
