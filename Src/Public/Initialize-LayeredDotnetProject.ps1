@@ -62,7 +62,7 @@ function Initialize-LayeredDotnetProject {
         [switch]$LogToFile
     )
     # Assert required CLI tools
-    Assert-CliInstalled -CommandName "dotnet" -Cmdlet $PSCmdlet
+    Assert-CliInstalled -Name "dotnet" -Cmdlet $PSCmdlet
 
     # Load and parse JSON config
     if (-not (Test-Path $TemplateJsonPath)) {
