@@ -117,11 +117,13 @@ function New-LayeredDotnetTemplate {
     $templateContent = $templateContent -replace "{{solutionName}}", $SolutionName
 
     try {
-        Set-Content `
-            -Path $targetOutputPath `
-            -Value $templateContent `
-            -NoNewline `
-            -ErrorAction Stop
+        $setContentSplat = @{
+            Path        = $targetOutputPath
+            Value       = $templateContent
+            NoNewline   = $true
+            ErrorAction = "Stop"
+        }
+        Set-Content @setContentSplat
     }
     catch {
         $PSCmdlet.ThrowTerminatingError($_)

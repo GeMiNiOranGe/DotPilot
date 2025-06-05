@@ -83,10 +83,12 @@ function Initialize-LayeredDotnetProject {
 
     # Validate required fields
     try {
-        $null = Test-Json `
-            -Json $templateJsonRaw `
-            -SchemaFile "$PSScriptRoot\..\Schemas\LayeredDotnet.schema.json" `
-            -ErrorAction Stop
+        $testJsonSplat = @{
+            Json        = $templateJsonRaw
+            SchemaFile  = "$PSScriptRoot\..\Schemas\LayeredDotnet.schema.json"
+            ErrorAction = 'Stop'
+        }
+        [void](Test-Json @testJsonSplat)
     }
     catch {
         $PSCmdlet.ThrowTerminatingError($_)
@@ -99,7 +101,12 @@ function Initialize-LayeredDotnetProject {
     $layers = $template.Layers
     $Log = $LogToFile ? {
         param($Level, $Message)
-        Write-Log -Level $Level -Message $Message -OutputFile "$solutionName.log"
+        $writeLogSplat = @{
+            Level      = $Level
+            Message    = $Message
+            OutputFile = "$solutionName.log"
+        }
+        Write-Log @writeLogSplat
     } : {
         param($Level, $Message)
         Write-ConsoleLog -Level $Level -Message $Message

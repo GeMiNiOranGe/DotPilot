@@ -54,5 +54,5 @@ function Write-Log {
     Add-Content -Path $OutputFile -Value $entry
 
     # Write on console
-    Write-ConsoleLog -Level $Level $Message
+    Write-ConsoleLog -Level $Level -Message $Message
 }
