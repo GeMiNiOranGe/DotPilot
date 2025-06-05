@@ -94,7 +94,6 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
 
     Context "When valid template provided" {
         BeforeAll {
-            . "$PSScriptRoot\..\Src\Classes\CommandNotFoundException.ps1"
             . "$PSScriptRoot\..\Src\Private\WriteConsoleLog.ps1"
             . "$PSScriptRoot\..\Src\Private\WriteLog.ps1"
             . "$PSScriptRoot\..\Src\Private\AssertCliInstalled.ps1"

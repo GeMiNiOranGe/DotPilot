@@ -34,7 +34,7 @@ function Assert-CliInstalled {
     )
     if (-not (Get-Command -Name $CommandName -ErrorAction SilentlyContinue)) {
         $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            [CommandNotFoundException]::new($CommandName, $ExtraMessage),
+            [CliToolNotInstalledException]::new($CommandName, $ExtraMessage),
             "CommandNotFound",
             [System.Management.Automation.ErrorCategory]::ObjectNotFound,
             $CommandName
