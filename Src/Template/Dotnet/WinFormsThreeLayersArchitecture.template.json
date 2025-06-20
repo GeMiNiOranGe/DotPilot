@@ -12,7 +12,9 @@
             "name": "DataAccess",
             "type": "winformslib",
             "extraArguments": "",
-            "packages": [],
+            "packages": [
+                "Microsoft.Data.SqlClient"
+            ],
             "projectReferences": [
                 "DTOs"
             ]
