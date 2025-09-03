@@ -2,7 +2,7 @@
     "solutionName": "{{solutionName}}",
     "layers": [
         {
-            "name": "DTOs",
+            "name": "Dtos",
             "type": "winformslib",
             "extraArguments": "",
             "packages": [],
@@ -16,7 +16,7 @@
                 "Microsoft.Data.SqlClient"
             ],
             "projectReferences": [
-                "DTOs"
+                "Dtos"
             ]
         },
         {
@@ -25,7 +25,7 @@
             "extraArguments": "",
             "packages": [],
             "projectReferences": [
-                "DTOs",
+                "Dtos",
                 "DataAccess"
             ]
         },
@@ -35,7 +35,7 @@
             "extraArguments": "",
             "packages": [],
             "projectReferences": [
-                "DTOs",
+                "Dtos",
                 "Business"
             ]
         }
