@@ -117,9 +117,8 @@ function Initialize-LayeredDotnetProject {
         Set-Content -Path "Directory.Build.props" -Value @(
             '<Project>'
             '  <ItemDefinitionGroup>'
-            '    <ProjectReference>'
-            '      <PrivateAssets>all</PrivateAssets>'
-            '    </ProjectReference>'
+            '    <ProjectReference PrivateAssets="compile" />'
+            '    <PackageReference PrivateAssets="compile" />'
             '  </ItemDefinitionGroup>'
             '</Project>'
         )
