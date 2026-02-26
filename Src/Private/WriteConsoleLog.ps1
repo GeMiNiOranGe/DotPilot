@@ -38,7 +38,7 @@ function Write-ConsoleLog {
     $color = $colorMap[$Level]
 
     $writeHostSplat = @{
-        Level           = $Level.ToLower()
+        Object          = $Level.ToLower()
         ForegroundColor = $color.ForegroundColor
         BackgroundColor = $color.BackgroundColor
         NoNewline       = $true
