@@ -6,12 +6,14 @@ param (
     [string[]]$Tags
 )
 
-. "$PSScriptRoot\Src\Config\Defaults.ps1"
+. "$PSScriptRoot\DotPilot.ProjectScaffold\Src\Config\Defaults.ps1"
 
 $rootPath = Resolve-Path "$PSScriptRoot"
-$modulePath = Join-Path $rootPath "Src\DotPilot.psd1"
+$corePath = Join-Path $rootPath "DotPilot.Core\Src\DotPilot.Core.psd1"
+$scaffoldPath = Join-Path $rootPath "DotPilot.ProjectScaffold\Src\DotPilot.ProjectScaffold.psd1"
 
-Import-Module $modulePath -Force -ErrorAction Stop
+Import-Module $corePath -Force -ErrorAction Stop
+Import-Module $scaffoldPath -Force -ErrorAction Stop
 
 if (-not (Get-Module -ListAvailable -Name Pester)) {
     throw (
@@ -24,5 +26,10 @@ Import-Module Pester
 $config = [PesterConfiguration]::new()
 $config.Output.Verbosity = "Detailed"
 $config.Filter.Tag = $Tags
+$config.Run.Path = @(
+    "$rootPath\DotPilot.Core\Tests",
+    "$rootPath\DotPilot.ProjectScaffold\Tests",
+    "$rootPath\DotPilot.Utilities\Tests"
+)
 
 Invoke-Pester -Configuration $config

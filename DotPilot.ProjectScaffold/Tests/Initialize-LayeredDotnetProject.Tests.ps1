@@ -1,6 +1,14 @@
 $script:tempDir = "$PSScriptRoot\Temp"
 
 Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
+    BeforeAll {
+        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-ConsoleLog.ps1"
+        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-Log.ps1"
+        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Assert-CliInstalled.ps1"
+        . "$PSScriptRoot\..\Src\Public\Initialize-LayeredDotnetProject.ps1"
+        . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
+    }
+
     BeforeEach {
         [void](New-Item -Path $tempDir -ItemType Directory)
         Set-Location $tempDir
@@ -94,12 +102,6 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
 
     Context "When valid template provided" {
         BeforeAll {
-            . "$PSScriptRoot\..\Src\Private\WriteConsoleLog.ps1"
-            . "$PSScriptRoot\..\Src\Private\WriteLog.ps1"
-            . "$PSScriptRoot\..\Src\Private\AssertCliInstalled.ps1"
-            . "$PSScriptRoot\..\Src\Public\Initialize-LayeredDotnetProject.ps1"
-            . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
-
             Mock Assert-CliInstalled {}
             Mock Write-ConsoleLog {}
             Mock Write-Log {}

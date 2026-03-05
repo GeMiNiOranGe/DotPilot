@@ -1,18 +1,14 @@
+# Load DotPilot.Core dependency via relative path
+$corePsd1 = Join-Path `
+    -Path $PSScriptRoot `
+    -ChildPath "..\..\DotPilot.Core\Src\DotPilot.Core.psd1"
+Import-Module -Name (Resolve-Path $corePsd1) -Force -Global
+
 # Dot source classes/public/private
-$classes = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Classes\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
-$private = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Private\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
 $public = @(
     Get-ChildItem -Path (
         Join-Path -Path $PSScriptRoot -ChildPath 'Public\*.ps1'
-    )  -Recurse -ErrorAction Stop
+    ) -Recurse -ErrorAction Stop
 )
 $config = @(
     Get-ChildItem -Path (
@@ -22,10 +18,10 @@ $config = @(
 $types = @(
     Get-ChildItem -Path (
         Join-Path -Path $PSScriptRoot -ChildPath 'Types\*.ps1'
-    )  -Recurse -ErrorAction Stop
+    ) -Recurse -ErrorAction Stop
 )
 
-foreach ($import in @($classes + $private + $public + $config + $types)) {
+foreach ($import in @($public + $config + $types)) {
     try {
         . $import.FullName
     }
