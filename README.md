@@ -22,7 +22,7 @@ If you want to try out the latest features:
 1. Clone this repository
 2. Open the PowerShell 7 terminal and run the following script:
 ```powershell
-.\Setup.ps1
+.\Scripts\Setup.ps1
 ```
 3. You're all set! Read the documentation and dive in—yayyyyyyyyyy ○( ＾皿＾)っ Hehehe...
 

@@ -8,8 +8,8 @@ if (-not (Test-Path $profilePath)) {
 $profileContent = Get-Content $profilePath
 
 $modulePaths = @(
-    "$PSScriptRoot\DotPilot.ProjectScaffold\Src\DotPilot.ProjectScaffold.psd1",
-    "$PSScriptRoot\DotPilot.Utilities\Src\DotPilot.Utilities.psd1"
+    "$PSScriptRoot\..\DotPilot.ProjectScaffold\Src\DotPilot.ProjectScaffold.psd1",
+    "$PSScriptRoot\..\DotPilot.Utilities\Src\DotPilot.Utilities.psd1"
 )
 
 foreach ($modulePath in $modulePaths) {

@@ -1,6 +1,6 @@
-. $PSScriptRoot\DotPilot.Core\Src\Public\Write-ConsoleLog.ps1
+. $PSScriptRoot\..\DotPilot.Core\Src\Public\Write-ConsoleLog.ps1
 
-$docsPath = "$PSScriptRoot\Docs"
+$docsPath = "$PSScriptRoot\..\Docs"
 
 if (-not (Get-Module -ListAvailable -Name platyPS)) {
     Install-Module -Name platyPS -Scope CurrentUser -RequiredVersion 0.14.2
@@ -11,11 +11,11 @@ Import-Module platyPS
 $modules = @(
     @{
         Name = "DotPilot.Core"
-        Path = "$PSScriptRoot\DotPilot.Core\Src\DotPilot.Core.psd1"
+        Path = "$PSScriptRoot\..\DotPilot.Core\Src\DotPilot.Core.psd1"
     }
     @{
         Name = "DotPilot.ProjectScaffold"
-        Path = "$PSScriptRoot\DotPilot.ProjectScaffold\Src\DotPilot.ProjectScaffold.psd1"
+        Path = "$PSScriptRoot\..\DotPilot.ProjectScaffold\Src\DotPilot.ProjectScaffold.psd1"
     }
 )
 

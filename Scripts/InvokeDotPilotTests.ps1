@@ -1,4 +1,4 @@
-# NOTE: `.\InvokeDotPilotTests.ps1 -Tags "Dotnet"`
+# NOTE: `.\Scripts\InvokeDotPilotTests.ps1 -Tags "Dotnet"`
 
 [CmdletBinding()]
 param (
@@ -6,9 +6,9 @@ param (
     [string[]]$Tags
 )
 
-. "$PSScriptRoot\DotPilot.ProjectScaffold\Src\Config\Defaults.ps1"
+. "$PSScriptRoot\..\DotPilot.ProjectScaffold\Src\Config\Defaults.ps1"
 
-$rootPath = Resolve-Path "$PSScriptRoot"
+$rootPath = Resolve-Path "$PSScriptRoot\.."
 $corePath = Join-Path $rootPath "DotPilot.Core\Src\DotPilot.Core.psd1"
 $scaffoldPath = Join-Path $rootPath "DotPilot.ProjectScaffold\Src\DotPilot.ProjectScaffold.psd1"
 
