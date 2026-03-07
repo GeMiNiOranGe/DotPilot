@@ -1,6 +1,6 @@
 ---
-external help file: DotPilot-help.xml
-Module Name: DotPilot
+external help file: DotPilot.ProjectScaffold-help.xml
+Module Name: DotPilot.ProjectScaffold
 online version: https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Initialize-LayeredDotnetProject.md
 schema: 2.0.0
 ---

@@ -17,8 +17,19 @@ Specifies an optional extra message to include in the error message.
 .EXAMPLE
 Assert-CliInstalled -Cmdlet $PSCmdlet -Name 'dotnet' -ExtraMessage 'Make sure the .NET Core SDK is installed.'
 
+No output is produced if 'dotnet' is installed. If the tool is not found, a terminating `CliToolNotInstalledException` is thrown via `$Cmdlet`.
+
+.INPUTS
+None. You can't pipe objects to `Assert-CliInstalled`.
+
+.OUTPUTS
+None. This function does not return any output, but it throws a terminating error if the CLI tool is not installed.
+
 .NOTES
 This function is designed to be used within other PowerShell functions or cmdlets to ensure that required command-line tools are installed and available before proceeding with the operation.
+
+.LINK
+https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Assert-CliInstalled.md
 #>
 function Assert-CliInstalled {
     [CmdletBinding()]
