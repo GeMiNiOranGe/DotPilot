@@ -34,14 +34,13 @@ https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Assert-CliInstalled.md
 function Assert-CliInstalled {
     [CmdletBinding()]
     param (
-        [string]
-        $Name,
+        [Parameter(Mandatory)]
+        [string]$Name,
 
-        [System.Management.Automation.PSCmdlet]
-        $Cmdlet,
+        [Parameter(Mandatory)]
+        [System.Management.Automation.PSCmdlet]$Cmdlet,
 
-        [string]
-        $ExtraMessage
+        [string]$ExtraMessage
     )
     if (-not (Get-Command -Name $Name -ErrorAction SilentlyContinue)) {
         $errorRecord = [System.Management.Automation.ErrorRecord]::new(
