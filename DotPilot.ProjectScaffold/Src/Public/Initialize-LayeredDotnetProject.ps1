@@ -99,11 +99,13 @@ function Initialize-LayeredDotnetProject {
     # Define variables
     $solutionName = $template.SolutionName
     $layers = $template.Layers
+    $functionName = $MyInvocation.MyCommand.Name
     $Log = $LogToFile ? {
         param($Level, $Message)
         $writeLogSplat = @{
             Level      = $Level
             Message    = $Message
+            Source     = $functionName
             OutputFile = "$solutionName.log"
         }
         Write-Log @writeLogSplat

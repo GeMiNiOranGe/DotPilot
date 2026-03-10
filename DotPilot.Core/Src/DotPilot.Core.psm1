@@ -1,3 +1,7 @@
+# Module-level default log file path; set this before calling Write-Log
+# to enable file logging without passing -OutputFile
+$script:DotPilotLogFile = $null
+
 # Dot source classes/public/private
 $classes = @(
     Get-ChildItem -Path (
