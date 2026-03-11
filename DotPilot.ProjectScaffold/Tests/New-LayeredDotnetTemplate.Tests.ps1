@@ -2,10 +2,10 @@ $script:tempDir = "$PSScriptRoot\Temp"
 
 Describe "New-LayeredDotnetTemplate" -Tag "Dotnet" {
     BeforeAll {
-        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-ConsoleLog.ps1"
+        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-LogConsole.ps1"
         . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
 
-        Mock Write-ConsoleLog {}
+        Mock Write-LogConsole {}
     }
 
     BeforeEach {

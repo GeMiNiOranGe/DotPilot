@@ -1,11 +1,11 @@
 ---
 external help file: DotPilot.Core-help.xml
 Module Name: DotPilot.Core
-online version: https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-ConsoleLog.md
+online version: https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-LogConsole.md
 schema: 2.0.0
 ---
 
-# Write-ConsoleLog
+# Write-LogConsole
 
 ## SYNOPSIS
 Writes a console log message with a specified level.
@@ -13,19 +13,19 @@ Writes a console log message with a specified level.
 ## SYNTAX
 
 ```
-Write-ConsoleLog [-Level] <String> [[-Message] <String>] [-ProgressAction <ActionPreference>]
+Write-LogConsole [-Level] <String> [[-Message] <String>] [-ProgressAction <ActionPreference>]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-The `Write-ConsoleLog` function is used to write console log messages with different levels, such as "Info", "Warn", "Error", and "Debug".
+The `Write-LogConsole` function is used to write console log messages with different levels, such as "Info", "Warn", "Error", and "Debug".
 Each level is displayed with a unique color scheme for better visibility.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 ```
-Write-ConsoleLog -Level Info -Message "This is an informational message."
+Write-LogConsole -Level Info -Message "This is an informational message."
 ```
 
 Output
@@ -88,7 +88,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None. You can't pipe objects to `Write-ConsoleLog`.
+### None. You can't pipe objects to `Write-LogConsole`.
 ## OUTPUTS
 
 ### None. This function does not return any output, but it writes a colored message to the console.
@@ -97,7 +97,4 @@ This function is designed to provide a consistent and visually appealing way to 
 
 ## RELATED LINKS
 
-[Online version](https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-ConsoleLog.md)
-
-
-
+[Online version](https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-LogConsole.md)

@@ -3,7 +3,7 @@
 Writes a console log message with a specified level.
 
 .DESCRIPTION
-The `Write-ConsoleLog` function is used to write console log messages with different levels, such as "Info", "Warn", "Error", and "Debug". Each level is displayed with a unique color scheme for better visibility.
+The `Write-LogConsole` function is used to write console log messages with different levels, such as "Info", "Warn", "Error", and "Debug". Each level is displayed with a unique color scheme for better visibility.
 
 .PARAMETER Level
 Specifies the level of the log message. Valid values are "Info", "Warn", "Error", and "Debug".
@@ -12,7 +12,7 @@ Specifies the level of the log message. Valid values are "Info", "Warn", "Error"
 Specifies the message to be written to the console.
 
 .EXAMPLE
-Write-ConsoleLog -Level Info -Message "This is an informational message."
+Write-LogConsole -Level Info -Message "This is an informational message."
 
 Output
 ```powershell
@@ -22,7 +22,7 @@ info This is an informational message.
 Writes "info" with a cyan background, then the message in default color.
 
 .INPUTS
-None. You can't pipe objects to `Write-ConsoleLog`.
+None. You can't pipe objects to `Write-LogConsole`.
 
 .OUTPUTS
 None. This function does not return any output, but it writes a colored message to the console.
@@ -31,9 +31,9 @@ None. This function does not return any output, but it writes a colored message 
 This function is designed to provide a consistent and visually appealing way to log messages to the console.
 
 .LINK
-https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-ConsoleLog.md
+https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-LogConsole.md
 #>
-function Write-ConsoleLog {
+function Write-LogConsole {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, Position = 0)]

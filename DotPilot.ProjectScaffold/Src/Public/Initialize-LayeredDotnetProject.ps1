@@ -108,10 +108,10 @@ function Initialize-LayeredDotnetProject {
             Source     = $functionName
             OutputFile = "$solutionName.log"
         }
-        Write-Log @writeLogSplat
+        Write-LogFile @writeLogSplat
     } : {
         param($Level, $Message)
-        Write-ConsoleLog -Level $Level -Message $Message
+        Write-LogConsole -Level $Level -Message $Message
     }
 
     # Create `Directory.Build.props` file

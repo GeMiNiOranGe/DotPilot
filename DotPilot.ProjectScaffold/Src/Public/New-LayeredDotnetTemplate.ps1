@@ -140,10 +140,10 @@ function New-LayeredDotnetTemplate {
             Source     = $functionName
             OutputFile = "$SolutionName.log"
         }
-        Write-Log @writeLogSplat
+        Write-LogFile @writeLogSplat
     } : {
         param($Level, $Message)
-        Write-ConsoleLog -Level $Level -Message $Message
+        Write-LogConsole -Level $Level -Message $Message
     }
 
     & $Log Info "Template created successfully at '$targetOutputPath'"

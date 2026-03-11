@@ -1,4 +1,4 @@
-# Module-level default log file path; set this before calling Write-Log
+# Module-level default log file path; set this before calling Write-LogFile
 # to enable file logging without passing -OutputFile
 $script:DotPilotLogFile = $null
 

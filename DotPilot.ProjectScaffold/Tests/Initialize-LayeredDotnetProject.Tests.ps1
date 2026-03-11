@@ -2,8 +2,8 @@ $script:tempDir = "$PSScriptRoot\Temp"
 
 Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
     BeforeAll {
-        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-ConsoleLog.ps1"
-        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-Log.ps1"
+        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-LogConsole.ps1"
+        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-LogFile.ps1"
         . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Assert-CliInstalled.ps1"
         . "$PSScriptRoot\..\Src\Public\Initialize-LayeredDotnetProject.ps1"
         . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
@@ -103,8 +103,8 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
     Context "When valid template provided" {
         BeforeAll {
             Mock Assert-CliInstalled {}
-            Mock Write-ConsoleLog {}
-            Mock Write-Log {}
+            Mock Write-LogConsole {}
+            Mock Write-LogFile {}
             Mock dotnet { return "mocked" }
         }
 
@@ -116,7 +116,7 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
 
             Should -Invoke Assert-CliInstalled -Times 1 -Exactly
             Should -Invoke dotnet -Times 1
-            Should -Invoke Write-ConsoleLog -Times 1
+            Should -Invoke Write-LogConsole -Times 1
         }
 
         It (

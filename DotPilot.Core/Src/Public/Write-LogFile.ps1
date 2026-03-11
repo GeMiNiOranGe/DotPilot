@@ -3,7 +3,7 @@
 Writes a log entry to a log file and the console.
 
 .DESCRIPTION
-The `Write-Log` function is used to log messages to a log file and the console. It supports four log levels: Info, Warn, Error, and Debug.
+The `Write-LogFile` function is used to log messages to a log file and the console. It supports four log levels: Info, Warn, Error, and Debug.
 
 .PARAMETER Level
 Specifies the log level for the message. Valid values are "Info", "Warn", "Error", and "Debug".
@@ -18,7 +18,7 @@ Specifies the path to the log file. If not provided, falls back to the module-le
 Specifies the name of the caller to include in the log entry as a label. Use `$MyInvocation.MyCommand.Name` to pass the caller's function name automatically.
 
 .EXAMPLE
-Write-Log -Level Info -Message "This is an informational message." -OutputFile "C:\Logs\mylog.txt"
+Write-LogFile -Level Info -Message "This is an informational message." -OutputFile "C:\Logs\mylog.txt"
 
 Output
 ```powershell
@@ -28,7 +28,7 @@ Output
 Appends the entry to "C:\Logs\mylog.txt" and writes to the console.
 
 .EXAMPLE
-Write-Log -Level Error -Message "An error occurred." -OutputFile "C:\Logs\mylog.txt" -Source $MyInvocation.MyCommand.Name
+Write-LogFile -Level Error -Message "An error occurred." -OutputFile "C:\Logs\mylog.txt" -Source $MyInvocation.MyCommand.Name
 
 Output
 ```powershell
@@ -38,7 +38,7 @@ Output
 Appends the entry with a source label to "C:\Logs\mylog.txt" and writes to the console.
 
 .INPUTS
-None. You can't pipe objects to `Write-Log`.
+None. You can't pipe objects to `Write-LogFile`.
 
 .OUTPUTS
 None. This function does not return any output, but it appends an entry to a log file and writes to the console.
@@ -47,12 +47,12 @@ None. This function does not return any output, but it appends an entry to a log
 This function is designed to be used in PowerShell scripts to provide a consistent and easy-to-use logging mechanism.
 
 .LINK
-https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-Log.md
+https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-LogFile.md
 
 .LINK
-Write-ConsoleLog
+Write-LogConsole
 #>
-function Write-Log {
+function Write-LogFile {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, Position = 0)]
@@ -79,5 +79,5 @@ function Write-Log {
         Add-Content -Path $resolvedFile -Value $entry
     }
 
-    Write-ConsoleLog -Level $Level -Message $Message
+    Write-LogConsole -Level $Level -Message $Message
 }

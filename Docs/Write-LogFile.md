@@ -1,11 +1,11 @@
 ---
 external help file: DotPilot.Core-help.xml
 Module Name: DotPilot.Core
-online version: https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-Log.md
+online version: https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-LogFile.md
 schema: 2.0.0
 ---
 
-# Write-Log
+# Write-LogFile
 
 ## SYNOPSIS
 Writes a log entry to a log file and the console.
@@ -13,19 +13,19 @@ Writes a log entry to a log file and the console.
 ## SYNTAX
 
 ```
-Write-Log [-Level] <String> [[-Message] <String>] [[-OutputFile] <String>] [-ProgressAction <ActionPreference>]
+Write-LogFile [-Level] <String> [[-Message] <String>] [[-OutputFile] <String>] [-ProgressAction <ActionPreference>]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-The `Write-Log` function is used to log messages to a log file and the console.
+The `Write-LogFile` function is used to log messages to a log file and the console.
 It supports four log levels: Info, Warn, Error, and Debug.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 ```
-Write-Log -Level Info -Message "This is an informational message."
+Write-LogFile -Level Info -Message "This is an informational message."
 ```
 
 Output
@@ -37,7 +37,7 @@ Appends the entry to the default log file and writes to the console.
 
 ### EXAMPLE 2
 ```
-Write-Log -Level Error -Message "An error occurred." -OutputFile "C:\Logs\mylog.txt"
+Write-LogFile -Level Error -Message "An error occurred." -OutputFile "C:\Logs\mylog.txt"
 ```
 
 Output
@@ -116,7 +116,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None. You can't pipe objects to `Write-Log`.
+### None. You can't pipe objects to `Write-LogFile`.
 ## OUTPUTS
 
 ### None. This function does not return any output, but it appends an entry to a log file and writes to the console.
@@ -125,9 +125,6 @@ This function is designed to be used in PowerShell scripts to provide a consiste
 
 ## RELATED LINKS
 
-[Online version](https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-Log.md)
+[Online version](https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-LogFile.md)
 
-[Write-ConsoleLog]()
-
-
-
+[Write-LogConsole]()

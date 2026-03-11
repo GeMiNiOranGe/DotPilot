@@ -1,7 +1,7 @@
-Describe "Write-Log" {
+Describe "Write-LogFile" {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Public\Write-ConsoleLog.ps1"
-        . "$PSScriptRoot\..\Src\Public\Write-Log.ps1"
+        . "$PSScriptRoot\..\Src\Public\Write-LogConsole.ps1"
+        . "$PSScriptRoot\..\Src\Public\Write-LogFile.ps1"
 
         Mock Write-Host {}
     }
@@ -18,21 +18,21 @@ Describe "Write-Log" {
 
     Context "File handling" {
         It "Creates log file when it does not exist" {
-            Write-Log -Level Info -Message "test" -OutputFile $script:logFile
+            Write-LogFile -Level Info -Message "test" -OutputFile $script:logFile
 
             $script:logFile | Should -Exist
         }
 
         It "Appends entries to existing log file" {
-            Write-Log -Level Info -Message "first" -OutputFile $script:logFile
-            Write-Log -Level Info -Message "second" -OutputFile $script:logFile
+            Write-LogFile -Level Info -Message "first" -OutputFile $script:logFile
+            Write-LogFile -Level Info -Message "second" -OutputFile $script:logFile
 
             $lines = Get-Content $script:logFile
             $lines.Count | Should -Be 2
         }
 
         It "Does not create log file when OutputFile is not provided and module variable is not set" {
-            Write-Log -Level Info -Message "test"
+            Write-LogFile -Level Info -Message "test"
 
             $script:logFile | Should -Not -Exist
         }
@@ -40,7 +40,7 @@ Describe "Write-Log" {
 
     Context "Log entry format" {
         It "Has timestamp prefix" {
-            Write-Log -Level Info -Message "test" -OutputFile $script:logFile
+            Write-LogFile -Level Info -Message "test" -OutputFile $script:logFile
 
             $line = Get-Content $script:logFile
             $line | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} '
@@ -52,14 +52,14 @@ Describe "Write-Log" {
             @{ Level = "Error"; Expected = "ERROR" }
             @{ Level = "Debug"; Expected = "DEBUG" }
         ) {
-            Write-Log -Level $Level -Message "test" -OutputFile $script:logFile
+            Write-LogFile -Level $Level -Message "test" -OutputFile $script:logFile
 
             $line = Get-Content $script:logFile
             $line | Should -Match " $Expected`t"
         }
 
         It "Contains the message" {
-            Write-Log -Level Info -Message "hello world" -OutputFile $script:logFile
+            Write-LogFile -Level Info -Message "hello world" -OutputFile $script:logFile
 
             $line = Get-Content $script:logFile
             $line | Should -Match 'hello world$'
@@ -68,14 +68,14 @@ Describe "Write-Log" {
 
     Context "Source label" {
         It "Contains source label when Source is provided" {
-            Write-Log -Level Info -Message "hello" -OutputFile $script:logFile -Source "MyFunction"
+            Write-LogFile -Level Info -Message "hello" -OutputFile $script:logFile -Source "MyFunction"
 
             $line = Get-Content $script:logFile
             $line | Should -Match 'MyFunction: hello$'
         }
 
         It "Does not contain source label when Source is not provided" {
-            Write-Log -Level Info -Message "hello" -OutputFile $script:logFile
+            Write-LogFile -Level Info -Message "hello" -OutputFile $script:logFile
 
             $line = Get-Content $script:logFile
             $line | Should -Not -Match '\['
@@ -84,7 +84,7 @@ Describe "Write-Log" {
 
     Context "Input validation" {
         It "Throws on invalid level" {
-            { Write-Log -Level "Invalid" -Message "test" -OutputFile $script:logFile } | Should -Throw
+            { Write-LogFile -Level "Invalid" -Message "test" -OutputFile $script:logFile } | Should -Throw
         }
     }
 }

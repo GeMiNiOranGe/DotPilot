@@ -1,4 +1,4 @@
-. $PSScriptRoot\..\DotPilot.Core\Src\Public\Write-ConsoleLog.ps1
+. $PSScriptRoot\..\DotPilot.Core\Src\Public\Write-LogConsole.ps1
 
 $docsPath = "$PSScriptRoot\..\Docs"
 
@@ -44,4 +44,4 @@ foreach ($module in $modules) {
     }
 }
 
-Write-ConsoleLog Info "Removed escape characters from documentation files."
+Write-LogConsole Info "Removed escape characters from documentation files."
