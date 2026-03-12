@@ -106,9 +106,10 @@ function Initialize-LayeredDotnetProject {
             Level      = $Level
             Message    = $Message
             Source     = $functionName
-            OutputFile = "$solutionName.log"
+            Path = "$solutionName.log"
         }
         Write-LogFile @writeLogSplat
+        Write-LogConsole -Level $Level -Message $Message
     } : {
         param($Level, $Message)
         Write-LogConsole -Level $Level -Message $Message

@@ -138,9 +138,10 @@ function New-LayeredDotnetTemplate {
             Level      = $Level
             Message    = $Message
             Source     = $functionName
-            OutputFile = "$SolutionName.log"
+            Path = "$SolutionName.log"
         }
         Write-LogFile @writeLogSplat
+        Write-LogConsole -Level $Level -Message $Message
     } : {
         param($Level, $Message)
         Write-LogConsole -Level $Level -Message $Message

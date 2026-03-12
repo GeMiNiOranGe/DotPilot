@@ -13,7 +13,7 @@ Writes a log entry to a log file and the console.
 ## SYNTAX
 
 ```
-Write-LogFile [-Level] <String> [[-Message] <String>] [[-OutputFile] <String>] [-ProgressAction <ActionPreference>]
+Write-LogFile [-Level] <String> [[-Message] <String>] [[-Path] <String>] [-ProgressAction <ActionPreference>]
  [<CommonParameters>]
 ```
 
@@ -37,7 +37,7 @@ Appends the entry to the default log file and writes to the console.
 
 ### EXAMPLE 2
 ```
-Write-LogFile -Level Error -Message "An error occurred." -OutputFile "C:\Logs\mylog.txt"
+Write-LogFile -Level Error -Message "An error occurred." -Path "C:\Logs\mylog.txt"
 ```
 
 Output
@@ -80,7 +80,7 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -OutputFile
+### -Path
 Specifies the path to the log file.
 If not provided, the log file will be created in the same directory as the script file, with the same name as the script file but with a ".log" extension.
 

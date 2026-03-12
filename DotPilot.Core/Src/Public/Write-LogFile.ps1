@@ -11,14 +11,14 @@ Specifies the log level for the message. Valid values are "Info", "Warn", "Error
 .PARAMETER Message
 Specifies the message to be logged.
 
-.PARAMETER OutputFile
-Specifies the path to the log file. If not provided, falls back to the module-level `$script:DotPilotLogFile` variable. If neither is set, only writes to the console.
+.PARAMETER Path
+Specifies the path to the log file. The log entry will be appended to this file.
 
 .PARAMETER Source
 Specifies the name of the caller to include in the log entry as a label. Use `$MyInvocation.MyCommand.Name` to pass the caller's function name automatically.
 
 .EXAMPLE
-Write-LogFile -Level Info -Message "This is an informational message." -OutputFile "C:\Logs\mylog.txt"
+Write-LogFile -Level Info -Message "This is an informational message." -Path "C:\Logs\mylog.txt"
 
 Output
 ```powershell
@@ -28,7 +28,7 @@ Output
 Appends the entry to "C:\Logs\mylog.txt" and writes to the console.
 
 .EXAMPLE
-Write-LogFile -Level Error -Message "An error occurred." -OutputFile "C:\Logs\mylog.txt" -Source $MyInvocation.MyCommand.Name
+Write-LogFile -Level Error -Message "An error occurred." -Path "C:\Logs\mylog.txt" -Source $MyInvocation.MyCommand.Name
 
 Output
 ```powershell
@@ -64,20 +64,15 @@ function Write-LogFile {
 
         [string]$Source,
 
-        [string]$OutputFile
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrWhiteSpace()]
+        [string]$Path
     )
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $sourceLabel = -not [string]::IsNullOrWhiteSpace($Source) ?
         "${Source}: " :
         ""
-    $resolvedFile = -not [string]::IsNullOrWhiteSpace($OutputFile) ?
-        $OutputFile :
-        $script:DotPilotLogFile
     $entry = "$timestamp $($Level.ToUpper())`t$sourceLabel$Message"
 
-    if ($resolvedFile) {
-        Add-Content -Path $resolvedFile -Value $entry
-    }
-
-    Write-LogConsole -Level $Level -Message $Message
+    Add-Content -Path $Path -Value $entry
 }
