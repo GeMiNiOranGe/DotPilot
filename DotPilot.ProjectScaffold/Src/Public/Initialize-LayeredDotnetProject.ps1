@@ -100,19 +100,17 @@ function Initialize-LayeredDotnetProject {
     $solutionName = $template.SolutionName
     $layers = $template.Layers
     $functionName = $MyInvocation.MyCommand.Name
-    $Log = $LogToFile ? {
+    $targets = $LogToFile ? @("Console", "File") : @("Console")
+    $Log = {
         param($Level, $Message)
         $writeLogSplat = @{
-            Level      = $Level
-            Message    = $Message
-            Source     = $functionName
-            Path = "$solutionName.log"
+            Level   = $Level
+            Message = $Message
+            Targets = $targets
+            Source  = $functionName
+            Path    = "$solutionName.log"
         }
-        Write-LogFile @writeLogSplat
-        Write-LogConsole -Level $Level -Message $Message
-    } : {
-        param($Level, $Message)
-        Write-LogConsole -Level $Level -Message $Message
+        Write-Log @writeLogSplat
     }
 
     # Create `Directory.Build.props` file
