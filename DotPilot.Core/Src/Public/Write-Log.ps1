@@ -8,29 +8,20 @@ function Write-Log {
         [Parameter(Mandatory)]
         [string]$Message,
 
-        [ValidateSet("File", "Console")]
-        [string[]]$Targets,
-
         [string]$Source,
 
-        [string]$Path
+        [string]$File
     )
 
-    if ("File" -in $Targets) {
+    Write-LogConsole -Level $Level -Message $Message
+
+    if ($File) {
         $writeLogSplat = @{
             Level   = $Level
             Message = $Message
             Source  = $Source
-            Path    = $Path
+            Path    = $File
         }
         Write-LogFile @writeLogSplat
-    }
-
-    if ("Console" -in $Targets) {
-        $writeLogConsoleSplat = @{
-            Level   = $Level
-            Message = $Message
-        }
-        Write-LogConsole @writeLogConsoleSplat
     }
 }

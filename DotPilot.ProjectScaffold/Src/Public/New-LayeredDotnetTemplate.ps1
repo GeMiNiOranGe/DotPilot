@@ -132,15 +132,17 @@ function New-LayeredDotnetTemplate {
     }
 
     $functionName = $MyInvocation.MyCommand.Name
-    $targets = $LogToFile ? @("Console", "File") : @("Console")
     $Log = {
         param($Level, $Message)
         $writeLogSplat = @{
             Level   = $Level
             Message = $Message
-            Targets = $targets
-            Source  = $functionName
-            Path    = "$SolutionName.log"
+        }
+        if ($LogToFile) {
+            $writeLogSplat += @{
+                Source = $functionName
+                File   = "$SolutionName.log"
+            }
         }
         Write-Log @writeLogSplat
     }

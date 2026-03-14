@@ -100,15 +100,17 @@ function Initialize-LayeredDotnetProject {
     $solutionName = $template.SolutionName
     $layers = $template.Layers
     $functionName = $MyInvocation.MyCommand.Name
-    $targets = $LogToFile ? @("Console", "File") : @("Console")
     $Log = {
         param($Level, $Message)
         $writeLogSplat = @{
             Level   = $Level
             Message = $Message
-            Targets = $targets
-            Source  = $functionName
-            Path    = "$solutionName.log"
+        }
+        if ($LogToFile) {
+            $writeLogSplat += @{
+                Source = $functionName
+                File   = "$SolutionName.log"
+            }
         }
         Write-Log @writeLogSplat
     }
