@@ -5,7 +5,6 @@ function Write-Log {
         [ValidateSet("Info", "Warn", "Error", "Debug")]
         [string]$Level,
 
-        [Parameter(Mandatory)]
         [string]$Message,
 
         [string]$Source,
@@ -16,12 +15,12 @@ function Write-Log {
     Write-LogConsole -Level $Level -Message $Message
 
     if ($File) {
-        $writeLogSplat = @{
+        $writeLogFileSplat = @{
             Level   = $Level
             Message = $Message
             Source  = $Source
             Path    = $File
         }
-        Write-LogFile @writeLogSplat
+        Write-LogFile @writeLogFileSplat
     }
 }

@@ -5,6 +5,11 @@ $corePsd1 = Join-Path `
 Import-Module -Name (Resolve-Path $corePsd1) -Force -Global
 
 # Dot source classes/public/private
+$private = @(
+    Get-ChildItem -Path (
+        Join-Path -Path $PSScriptRoot -ChildPath 'Private\*.ps1'
+    ) -Recurse -ErrorAction Stop
+)
 $public = @(
     Get-ChildItem -Path (
         Join-Path -Path $PSScriptRoot -ChildPath 'Public\*.ps1'
@@ -21,7 +26,7 @@ $types = @(
     ) -Recurse -ErrorAction Stop
 )
 
-foreach ($import in @($public + $config + $types)) {
+foreach ($import in @($private + $public + $config + $types)) {
     try {
         . $import.FullName
     }

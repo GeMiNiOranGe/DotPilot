@@ -11,9 +11,6 @@ Specifies the path to the JSON template file that defines the solution and proje
 .PARAMETER NoDirectoryBuildFile
 Specifies whether to skip creating the `Directory.Build.props` file.
 
-.PARAMETER LogToFile
-Specifies whether to log the output to a file instead of the console.
-
 .EXAMPLE
 Initialize-LayeredDotnetProject -TemplateJsonPath '.\MyProject.template.json'
 
@@ -57,9 +54,7 @@ function Initialize-LayeredDotnetProject {
         [ValidateNotNullOrWhiteSpace()]
         [string]$TemplateJsonPath,
 
-        [switch]$NoDirectoryBuildFile,
-
-        [switch]$LogToFile
+        [switch]$NoDirectoryBuildFile
     )
     # Assert required CLI tools
     Assert-CliInstalled -Name "dotnet" -Cmdlet $PSCmdlet
@@ -99,21 +94,9 @@ function Initialize-LayeredDotnetProject {
     # Define variables
     $solutionName = $template.SolutionName
     $layers = $template.Layers
-    $functionName = $MyInvocation.MyCommand.Name
-    $Log = {
-        param($Level, $Message)
-        $writeLogSplat = @{
-            Level   = $Level
-            Message = $Message
-        }
-        if ($LogToFile) {
-            $writeLogSplat += @{
-                Source = $functionName
-                File   = "$SolutionName.log"
-            }
-        }
-        Write-Log @writeLogSplat
-    }
+    Initialize-ScaffoldLogContext `
+        -Source $MyInvocation.MyCommand.Name `
+        -FileName $solutionName
 
     # Create `Directory.Build.props` file
     if (-not $NoDirectoryBuildFile) {
@@ -128,11 +111,11 @@ function Initialize-LayeredDotnetProject {
     }
 
     # Create the `gitignore`
-    & $Log Info "Creating gitignore"
+    Write-Log Info "Creating gitignore"
     dotnet new gitignore
 
     # Create the Solution
-    & $Log Info "Creating solution '$solutionName'"
+    Write-Log Info "Creating solution '$solutionName'"
     dotnet new sln --name $solutionName
 
     # Loop through each layer to create projects and add them to the solution
@@ -146,15 +129,15 @@ function Initialize-LayeredDotnetProject {
             $arguments += $extraArguments
         }
 
-        & $Log Info "Creating '$projectName' project"
+        Write-Log Info "Creating '$projectName' project"
         dotnet @arguments
 
-        & $Log Info "Adding '$projectName' project to '$solutionName.sln'"
+        Write-Log Info "Adding '$projectName' project to '$solutionName.sln'"
         dotnet sln "$solutionName.sln" add "$projectName/$projectName.csproj"
 
         # Install NuGet packages if specified
         foreach ($package in $layer.Packages) {
-            & $Log Info "Installing '$package' for '$projectName'"
+            Write-Log Info "Installing '$package' for '$projectName'"
             dotnet add "$projectName/$projectName.csproj" package $package
         }
     }
@@ -165,10 +148,10 @@ function Initialize-LayeredDotnetProject {
 
         foreach ($projectReference in $layer.ProjectReferences) {
             $projRef = "$solutionName.$projectReference"
-            & $Log Info "Adding reference '$projectName' project to '$projRef'"
+            Write-Log Info "Adding reference '$projectName' project to '$projRef'"
             dotnet add $projectName reference "$projRef"
         }
     }
 
-    & $Log Info "Layered .NET project '$solutionName' initialized successfully!"
+    Write-Log Info "Layered .NET project '$solutionName' initialized successfully!"
 }

@@ -80,9 +80,7 @@ function New-LayeredDotnetTemplate {
         [string]$Architecture,
 
         [ValidateNotNullOrWhiteSpace()]
-        [string]$SolutionName = "Example",
-
-        [switch]$LogToFile
+        [string]$SolutionName = "Example"
     )
     $targetOutputPath = $OutputPath ? $OutputPath : $DefaultTemplateOutputPath
     $directory = [System.IO.Path]::GetDirectoryName($targetOutputPath)
@@ -131,21 +129,9 @@ function New-LayeredDotnetTemplate {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 
-    $functionName = $MyInvocation.MyCommand.Name
-    $Log = {
-        param($Level, $Message)
-        $writeLogSplat = @{
-            Level   = $Level
-            Message = $Message
-        }
-        if ($LogToFile) {
-            $writeLogSplat += @{
-                Source = $functionName
-                File   = "$SolutionName.log"
-            }
-        }
-        Write-Log @writeLogSplat
-    }
+    Initialize-ScaffoldLogContext `
+        -Source $MyInvocation.MyCommand.Name `
+        -FileName $SolutionName
 
-    & $Log Info "Template created successfully at '$targetOutputPath'"
+    Write-Log Info "Template created successfully at '$targetOutputPath'"
 }

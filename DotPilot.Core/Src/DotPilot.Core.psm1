@@ -4,13 +4,18 @@ $classes = @(
         Join-Path -Path $PSScriptRoot -ChildPath 'Classes\*.ps1'
     ) -Recurse -ErrorAction Stop
 )
+$config = @(
+    Get-ChildItem -Path (
+        Join-Path -Path $PSScriptRoot -ChildPath 'Config\*.ps1'
+    ) -Recurse -ErrorAction Stop
+)
 $public = @(
     Get-ChildItem -Path (
         Join-Path -Path $PSScriptRoot -ChildPath 'Public\*.ps1'
     ) -Recurse -ErrorAction Stop
 )
 
-foreach ($import in @($classes + $public)) {
+foreach ($import in @($classes + $config + $public)) {
     try {
         . $import.FullName
     }
