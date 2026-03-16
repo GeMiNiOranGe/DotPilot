@@ -94,7 +94,7 @@ function Initialize-LayeredDotnetProject {
     # Define variables
     $solutionName = $template.SolutionName
     $layers = $template.Layers
-    Initialize-ScaffoldLogContext `
+    $logSplat = Get-LogSplat `
         -Source $MyInvocation.MyCommand.Name `
         -FileName $solutionName
 
@@ -111,11 +111,11 @@ function Initialize-LayeredDotnetProject {
     }
 
     # Create the `gitignore`
-    Write-Log Info "Creating gitignore"
+    Write-Log Info "Creating gitignore" @logSplat
     dotnet new gitignore
 
     # Create the Solution
-    Write-Log Info "Creating solution '$solutionName'"
+    Write-Log Info "Creating solution '$solutionName'" @logSplat
     dotnet new sln --name $solutionName
 
     # Loop through each layer to create projects and add them to the solution
@@ -129,15 +129,15 @@ function Initialize-LayeredDotnetProject {
             $arguments += $extraArguments
         }
 
-        Write-Log Info "Creating '$projectName' project"
+        Write-Log Info "Creating '$projectName' project" @logSplat
         dotnet @arguments
 
-        Write-Log Info "Adding '$projectName' project to '$solutionName.sln'"
+        Write-Log Info "Adding '$projectName' project to '$solutionName.sln'" @logSplat
         dotnet sln "$solutionName.sln" add "$projectName/$projectName.csproj"
 
         # Install NuGet packages if specified
         foreach ($package in $layer.Packages) {
-            Write-Log Info "Installing '$package' for '$projectName'"
+            Write-Log Info "Installing '$package' for '$projectName'" @logSplat
             dotnet add "$projectName/$projectName.csproj" package $package
         }
     }
@@ -148,10 +148,10 @@ function Initialize-LayeredDotnetProject {
 
         foreach ($projectReference in $layer.ProjectReferences) {
             $projRef = "$solutionName.$projectReference"
-            Write-Log Info "Adding reference '$projectName' project to '$projRef'"
+            Write-Log Info "Adding reference '$projectName' project to '$projRef'" @logSplat
             dotnet add $projectName reference "$projRef"
         }
     }
 
-    Write-Log Info "Layered .NET project '$solutionName' initialized successfully!"
+    Write-Log Info "Layered .NET project '$solutionName' initialized successfully!" @logSplat
 }
