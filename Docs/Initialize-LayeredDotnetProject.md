@@ -13,7 +13,7 @@ Initializes a layered .NET project based on a JSON template file.
 ## SYNTAX
 
 ```
-Initialize-LayeredDotnetProject [-TemplateJsonPath] <String> [-NoDirectoryBuildFile] [-LogToFile]
+Initialize-LayeredDotnetProject [-TemplateJsonPath] <String> [-NoDirectoryBuildFile]
  [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
@@ -65,21 +65,6 @@ Accept wildcard characters: False
 
 ### -NoDirectoryBuildFile
 Specifies whether to skip creating the `Directory.Build.props` file.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -LogToFile
-Specifies whether to log the output to a file instead of the console.
 
 ```yaml
 Type: SwitchParameter

@@ -1,5 +1,3 @@
-. $PSScriptRoot\..\DotPilot.Core\Src\Public\Write-LogConsole.ps1
-
 $docsPath = "$PSScriptRoot\..\Docs"
 
 if (-not (Get-Module -ListAvailable -Name platyPS)) {
@@ -44,4 +42,4 @@ foreach ($module in $modules) {
     }
 }
 
-Write-LogConsole Info "Removed escape characters from documentation files."
+Write-Log Info "Removed escape characters from documentation files."

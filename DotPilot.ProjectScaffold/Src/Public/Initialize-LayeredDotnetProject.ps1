@@ -5,12 +5,6 @@ Initializes a layered .NET project based on a JSON template file.
 .DESCRIPTION
 The `Initialize-LayeredDotnetProject` function creates a new .NET solution and projects based on the template defined in a JSON file. The function supports creating multiple layers (projects) with different project types and optional NuGet package references.
 
-.PARAMETER TemplateJsonPath
-Specifies the path to the JSON template file that defines the solution and project structure.
-
-.PARAMETER NoDirectoryBuildFile
-Specifies whether to skip creating the `Directory.Build.props` file.
-
 .EXAMPLE
 Initialize-LayeredDotnetProject -TemplateJsonPath '.\MyProject.template.json'
 
@@ -31,6 +25,12 @@ The template "Class Library" was created successfully.
 ```
 
 Prints command messages during project initialization.
+
+.PARAMETER TemplateJsonPath
+Specifies the path to the JSON template file that defines the solution and project structure.
+
+.PARAMETER NoDirectoryBuildFile
+Specifies whether to skip creating the `Directory.Build.props` file.
 
 .INPUTS
 None. You can't pipe objects to `Initialize-LayeredDotnetProject`.

@@ -1,38 +1,3 @@
-<#
-.SYNOPSIS
-Writes a console log message with a specified level.
-
-.DESCRIPTION
-The `Write-LogConsole` function is used to write console log messages with different levels, such as "Info", "Warn", "Error", and "Debug". Each level is displayed with a unique color scheme for better visibility.
-
-.PARAMETER Level
-Specifies the level of the log message. Valid values are "Info", "Warn", "Error", and "Debug".
-
-.PARAMETER Message
-Specifies the message to be written to the console.
-
-.EXAMPLE
-Write-LogConsole -Level Info -Message "This is an informational message."
-
-Output
-```powershell
-info This is an informational message.
-```
-
-Writes "info" with a cyan background, then the message in default color.
-
-.INPUTS
-None. You can't pipe objects to `Write-LogConsole`.
-
-.OUTPUTS
-None. This function does not return any output, but it writes a colored message to the console.
-
-.NOTES
-This function is designed to provide a consistent and visually appealing way to log messages to the console.
-
-.LINK
-https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Write-LogConsole.md
-#>
 function Write-LogConsole {
     [CmdletBinding()]
     param (
@@ -44,6 +9,7 @@ function Write-LogConsole {
         [string]$Message
     )
 
+    # Black foreground ensures readable contrast across all background colors.
     $colorMap = @{
         "Info"  = @{ ForegroundColor = "Black"; BackgroundColor = "Cyan" }
         "Warn"  = @{ ForegroundColor = "Black"; BackgroundColor = "Yellow" }
@@ -53,6 +19,7 @@ function Write-LogConsole {
 
     $color = $colorMap[$Level]
 
+    # NoNewline keeps the label and message on the same line.
     $writeHostSplat = @{
         Object          = $Level.ToLower()
         ForegroundColor = $color.ForegroundColor

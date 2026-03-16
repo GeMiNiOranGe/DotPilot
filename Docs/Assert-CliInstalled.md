@@ -13,7 +13,7 @@ Asserts that a specified command is installed and available.
 ## SYNTAX
 
 ```
-Assert-CliInstalled [[-Name] <String>] [[-Cmdlet] <PSCmdlet>] [[-ExtraMessage] <String>]
+Assert-CliInstalled [-Name] <String> [-Cmdlet] <PSCmdlet> [[-ExtraMessage] <String>]
  [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
@@ -41,7 +41,7 @@ Type: String
 Parameter Sets: (All)
 Aliases:
 
-Required: False
+Required: True
 Position: 1
 Default value: None
 Accept pipeline input: False
@@ -56,7 +56,7 @@ Type: PSCmdlet
 Parameter Sets: (All)
 Aliases:
 
-Required: False
+Required: True
 Position: 2
 Default value: None
 Accept pipeline input: False

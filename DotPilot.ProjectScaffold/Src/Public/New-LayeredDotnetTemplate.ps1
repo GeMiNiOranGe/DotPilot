@@ -5,15 +5,6 @@ Creates a JSON template for a layered .NET project.
 .DESCRIPTION
 The `New-LayeredDotnetTemplate` function generates a JSON template file that can be used as a starting point for creating a layered .NET project. The template can be customized with different project architectures and solution names.
 
-.PARAMETER OutputPath
-Specifies the output path for the generated JSON template file. If not provided, the file will be created in the current directory with the name "layers.template.json".
-
-.PARAMETER Architecture
-Specifies the architecture of the layered project. Currently, the supported value is "Clean", "WinFormsThreeLayers".
-
-.PARAMETER SolutionName
-Specifies the name of the solution for the layered project. The default value is "Example".
-
 .EXAMPLE
 New-LayeredDotnetTemplate
 
@@ -33,6 +24,15 @@ info Template created successfully at: .\MyProject.template.json
 ```
 
 Creates a template with the Clean architecture in the current directory, with the file name "MyProject.template.json" and the solution name "MyProject".
+
+.PARAMETER OutputPath
+Specifies the output path for the generated JSON template file. If not provided, the file will be created in the current directory with the name "layers.template.json".
+
+.PARAMETER Architecture
+Specifies the architecture of the layered project. Currently, the supported value is "Clean", "WinFormsThreeLayers".
+
+.PARAMETER SolutionName
+Specifies the name of the solution for the layered project. The default value is "Example".
 
 .INPUTS
 None. You can't pipe objects to `New-LayeredDotnetTemplate`.
