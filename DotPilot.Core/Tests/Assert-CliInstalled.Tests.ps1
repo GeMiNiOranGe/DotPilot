@@ -1,16 +1,16 @@
 Describe "Assert-CliInstalled" {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Classes\CliToolNotInstalledException.ps1"
+        . "$PSScriptRoot\..\Src\Public\Assert-CliInstalled.ps1"
     }
 
-    It "Throws 'CliToolNotInstalled'" {
+    It "Throws when cli tool is not installed" {
         {
             [CmdletBinding()]
             param()
 
-            . "$PSScriptRoot\..\Src\Public\Assert-CliInstalled.ps1"
             Assert-CliInstalled -Name "CliToolNameNotInstalled" -Cmdlet $PSCmdlet
-        } | Should -Throw -ErrorId "CliToolNotInstalled"
+        } | Should -Throw -ExceptionType ([CliToolNotInstalledException])
     }
 
     It "Does not throw when command is installed" {
@@ -18,7 +18,6 @@ Describe "Assert-CliInstalled" {
             [CmdletBinding()]
             param()
 
-            . "$PSScriptRoot\..\Src\Public\Assert-CliInstalled.ps1"
             Assert-CliInstalled -Name "pwsh" -Cmdlet $PSCmdlet
         } | Should -Not -Throw
     }

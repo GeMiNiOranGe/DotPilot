@@ -27,5 +27,5 @@ function Write-LogConsole {
         NoNewline       = $true
     }
     Write-Host @writeHostSplat
-    Write-Host " $($Message)"
+    Write-Host " $Message"
 }
