@@ -65,6 +65,10 @@ function Write-Log {
         [string]$File
     )
 
+    if ($File) {
+        Assert-ParentDirectoryExists -Path $File -Cmdlet $PSCmdlet
+    }
+
     Write-LogConsole -Level $Level -Message $Message
 
     if ($File) {

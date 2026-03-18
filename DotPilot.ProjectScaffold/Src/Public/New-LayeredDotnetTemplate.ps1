@@ -83,20 +83,8 @@ function New-LayeredDotnetTemplate {
         [string]$SolutionName = "Example"
     )
     $targetOutputPath = $OutputPath ? $OutputPath : $DefaultTemplateOutputPath
-    $directory = [System.IO.Path]::GetDirectoryName($targetOutputPath)
 
-    if ($directory -ne "" -and -not (Test-Path $directory)) {
-        $exception = [System.IO.DirectoryNotFoundException]::new(
-            "The directory '$directory' does not exist."
-        )
-        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            $exception,
-            "DirectoryNotFound",
-            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-            $OutputPath
-        )
-        $PSCmdlet.ThrowTerminatingError($errorRecord)
-    }
+    Assert-ParentDirectoryExists -Path $targetOutputPath -Cmdlet $PSCmdlet
 
     $template = switch ($Architecture) {
         "Clean" {
