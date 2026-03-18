@@ -1,5 +1,6 @@
 Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
     BeforeAll {
+        . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogConsole.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
         . "$PSScriptRoot\..\Src\Public\Write-Log.ps1"

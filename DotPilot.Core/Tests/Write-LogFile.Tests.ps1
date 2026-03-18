@@ -1,5 +1,6 @@
 Describe "Write-LogFile" -Tag "Write-LogFile", "Write-Log*" {
     BeforeAll {
+        . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
 
         Mock Get-Date {

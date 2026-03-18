@@ -2,8 +2,7 @@ function Write-LogFile {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, Position = 0)]
-        [ValidateSet("Info", "Warn", "Error", "Debug")]
-        [string]$Level,
+        [LogLevel]$Level,
 
         [Parameter(Position = 1)]
         [string]$Message,
@@ -22,7 +21,7 @@ function Write-LogFile {
 
     # Format: "2000-01-01 12:00:00 INFO\t<Source: ><Message>"
     # Tab separates the level from the body for easier parsing.
-    $entry = "$timestamp $($Level.ToUpper())`t$sourceLabel$Message"
+    $entry = "$timestamp $($Level.ToString().ToUpper())`t$sourceLabel$Message"
 
     Add-Content -Path $Path -Value $entry
 }

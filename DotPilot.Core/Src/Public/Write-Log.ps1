@@ -54,8 +54,7 @@ function Write-Log {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, Position = 0)]
-        [ValidateSet("Info", "Warn", "Error", "Debug")]
-        [string]$Level,
+        [LogLevel]$Level,
 
         [Parameter(Position = 1)]
         [string]$Message,

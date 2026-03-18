@@ -2,8 +2,7 @@ function Write-LogConsole {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, Position = 0)]
-        [ValidateSet("Info", "Warn", "Error", "Debug")]
-        [string]$Level,
+        [LogLevel]$Level,
 
         [Parameter(Position = 1)]
         [string]$Message
@@ -17,11 +16,12 @@ function Write-LogConsole {
         "Debug" = @{ ForegroundColor = "Black"; BackgroundColor = "White" }
     }
 
-    $color = $colorMap[$Level]
+    $levelName = $Level.ToString()
+    $color = $colorMap[$levelName]
 
     # NoNewline keeps the label and message on the same line.
     $writeHostSplat = @{
-        Object          = $Level.ToLower()
+        Object          = $levelName.ToLower()
         ForegroundColor = $color.ForegroundColor
         BackgroundColor = $color.BackgroundColor
         NoNewline       = $true

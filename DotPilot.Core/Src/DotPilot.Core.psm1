@@ -9,6 +9,11 @@ $config = @(
         Join-Path -Path $PSScriptRoot -ChildPath 'Config\*.ps1'
     ) -Recurse -ErrorAction Stop
 )
+$enums = @(
+    Get-ChildItem -Path (
+        Join-Path -Path $PSScriptRoot -ChildPath 'Enums\*.ps1'
+    ) -Recurse -ErrorAction Stop
+)
 $private = @(
     Get-ChildItem -Path (
         Join-Path -Path $PSScriptRoot -ChildPath 'Private\*.ps1'
@@ -20,7 +25,7 @@ $public = @(
     ) -Recurse -ErrorAction Stop
 )
 
-foreach ($import in @($classes + $config + $private + $public)) {
+foreach ($import in @($classes + $config + $enums + $private + $public)) {
     try {
         . $import.FullName
     }

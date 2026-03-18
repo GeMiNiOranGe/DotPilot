@@ -7,6 +7,7 @@ Describe "Write-LogConsole" -Tag "Write-LogConsole", "Write-Log*" {
     )
 
     BeforeAll {
+        . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogConsole.ps1"
 
         Mock Write-Host {}
