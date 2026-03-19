@@ -3,10 +3,12 @@ Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
         . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogConsole.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
+        . "$PSScriptRoot\..\Src\Public\Assert-ParentDirectoryExists.ps1"
         . "$PSScriptRoot\..\Src\Public\Write-Log.ps1"
 
         Mock Write-LogConsole {}
         Mock Write-LogFile {}
+        Mock Assert-ParentDirectoryExists {}
     }
 
     BeforeEach {
@@ -81,15 +83,18 @@ Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
             } | Should -Throw
         }
 
-        It "Throws when parent directory does not exist" {
-            $nonExistentPath = Join-Path $TestDrive "NonExistentDir" "test.log"
+        It "Calls Assert-ParentDirectoryExists when -File is provided" {
+            Write-Log -Level Info -Message "A test message" -File $script:logFile
 
-            {
-                Write-Log `
-                    -Level Info `
-                    -Message "A test message" `
-                    -File $nonExistentPath
-            } | Should -Throw -ExceptionType ([System.IO.DirectoryNotFoundException])
+            Should -Invoke Assert-ParentDirectoryExists -Times 1 -Exactly -ParameterFilter {
+                $Path -eq $script:logFile
+            }
+        }
+
+        It "Does not call Assert-ParentDirectoryExists when -File is not provided" {
+            Write-Log -Level Info -Message "A test message"
+
+            Should -Invoke Assert-ParentDirectoryExists -Times 0
         }
     }
 }
