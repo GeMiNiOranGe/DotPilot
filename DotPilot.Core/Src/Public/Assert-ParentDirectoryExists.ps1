@@ -13,12 +13,14 @@ function Write-Something {
     param (
         [string]$Path
     )
-
     Assert-ParentDirectoryExists -Path $Path -Cmdlet $PSCmdlet
     # ... proceed with write
 }
 
+And then calling:
+```powershell
 Write-Something -Path "C:\Logs\app.log"
+```
 
 If "C:\Logs" does not exist, the error is reported as originating from `Write-Something`, not from `Assert-ParentDirectoryExists`.
 
@@ -35,8 +37,7 @@ None. You can't pipe objects to `Assert-ParentDirectoryExists`.
 None. This function does not return any output.
 
 .NOTES
-- This function is intended for use as an internal guard clause and should not be exposed publicly.
-- `ThrowTerminatingError` is used instead of `throw` so that the error appears to originate from the caller, not from this function.
+`ThrowTerminatingError` is used instead of `throw` so that the error appears to originate from the caller, not from this function.
 
 .LINK
 https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Assert-ParentDirectoryExists.md

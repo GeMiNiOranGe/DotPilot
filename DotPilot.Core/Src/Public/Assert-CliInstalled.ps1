@@ -13,12 +13,17 @@ function Invoke-DotnetBuild {
     param (
         [string]$ProjectPath
     )
-
-    Assert-CliInstalled -Name 'dotnet' -Cmdlet $PSCmdlet -ExtraMessage 'Make sure the .NET SDK is installed.'
+    Assert-CliInstalled `
+        -Name 'dotnet' `
+        -Cmdlet $PSCmdlet `
+        -ExtraMessage 'Make sure the .NET SDK is installed.'
     # ... proceed with build
 }
 
+And then calling:
+```powershell
 Invoke-DotnetBuild -ProjectPath "C:\MyProject"
+```
 
 If 'dotnet' is not found on the system, the error is reported as originating from `Invoke-DotnetBuild`, not from `Assert-CliInstalled`.
 

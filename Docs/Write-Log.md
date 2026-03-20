@@ -13,7 +13,7 @@ Writes a log message to the console and optionally to a file.
 ## SYNTAX
 
 ```
-Write-Log [-Level] <String> [[-Message] <String>] [-Source <String>] [-File <String>]
+Write-Log [-Level] <LogLevel> [[-Message] <String>] [-Source <String>] [-File <String>]
  [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
@@ -54,9 +54,10 @@ Specifies the level of the log message.
 Valid values are "Info", "Warn", "Error", and "Debug".
 
 ```yaml
-Type: String
+Type: LogLevel
 Parameter Sets: (All)
 Aliases:
+Accepted values: Info, Warn, Error, Debug
 
 Required: True
 Position: 1

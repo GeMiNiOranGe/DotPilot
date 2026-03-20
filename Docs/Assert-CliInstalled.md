@@ -8,7 +8,7 @@ schema: 2.0.0
 # Assert-CliInstalled
 
 ## SYNOPSIS
-Asserts that a specified command is installed and available.
+Asserts that a specified CLI tool is installed and available, terminating the caller if it is not.
 
 ## SYNTAX
 
@@ -18,23 +18,39 @@ Assert-CliInstalled [-Name] <String> [-Cmdlet] <PSCmdlet> [[-ExtraMessage] <Stri
 ```
 
 ## DESCRIPTION
-The `Assert-CliInstalled` function checks if a specified command is installed and available on the system.
-If the command is not found, it throws a terminating error with a custom error message.
+`Assert-CliInstalled` checks whether a specified command is available on the system via `Get-Command`.
+If the command is not found, the function throws a terminating `CliToolNotInstalledException` through the caller's `$PSCmdlet`, ensuring the error is attributed to the calling command rather than to this function.
+
+This function is intended to be used as a guard clause inside advanced functions before performing operations that depend on external CLI tools.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 ```
-Assert-CliInstalled -Cmdlet $PSCmdlet -Name 'dotnet' -ExtraMessage 'Make sure the .NET Core SDK is installed.'
+function Invoke-DotnetBuild {
+    [CmdletBinding()]
+    param (
+        [string]$ProjectPath
+    )
+    Assert-CliInstalled `
+        -Name 'dotnet' `
+        -Cmdlet $PSCmdlet `
+        -ExtraMessage 'Make sure the .NET SDK is installed.'
+    # ... proceed with build
+}
 ```
 
-No output is produced if 'dotnet' is installed.
-If the tool is not found, a terminating `CliToolNotInstalledException` is thrown via `$Cmdlet`.
+And then calling:
+```powershell
+Invoke-DotnetBuild -ProjectPath "C:\MyProject"
+```
+
+If 'dotnet' is not found on the system, the error is reported as originating from `Invoke-DotnetBuild`, not from `Assert-CliInstalled`.
 
 ## PARAMETERS
 
 ### -Name
-Specifies the name of the command to check for.
+Specifies the name of the CLI tool to check for.
 
 ```yaml
 Type: String
@@ -49,7 +65,8 @@ Accept wildcard characters: False
 ```
 
 ### -Cmdlet
-Specifies the PowerShell cmdlet object that is calling this function.
+Specifies the `$PSCmdlet` object of the calling function.
+Used to throw the terminating error in the caller's context via `ThrowTerminatingError`.
 
 ```yaml
 Type: PSCmdlet
@@ -64,7 +81,8 @@ Accept wildcard characters: False
 ```
 
 ### -ExtraMessage
-Specifies an optional extra message to include in the error message.
+Specifies an optional message appended to the error output.
+Use this to provide installation hints or additional context.
 
 ```yaml
 Type: String
@@ -101,9 +119,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### None. You can't pipe objects to `Assert-CliInstalled`.
 ## OUTPUTS
 
-### None. This function does not return any output, but it throws a terminating error if the CLI tool is not installed.
+### None. This function does not return any output.
 ## NOTES
-This function is designed to be used within other PowerShell functions or cmdlets to ensure that required command-line tools are installed and available before proceeding with the operation.
+`ThrowTerminatingError` is used instead of `throw` so that the error appears to originate from the caller, not from this function.
 
 ## RELATED LINKS
 
