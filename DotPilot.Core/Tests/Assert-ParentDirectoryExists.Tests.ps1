@@ -64,4 +64,18 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists" {
             } | Should -Throw
         }
     }
+
+    Context "When path has no parent directory" {
+        It "Does not throw when path has no parent (e.g., a bare filename)" {
+            {
+                Invoke-Caller -Path "test.log"
+            } | Should -Not -Throw
+        }
+
+        It "Does not throw when path is a root drive" {
+            {
+                Invoke-Caller -Path "C:\"
+            } | Should -Not -Throw
+        }
+    }
 }

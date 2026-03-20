@@ -53,6 +53,11 @@ function Assert-ParentDirectoryExists {
     )
 
     $parentDir = [System.IO.Path]::GetDirectoryName($Path)
+
+    if ([string]::IsNullOrEmpty($parentDir)) {
+        return
+    }
+
     $fullPath = [System.IO.Path]::GetFullPath($Path)
 
     if (-not (Test-Path -Path $parentDir -PathType Container)) {
