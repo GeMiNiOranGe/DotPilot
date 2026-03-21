@@ -94,9 +94,10 @@ function Initialize-LayeredDotnetProject {
     # Define variables
     $solutionName = $template.SolutionName
     $layers = $template.Layers
-    $logSplat = Get-LogSplat `
-        -Source $MyInvocation.MyCommand.Name `
-        -FileName $solutionName
+    $logSplat = @{
+        Source   = $MyInvocation.MyCommand.Name
+        FileName = $solutionName
+    }
 
     # Create `Directory.Build.props` file
     if (-not $NoDirectoryBuildFile) {

@@ -117,9 +117,10 @@ function New-LayeredDotnetTemplate {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 
-    $logSplat = Get-LogSplat `
-        -Source $MyInvocation.MyCommand.Name `
-        -FileName $SolutionName
+    $logSplat = @{
+        Source   = $MyInvocation.MyCommand.Name
+        FileName = $solutionName
+    }
 
     Write-Log Info "Template created successfully at '$targetOutputPath'" @logSplat
 }
