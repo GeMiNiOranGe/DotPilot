@@ -59,13 +59,17 @@ function Assert-CliInstalled {
 
         [string]$ExtraMessage
     )
-    if (-not (Get-Command -Name $Name -ErrorAction SilentlyContinue)) {
-        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            [CliToolNotInstalledException]::new($Name, $ExtraMessage),
-            "CliToolNotInstalled",
-            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-            $Name
-        )
-        $Cmdlet.ThrowTerminatingError($errorRecord)
+
+    if (Get-Command -Name $Name -ErrorAction SilentlyContinue) {
+        return
     }
+
+    $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+        [CliToolNotInstalledException]::new($Name, $ExtraMessage),
+        "CliToolNotInstalled",
+        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+        $Name
+    )
+
+    $Cmdlet.ThrowTerminatingError($errorRecord)
 }

@@ -1,4 +1,4 @@
-Describe "Assert-ParameterExists" -Tag "Assert-ParameterExists" {
+Describe "Assert-ParameterExists" -Tag "Assert-ParameterExists", "Assert-*" {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Public\Assert-ParameterExists.ps1"
 

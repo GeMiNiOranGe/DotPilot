@@ -69,18 +69,21 @@ function Assert-ParameterExists {
         [string]$ExtraMessage
     )
 
-    if ([string]::IsNullOrEmpty($Value)) {
-        $exception = [System.ArgumentException]::new(
-            "Parameter '-$Name' must not be empty." + (
-                $ExtraMessage ? " $ExtraMessage" : ""
-            )
-        )
-        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            $exception,
-            "MissingRequiredParameter",
-            [System.Management.Automation.ErrorCategory]::InvalidArgument,
-            $Value
-        )
-        $Cmdlet.ThrowTerminatingError($errorRecord)
+    if (-not [string]::IsNullOrEmpty($Value)) {
+        return
     }
+
+    $exception = [System.ArgumentException]::new(
+        "Parameter '-$Name' must not be empty." + (
+            $ExtraMessage ? " $ExtraMessage" : ""
+        )
+    )
+    $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+        $exception,
+        "MissingRequiredParameter",
+        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+        $Value
+    )
+
+    $Cmdlet.ThrowTerminatingError($errorRecord)
 }

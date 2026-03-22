@@ -1,4 +1,4 @@
-Describe "Assert-DirectoryExists" -Tag "Assert-DirectoryExists" {
+Describe "Assert-DirectoryExists" -Tag "Assert-DirectoryExists", "Assert-*" {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Public\Assert-DirectoryExists.ps1"
 
