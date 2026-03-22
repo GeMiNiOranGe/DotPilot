@@ -60,19 +60,15 @@ function Initialize-LayeredDotnetProject {
     Assert-CliInstalled -Name "dotnet" -Cmdlet $PSCmdlet
 
     # Load and parse JSON config
-    if (-not (Test-Path $TemplateJsonPath)) {
-        $exception = [System.IO.FileNotFoundException]::new(
-            "Template file '$TemplateJsonPath' not found. Use the " +
-            "`New-LayeredDotnetTemplate` command to create one if needed."
+    $assertFileExistsSplat = @{
+        Path         = $TemplateJsonPath
+        Cmdlet       = $PSCmdlet
+        ExtraMessage = (
+            "Use the 'New-LayeredDotnetTemplate' command to create a template" +
+            " if needed."
         )
-        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            $exception,
-            "FileNotFound",
-            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-            $TemplateJsonPath
-        )
-        $PSCmdlet.ThrowTerminatingError($errorRecord)
     }
+    Assert-FileExists @assertFileExistsSplat
 
     $templateJsonRaw = Get-Content -Raw -Path $TemplateJsonPath
 

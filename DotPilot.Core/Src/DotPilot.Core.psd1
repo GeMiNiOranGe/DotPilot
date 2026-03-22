@@ -71,6 +71,7 @@
     FunctionsToExport = @(
         "Assert-CliInstalled",
         "Assert-DirectoryExists",
+        "Assert-FileExists",
         "Assert-ParameterExists",
         "Assert-ParentDirectoryExists",
         "Write-Log"
