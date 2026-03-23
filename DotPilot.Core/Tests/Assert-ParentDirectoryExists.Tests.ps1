@@ -2,7 +2,6 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
     BeforeAll {
         . "$PSScriptRoot\..\Src\Public\Assert-ParentDirectoryExists.ps1"
 
-        # Minimal advanced function to capture $PSCmdlet from a real caller context
         function Invoke-Caller {
             [CmdletBinding()]
             param ([string]$Path)
@@ -28,7 +27,9 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
         It "Throws DirectoryNotFoundException when parent directory does not exist" {
             {
                 Invoke-Caller -Path $script:path
-            } | Should -Throw -ExceptionType ([System.IO.DirectoryNotFoundException])
+            } | Should -Throw -ExceptionType (
+                [System.IO.DirectoryNotFoundException]
+            )
         }
 
         It "Error message contains the full path" {
@@ -36,7 +37,7 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
 
             {
                 Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*$fullPath*"
+            } | Should -Throw -ExpectedMessage "*'$fullPath'*"
         }
 
         It "Error message contains the parent directory" {
@@ -44,7 +45,7 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
 
             {
                 Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*$parentDir*"
+            } | Should -Throw -ExpectedMessage "*'$parentDir'*"
         }
 
         It "Error is attributed to the caller, not to Assert-ParentDirectoryExists" {

@@ -3,11 +3,13 @@ Describe "Assert-CliInstalled" -Tag "Assert-CliInstalled", "Assert-*" {
         . "$PSScriptRoot\..\Src\Classes\CliToolNotInstalledException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-CliInstalled.ps1"
 
-        # Minimal advanced function to capture $PSCmdlet from a real caller context
         function Invoke-Caller {
             [CmdletBinding()]
-            param ([string]$Name)
-            Assert-CliInstalled -Name $Name -Cmdlet $PSCmdlet
+            param ([string]$Name, [string]$ExtraMessage)
+            Assert-CliInstalled `
+                -Name $Name `
+                -Cmdlet $PSCmdlet `
+                -ExtraMessage $ExtraMessage
         }
     }
 
@@ -37,6 +39,24 @@ Describe "Assert-CliInstalled" -Tag "Assert-CliInstalled", "Assert-*" {
             catch {
                 $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
             }
+        }
+
+        It "Error message contains the CLI tool name" {
+            {
+                Invoke-Caller -Name $script:name
+            } | Should -Throw -ExpectedMessage "*'$($script:name)'*"
+        }
+    }
+
+    Context "When ExtraMessage is provided" {
+        It "Error message contains the extra message" {
+            $extraMessage = "Make sure the .NET SDK is installed."
+
+            {
+                Invoke-Caller `
+                    -Name "CliToolNameNotInstalled" `
+                    -ExtraMessage $extraMessage
+            } | Should -Throw -ExpectedMessage "*$extraMessage"
         }
     }
 }

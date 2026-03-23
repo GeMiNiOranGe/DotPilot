@@ -2,7 +2,6 @@ Describe "Assert-ParameterExists" -Tag "Assert-ParameterExists", "Assert-*" {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Public\Assert-ParameterExists.ps1"
 
-        # Minimal advanced function to capture $PSCmdlet from a real caller context
         function Invoke-Caller {
             [CmdletBinding()]
             param (
@@ -41,7 +40,7 @@ Describe "Assert-ParameterExists" -Tag "Assert-ParameterExists", "Assert-*" {
         It "Error message contains the parameter name" {
             {
                 Invoke-Caller -Name $script:name -Value ""
-            } | Should -Throw -ExpectedMessage "*-$($script:name)*"
+            } | Should -Throw -ExpectedMessage "*'-$($script:name)'*"
         }
 
         It "Error is attributed to the caller, not to Assert-ParameterExists" {
@@ -56,14 +55,17 @@ Describe "Assert-ParameterExists" -Tag "Assert-ParameterExists", "Assert-*" {
 
     Context "When ExtraMessage is provided" {
         It "Error message contains the extra message" {
-            $extraMessage = 'Specify a target environment such as "staging" or "production".'
+            $extraMessage = (
+                "Specify a target environment such as 'development', " +
+                "'testing', 'staging' or 'production'."
+            )
 
             {
                 Invoke-Caller `
                     -Name "Environment" `
                     -Value "" `
                     -ExtraMessage $extraMessage
-            } | Should -Throw -ExpectedMessage "*$extraMessage*"
+            } | Should -Throw -ExpectedMessage "*$extraMessage"
         }
     }
 }

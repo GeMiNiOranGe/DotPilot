@@ -2,7 +2,6 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Public\Assert-FileExists.ps1"
 
-        # Minimal advanced function to capture $PSCmdlet from a real caller context
         function Invoke-Caller {
             [CmdletBinding()]
             param ([string]$Path, [string]$ExtraMessage)
@@ -42,7 +41,7 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
 
             {
                 Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*$fullPath*"
+            } | Should -Throw -ExpectedMessage "*'$fullPath'*"
         }
 
         It "Error message contains the file name" {
@@ -50,7 +49,7 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
 
             {
                 Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*$fileName*"
+            } | Should -Throw -ExpectedMessage "*'$fileName'*"
         }
 
         It "Error is attributed to the caller, not to Assert-FileExists" {
@@ -66,11 +65,12 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
     Context "When ExtraMessage is provided" {
         It "Error message contains the extra message" {
             $path = Join-Path $TestDrive "NonExistentFile.txt"
-            $extraMessage = "Ensure the file has been created before running this command."
+            $extraMessage = `
+                "Ensure the file has been created before running this command."
 
             {
                 Invoke-Caller -Path $path -ExtraMessage $extraMessage
-            } | Should -Throw -ExpectedMessage "*$extraMessage*"
+            } | Should -Throw -ExpectedMessage "*$extraMessage"
         }
     }
 
