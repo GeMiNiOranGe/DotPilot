@@ -72,7 +72,7 @@
         "Assert-CliInstalled",
         "Assert-DirectoryExists",
         "Assert-FileExists",
-        "Assert-ParameterExists",
+        "Assert-ArgumentExists",
         "Assert-ParentDirectoryExists",
         "Write-Log"
     )

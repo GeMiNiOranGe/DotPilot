@@ -1,6 +1,6 @@
-Describe "Assert-ParameterExists" -Tag "Assert-ParameterExists", "Assert-*" {
+Describe "Assert-ArgumentExists" -Tag "Assert-ArgumentExists", "Assert-*" {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Public\Assert-ParameterExists.ps1"
+        . "$PSScriptRoot\..\Src\Public\Assert-ArgumentExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
@@ -10,7 +10,7 @@ Describe "Assert-ParameterExists" -Tag "Assert-ParameterExists", "Assert-*" {
                 [string]$Value,
                 [string]$ExtraMessage
             )
-            Assert-ParameterExists `
+            Assert-ArgumentExists `
                 -Name $Name `
                 -Value $Value `
                 -Cmdlet $PSCmdlet `
@@ -43,7 +43,7 @@ Describe "Assert-ParameterExists" -Tag "Assert-ParameterExists", "Assert-*" {
             } | Should -Throw -ExpectedMessage "*'-$($script:name)'*"
         }
 
-        It "Error is attributed to the caller, not to Assert-ParameterExists" {
+        It "Error is attributed to the caller, not to Assert-ArgumentExists" {
             try {
                 Invoke-Caller -Name $script:name -Value ""
             }

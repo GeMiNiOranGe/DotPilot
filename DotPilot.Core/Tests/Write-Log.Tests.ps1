@@ -4,13 +4,13 @@ Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
         . "$PSScriptRoot\..\Src\Private\Write-LogConsole.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-DirectoryExists.ps1"
-        . "$PSScriptRoot\..\Src\Public\Assert-ParameterExists.ps1"
+        . "$PSScriptRoot\..\Src\Public\Assert-ArgumentExists.ps1"
         . "$PSScriptRoot\..\Src\Public\Write-Log.ps1"
 
         Mock Write-LogConsole {}
         Mock Write-LogFile {}
         Mock Assert-DirectoryExists {}
-        Mock Assert-ParameterExists {}
+        Mock Assert-ArgumentExists {}
     }
 
     BeforeEach {
@@ -125,12 +125,12 @@ Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
             } | Should -Throw
         }
 
-        It "Calls Assert-ParameterExists for -FileName when file logging is enabled" {
+        It "Calls Assert-ArgumentExists for -FileName when file logging is enabled" {
             $global:DotPilot.Log.FileLogging = $true
 
             Write-Log -Level Info -Message "A test message"
 
-            Should -Invoke Assert-ParameterExists -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Assert-ArgumentExists -Times 1 -Exactly -ParameterFilter {
                 $Name -eq "FileName" -and
                 [string]::IsNullOrEmpty($Value)
             }

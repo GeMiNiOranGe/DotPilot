@@ -78,7 +78,7 @@ function Write-Log {
             Cmdlet       = $PSCmdlet
             ExtraMessage = "It is required when file logging is enabled."
         }
-        Assert-ParameterExists @assertParameterExistsSplat
+        Assert-ArgumentExists @assertParameterExistsSplat
     }
 
     if ($OutputDirectory -and $global:DotPilot.Log.FileLogging) {

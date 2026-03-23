@@ -3,7 +3,7 @@
 Asserts that a specified parameter value is not null or empty, terminating the caller if it is.
 
 .DESCRIPTION
-`Assert-ParameterExists` checks whether the provided parameter value is null or empty. If the value is null or empty, the function throws a terminating `ArgumentException` through the caller's `$PSCmdlet`, ensuring the error is attributed to the calling command rather than to this function.
+`Assert-ArgumentExists` checks whether the provided parameter value is null or empty. If the value is null or empty, the function throws a terminating `ArgumentException` through the caller's `$PSCmdlet`, ensuring the error is attributed to the calling command rather than to this function.
 
 This function is intended to be used as a guard clause inside advanced functions to validate that required string parameters have been supplied with a meaningful value.
 
@@ -13,7 +13,7 @@ function Invoke-Deploy {
     param (
         [string]$Environment
     )
-    Assert-ParameterExists `
+    Assert-ArgumentExists `
         -Name 'Environment' `
         -Value $Environment `
         -Cmdlet $PSCmdlet `
@@ -26,7 +26,7 @@ And then calling:
 Invoke-Deploy -Environment ""
 ```
 
-If 'Environment' is empty, the error is reported as originating from `Invoke-Deploy`, not from `Assert-ParameterExists`.
+If 'Environment' is empty, the error is reported as originating from `Invoke-Deploy`, not from `Assert-ArgumentExists`.
 
 .PARAMETER Name
 Specifies the name of the parameter being validated. Used in the error message to identify which parameter is missing.
@@ -41,7 +41,7 @@ Specifies the `$PSCmdlet` object of the calling function. Used to throw the term
 Specifies an optional message appended to the error output. Use this to provide usage hints or additional context about the expected value.
 
 .INPUTS
-None. You can't pipe objects to `Assert-ParameterExists`.
+None. You can't pipe objects to `Assert-ArgumentExists`.
 
 .OUTPUTS
 None. This function does not return any output.
@@ -51,9 +51,9 @@ None. This function does not return any output.
 - `[AllowEmptyString()]` is applied to `$Value` so that PowerShell does not reject empty strings before the function body can evaluate them.
 
 .LINK
-https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Assert-ParameterExists.md
+https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Assert-ArgumentExists.md
 #>
-function Assert-ParameterExists {
+function Assert-ArgumentExists {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
