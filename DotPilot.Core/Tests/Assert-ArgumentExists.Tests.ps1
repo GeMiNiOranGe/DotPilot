@@ -1,5 +1,6 @@
 Describe "Assert-ArgumentExists" -Tag "Assert-ArgumentExists", "Assert-*" {
     BeforeAll {
+        . "$PSScriptRoot\..\Src\Classes\ArgumentNullOrEmptyException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-ArgumentExists.ps1"
 
         function Invoke-Caller {
@@ -31,10 +32,10 @@ Describe "Assert-ArgumentExists" -Tag "Assert-ArgumentExists", "Assert-*" {
             $script:name = "Environment"
         }
 
-        It "Throws ArgumentException when parameter value is empty" {
+        It "Throws ArgumentNullOrEmptyException when parameter value is empty" {
             {
                 Invoke-Caller -Name $script:name -Value ""
-            } | Should -Throw -ExceptionType ([System.ArgumentException])
+            } | Should -Throw -ExceptionType ([ArgumentNullOrEmptyException])
         }
 
         It "Error message contains the parameter name" {

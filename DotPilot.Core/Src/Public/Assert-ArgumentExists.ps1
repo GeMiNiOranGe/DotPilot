@@ -73,14 +73,12 @@ function Assert-ArgumentExists {
         return
     }
 
-    $exception = [System.ArgumentException]::new(
-        "Parameter '-$Name' must not be empty." + (
-            $ExtraMessage ? " $ExtraMessage" : ""
-        )
-    )
+    $exception = $ExtraMessage `
+        ? [ArgumentNullOrEmptyException]::new($Name, $ExtraMessage) `
+        : [ArgumentNullOrEmptyException]::new($Name)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
-        "MissingRequiredParameter",
+        "ArgumentNullOrEmpty",
         [System.Management.Automation.ErrorCategory]::InvalidArgument,
         $Value
     )
