@@ -64,8 +64,11 @@ function Assert-CliInstalled {
         return
     }
 
+    $exception = $ExtraMessage `
+        ? [CliToolNotInstalledException]::new($Name, $ExtraMessage) `
+        : [CliToolNotInstalledException]::new($Name)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-        [CliToolNotInstalledException]::new($Name, $ExtraMessage),
+        $exception,
         "CliToolNotInstalled",
         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
         $Name
