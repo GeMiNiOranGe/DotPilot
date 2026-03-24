@@ -1,5 +1,6 @@
 Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
     BeforeAll {
+        . "$PSScriptRoot\..\Src\Classes\FileNotFoundException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-FileExists.ps1"
 
         function Invoke-Caller {
@@ -33,7 +34,7 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
         It "Throws FileNotFoundException when file does not exist" {
             {
                 Invoke-Caller -Path $script:path
-            } | Should -Throw -ExceptionType ([System.IO.FileNotFoundException])
+            } | Should -Throw -ExceptionType ([FileNotFoundException])
         }
 
         It "Error message contains the full path" {

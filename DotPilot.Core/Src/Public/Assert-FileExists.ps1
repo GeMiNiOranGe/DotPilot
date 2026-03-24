@@ -67,11 +67,9 @@ function Assert-FileExists {
     $fullPath = [System.IO.Path]::GetFullPath($Path)
     $fileName = [System.IO.Path]::GetFileName($Path)
 
-    $exception = [System.IO.FileNotFoundException]::new(
-        "File '$fullPath' not found. Ensure that '$fileName' exists." + (
-            $ExtraMessage ? " $ExtraMessage" : ""
-        )
-    )
+    $exception = $ExtraMessage `
+        ? [FileNotFoundException]::new($fullPath, $fileName, $ExtraMessage) `
+        : [FileNotFoundException]::new($fullPath, $fileName)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
         'FileNotFound',
