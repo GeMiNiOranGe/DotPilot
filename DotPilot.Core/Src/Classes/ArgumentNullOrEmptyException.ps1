@@ -2,11 +2,12 @@ class ArgumentNullOrEmptyException : System.ArgumentException {
     hidden static [string] $MessageTemplate = `
         "Argument '-{0}' must not be null or empty."
 
-    ArgumentNullOrEmptyException([string]$Name) : base(
-        [ArgumentNullOrEmptyException]::MessageTemplate -f $Name
+    ArgumentNullOrEmptyException([string]$name) : base(
+        ([ArgumentNullOrEmptyException]::MessageTemplate -f $name)
     ) {}
 
-    ArgumentNullOrEmptyException([string]$Name, [string]$ExtraMessage) : base(
-        "$([ArgumentNullOrEmptyException]::MessageTemplate -f $Name) $ExtraMessage"
+    ArgumentNullOrEmptyException([string]$name, [string]$extraMessage) : base(
+        ([ArgumentNullOrEmptyException]::MessageTemplate -f $name) +
+        " $extraMessage"
     ) {}
 }

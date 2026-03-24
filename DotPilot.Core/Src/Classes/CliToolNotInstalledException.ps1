@@ -2,11 +2,12 @@ class CliToolNotInstalledException : System.Exception {
     hidden static [string] $MessageTemplate = `
         "'{0}' is not installed."
 
-    CliToolNotInstalledException([string]$Name) : base(
-        [CliToolNotInstalledException]::MessageTemplate -f $Name
+    CliToolNotInstalledException([string]$name) : base(
+        ([CliToolNotInstalledException]::MessageTemplate -f $name)
     ) {}
 
-    CliToolNotInstalledException([string]$Name, [string]$ExtraMessage) : base(
-        "$([CliToolNotInstalledException]::MessageTemplate -f $Name) $ExtraMessage"
+    CliToolNotInstalledException([string]$name, [string]$extraMessage) : base(
+        ([CliToolNotInstalledException]::MessageTemplate -f $name) +
+        " $extraMessage"
     ) {}
 }

@@ -13,7 +13,10 @@ function Write-Something {
     param (
         [string]$Path
     )
-    Assert-ParentDirectoryExists -Path $Path -Cmdlet $PSCmdlet
+    Assert-ParentDirectoryExists `
+        -Path $Path `
+        -Cmdlet $PSCmdlet `
+        -ExtraMessage "Ensure the parent directory has been created before running this command."
     # ... proceed with write
 }
 
@@ -29,6 +32,9 @@ Specifies the full path whose parent directory will be validated.
 
 .PARAMETER Cmdlet
 Specifies the `$PSCmdlet` object of the calling function. Used to throw the terminating error in the caller's context via `ThrowTerminatingError`.
+
+.PARAMETER ExtraMessage
+Specifies an optional message appended to the error output. Use this to provide remediation hints or additional context about the expected file.
 
 .INPUTS
 None. You can't pipe objects to `Assert-ParentDirectoryExists`.
@@ -49,7 +55,9 @@ function Assert-ParentDirectoryExists {
         [string]$Path,
 
         [Parameter(Mandatory)]
-        [System.Management.Automation.PSCmdlet]$Cmdlet
+        [System.Management.Automation.PSCmdlet]$Cmdlet,
+
+        [string]$ExtraMessage
     )
 
     $parentDir = [System.IO.Path]::GetDirectoryName($Path)
@@ -64,10 +72,9 @@ function Assert-ParentDirectoryExists {
 
     $fullPath = [System.IO.Path]::GetFullPath($Path)
 
-    $exception = [System.IO.DirectoryNotFoundException]::new(
-        "Could not find a part of the path '$fullPath'." +
-        " Ensure that the parent directory '$parentDir' exists."
-    )
+    $exception = $ExtraMessage `
+        ? [DirectoryNotFoundException]::new($fullPath, $parentDir, $ExtraMessage) `
+        : [DirectoryNotFoundException]::new($fullPath, $parentDir)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
         'DirectoryNotFound',

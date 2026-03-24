@@ -13,7 +13,10 @@ function Read-LogDirectory {
     param (
         [string]$Path
     )
-    Assert-DirectoryExists -Path $Path -Cmdlet $PSCmdlet
+    Assert-DirectoryExists `
+        -Path $Path `
+        -Cmdlet $PSCmdlet `
+        -ExtraMessage "Ensure the directory has been created before running this command."
     # ... proceed with read
 }
 
@@ -29,6 +32,9 @@ Specifies the full path of the directory to validate.
 
 .PARAMETER Cmdlet
 Specifies the `$PSCmdlet` object of the calling function. Used to throw the terminating error in the caller's context via `ThrowTerminatingError`.
+
+.PARAMETER ExtraMessage
+Specifies an optional message appended to the error output. Use this to provide remediation hints or additional context about the expected file.
 
 .INPUTS
 None. You can't pipe objects to `Assert-DirectoryExists`.
@@ -49,7 +55,9 @@ function Assert-DirectoryExists {
         [string]$Path,
 
         [Parameter(Mandatory)]
-        [System.Management.Automation.PSCmdlet]$Cmdlet
+        [System.Management.Automation.PSCmdlet]$Cmdlet,
+
+        [string]$ExtraMessage
     )
 
     if (Test-Path -Path $Path -PathType Container) {
@@ -59,10 +67,9 @@ function Assert-DirectoryExists {
     $fullPath = [System.IO.Path]::GetFullPath($Path)
     $directoryName = [System.IO.Path]::GetFileName($Path)
 
-    $exception = [System.IO.DirectoryNotFoundException]::new(
-        "Could not find a part of the path '$fullPath'." +
-        " Ensure that the directory '$directoryName' exists."
-    )
+    $exception = $ExtraMessage `
+        ? [DirectoryNotFoundException]::new($fullPath, $directoryName, $ExtraMessage) `
+        : [DirectoryNotFoundException]::new($fullPath, $directoryName)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
         'DirectoryNotFound',

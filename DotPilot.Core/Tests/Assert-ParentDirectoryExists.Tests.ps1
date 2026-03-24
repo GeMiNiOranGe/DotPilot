@@ -4,8 +4,11 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
 
         function Invoke-Caller {
             [CmdletBinding()]
-            param ([string]$Path)
-            Assert-ParentDirectoryExists -Path $Path -Cmdlet $PSCmdlet
+            param ([string]$Path, [string]$ExtraMessage)
+            Assert-ParentDirectoryExists `
+                -Path $Path `
+                -Cmdlet $PSCmdlet `
+                -ExtraMessage $ExtraMessage
         }
     }
 
@@ -55,6 +58,22 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
             catch {
                 $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
             }
+        }
+    }
+
+    Context "When ExtraMessage is provided" {
+        BeforeEach {
+            $script:path = Join-Path $TestDrive "NonExistentDir" "test.log"
+        }
+
+        It "Error message contains the extra message" {
+            $extraMessage = `
+                "Ensure the parent directory has been created before running" + `
+                " this command."
+
+            {
+                Invoke-Caller -Path $script:path -ExtraMessage $extraMessage
+            } | Should -Throw -ExpectedMessage "*$extraMessage"
         }
     }
 
