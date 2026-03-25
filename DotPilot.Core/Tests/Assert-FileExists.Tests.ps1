@@ -61,6 +61,12 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
                 $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
             }
         }
+
+        It "ErrorRecord has FullyQualifiedErrorId of 'FileNotFound'" {
+            {
+                Invoke-Caller -Path $script:path
+            } | Should -Throw -ErrorId "FileNotFound,Invoke-Caller"
+        }
     }
 
     Context "When ExtraMessage is provided" {

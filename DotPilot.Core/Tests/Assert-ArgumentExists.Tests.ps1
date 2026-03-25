@@ -52,6 +52,12 @@ Describe "Assert-ArgumentExists" -Tag "Assert-ArgumentExists", "Assert-*" {
                 $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
             }
         }
+
+        It "ErrorRecord has FullyQualifiedErrorId of 'ArgumentNullOrEmpty'" {
+            {
+                Invoke-Caller -Name $script:name -Value ""
+            } | Should -Throw -ErrorId "ArgumentNullOrEmpty,Invoke-Caller"
+        }
     }
 
     Context "When ExtraMessage is provided" {

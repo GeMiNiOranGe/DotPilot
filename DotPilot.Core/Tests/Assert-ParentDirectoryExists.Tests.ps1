@@ -59,6 +59,12 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
                 $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
             }
         }
+
+        It "ErrorRecord has FullyQualifiedErrorId of 'DirectoryNotFound'" {
+            {
+                Invoke-Caller -Path $script:path
+            } | Should -Throw -ErrorId "DirectoryNotFound,Invoke-Caller"
+        }
     }
 
     Context "When ExtraMessage is provided" {

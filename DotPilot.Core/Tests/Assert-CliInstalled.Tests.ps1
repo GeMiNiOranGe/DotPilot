@@ -46,6 +46,12 @@ Describe "Assert-CliInstalled" -Tag "Assert-CliInstalled", "Assert-*" {
                 Invoke-Caller -Name $script:name
             } | Should -Throw -ExpectedMessage "*'$($script:name)'*"
         }
+
+        It "ErrorRecord has FullyQualifiedErrorId of 'CliToolNotInstalled'" {
+            {
+                Invoke-Caller -Name $script:name
+            } | Should -Throw -ErrorId "CliToolNotInstalled,Invoke-Caller"
+        }
     }
 
     Context "When ExtraMessage is provided" {
