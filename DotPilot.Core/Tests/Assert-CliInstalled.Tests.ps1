@@ -1,6 +1,6 @@
 Describe "Assert-CliInstalled" -Tag "Assert-CliInstalled", "Assert-*" {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Classes\CliToolNotInstalledException.ps1"
+        . "$PSScriptRoot\..\Src\Classes\CommandNotFoundException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-CliInstalled.ps1"
 
         function Invoke-Caller {
@@ -26,10 +26,10 @@ Describe "Assert-CliInstalled" -Tag "Assert-CliInstalled", "Assert-*" {
             $script:name = "CliToolNameNotInstalled"
         }
 
-        It "Throws CliToolNotInstalledException when CLI tool is not installed" {
+        It "Throws CommandNotFoundException when CLI tool is not installed" {
             {
                 Invoke-Caller -Name $script:name
-            } | Should -Throw -ExceptionType ([CliToolNotInstalledException])
+            } | Should -Throw -ExceptionType ([CommandNotFoundException])
         }
 
         It "Error is attributed to the caller, not to Assert-CliInstalled" {
@@ -47,10 +47,10 @@ Describe "Assert-CliInstalled" -Tag "Assert-CliInstalled", "Assert-*" {
             } | Should -Throw -ExpectedMessage "*'$($script:name)'*"
         }
 
-        It "ErrorRecord has FullyQualifiedErrorId of 'CliToolNotInstalled'" {
+        It "ErrorRecord has FullyQualifiedErrorId of 'CommandNotFound'" {
             {
                 Invoke-Caller -Name $script:name
-            } | Should -Throw -ErrorId "CliToolNotInstalled,Invoke-Caller"
+            } | Should -Throw -ErrorId "CommandNotFound,Invoke-Caller"
         }
     }
 

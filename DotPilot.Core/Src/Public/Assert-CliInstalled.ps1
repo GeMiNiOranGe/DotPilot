@@ -3,7 +3,7 @@
 Asserts that a specified CLI tool is installed and available, terminating the caller if it is not.
 
 .DESCRIPTION
-`Assert-CliInstalled` checks whether a specified command is available on the system via `Get-Command`. If the command is not found, the function throws a terminating `CliToolNotInstalledException` through the caller's `$PSCmdlet`, ensuring the error is attributed to the calling command rather than to this function.
+`Assert-CliInstalled` checks whether a specified command is available on the system via `Get-Command`. If the command is not found, the function throws a terminating `CommandNotFoundException` through the caller's `$PSCmdlet`, ensuring the error is attributed to the calling command rather than to this function.
 
 This function is intended to be used as a guard clause inside advanced functions before performing operations that depend on external CLI tools.
 
@@ -65,11 +65,11 @@ function Assert-CliInstalled {
     }
 
     $exception = $ExtraMessage `
-        ? [CliToolNotInstalledException]::new($Name, $ExtraMessage) `
-        : [CliToolNotInstalledException]::new($Name)
+        ? [CommandNotFoundException]::new($Name, $ExtraMessage) `
+        : [CommandNotFoundException]::new($Name)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
-        "CliToolNotInstalled",
+        "CommandNotFound",
         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
         $Name
     )
