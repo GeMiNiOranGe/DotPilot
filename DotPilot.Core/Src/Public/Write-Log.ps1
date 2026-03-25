@@ -64,14 +64,17 @@ function Write-Log {
         [Parameter(Position = 1)]
         [string]$Message,
 
+        [Parameter(ParameterSetName = "FileLogging")]
         [string]$Source,
 
+        [Parameter(ParameterSetName = "FileLogging")]
         [string]$FileName,
 
+        [Parameter(ParameterSetName = "FileLogging")]
         [string]$OutputDirectory
     )
 
-    if (-not $FileName -and $global:DotPilot.Log.FileLogging) {
+    if ($global:DotPilot.Log.FileLogging) {
         $assertParameterExistsSplat = @{
             Name         = "FileName"
             Value        = $FileName
@@ -79,10 +82,10 @@ function Write-Log {
             ExtraMessage = "It is required when file logging is enabled."
         }
         Assert-ArgumentExists @assertParameterExistsSplat
-    }
 
-    if ($OutputDirectory -and $global:DotPilot.Log.FileLogging) {
-        Assert-DirectoryExists -Path $OutputDirectory -Cmdlet $PSCmdlet
+        if ($OutputDirectory) {
+            Assert-DirectoryExists -Path $OutputDirectory -Cmdlet $PSCmdlet
+        }
     }
 
     Write-LogConsole -Level $Level -Message $Message

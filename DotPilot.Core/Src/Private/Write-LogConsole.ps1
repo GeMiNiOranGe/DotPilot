@@ -10,18 +10,28 @@ function Write-LogConsole {
 
     # Black foreground ensures readable contrast across all background colors.
     $colorMap = @{
-        "Info"  = @{ ForegroundColor = "Black"; BackgroundColor = "Cyan" }
-        "Warn"  = @{ ForegroundColor = "Black"; BackgroundColor = "Yellow" }
-        "Error" = @{ ForegroundColor = "Black"; BackgroundColor = "Red" }
-        "Debug" = @{ ForegroundColor = "Black"; BackgroundColor = "White" }
+        [LogLevel]::Info  = @{
+            ForegroundColor = [ConsoleColor]::Black;
+            BackgroundColor = [ConsoleColor]::Cyan
+        }
+        [LogLevel]::Warn  = @{
+            ForegroundColor = [ConsoleColor]::Black;
+            BackgroundColor = [ConsoleColor]::Yellow
+        }
+        [LogLevel]::Error = @{
+            ForegroundColor = [ConsoleColor]::Black;
+            BackgroundColor = [ConsoleColor]::Red
+        }
+        [LogLevel]::Debug = @{
+            ForegroundColor = [ConsoleColor]::Black;
+            BackgroundColor = [ConsoleColor]::White
+        }
     }
-
-    $levelName = $Level.ToString()
-    $color = $colorMap[$levelName]
+    $color = $colorMap[$Level]
 
     # NoNewline keeps the label and message on the same line.
     $writeHostSplat = @{
-        Object          = $levelName.ToLower()
+        Object          = $Level.ToString().ToLower()
         ForegroundColor = $color.ForegroundColor
         BackgroundColor = $color.BackgroundColor
         NoNewline       = $true
