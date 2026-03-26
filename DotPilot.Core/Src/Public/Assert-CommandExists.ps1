@@ -3,7 +3,7 @@
 Asserts that a specified CLI tool is installed and available, terminating the caller if it is not.
 
 .DESCRIPTION
-`Assert-CliInstalled` checks whether a specified command is available on the system via `Get-Command`. If the command is not found, the function throws a terminating `CommandNotFoundException` through the caller's `$PSCmdlet`, ensuring the error is attributed to the calling command rather than to this function.
+`Assert-CommandExists` checks whether a specified command is available on the system via `Get-Command`. If the command is not found, the function throws a terminating `CommandNotFoundException` through the caller's `$PSCmdlet`, ensuring the error is attributed to the calling command rather than to this function.
 
 This function is intended to be used as a guard clause inside advanced functions before performing operations that depend on external CLI tools.
 
@@ -13,7 +13,7 @@ function Invoke-DotnetBuild {
     param (
         [string]$ProjectPath
     )
-    Assert-CliInstalled `
+    Assert-CommandExists `
         -Name 'dotnet' `
         -Cmdlet $PSCmdlet `
         -ExtraMessage 'Make sure the .NET SDK is installed.'
@@ -25,7 +25,7 @@ And then calling:
 Invoke-DotnetBuild -ProjectPath "C:\MyProject"
 ```
 
-If 'dotnet' is not found on the system, the error is reported as originating from `Invoke-DotnetBuild`, not from `Assert-CliInstalled`.
+If 'dotnet' is not found on the system, the error is reported as originating from `Invoke-DotnetBuild`, not from `Assert-CommandExists`.
 
 .PARAMETER Name
 Specifies the name of the CLI tool to check for.
@@ -37,7 +37,7 @@ Specifies the `$PSCmdlet` object of the calling function. Used to throw the term
 Specifies an optional message appended to the error output. Use this to provide installation hints or additional context.
 
 .INPUTS
-None. You can't pipe objects to `Assert-CliInstalled`.
+None. You can't pipe objects to `Assert-CommandExists`.
 
 .OUTPUTS
 None. This function does not return any output.
@@ -46,9 +46,9 @@ None. This function does not return any output.
 `ThrowTerminatingError` is used instead of `throw` so that the error appears to originate from the caller, not from this function.
 
 .LINK
-https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Assert-CliInstalled.md
+https://github.com/GeMiNiOranGe/DotPilot/blob/main/Docs/Assert-CommandExists.md
 #>
-function Assert-CliInstalled {
+function Assert-CommandExists {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]

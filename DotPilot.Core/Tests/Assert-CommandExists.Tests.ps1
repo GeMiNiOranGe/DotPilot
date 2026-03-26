@@ -1,12 +1,12 @@
-Describe "Assert-CliInstalled" -Tag "Assert-CliInstalled", "Assert-*" {
+Describe "Assert-CommandExists" -Tag "Assert-CommandExists", "Assert-*" {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Classes\CommandNotFoundException.ps1"
-        . "$PSScriptRoot\..\Src\Public\Assert-CliInstalled.ps1"
+        . "$PSScriptRoot\..\Src\Public\Assert-CommandExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
             param ([string]$Name, [string]$ExtraMessage)
-            Assert-CliInstalled `
+            Assert-CommandExists `
                 -Name $Name `
                 -Cmdlet $PSCmdlet `
                 -ExtraMessage $ExtraMessage
@@ -32,7 +32,7 @@ Describe "Assert-CliInstalled" -Tag "Assert-CliInstalled", "Assert-*" {
             } | Should -Throw -ExceptionType ([CommandNotFoundException])
         }
 
-        It "Error is attributed to the caller, not to Assert-CliInstalled" {
+        It "Error is attributed to the caller, not to Assert-CommandExists" {
             try {
                 Invoke-Caller -Name $script:name
             }

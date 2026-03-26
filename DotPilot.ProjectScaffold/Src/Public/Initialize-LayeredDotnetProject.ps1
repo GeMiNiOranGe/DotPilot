@@ -57,7 +57,7 @@ function Initialize-LayeredDotnetProject {
         [switch]$NoDirectoryBuildFile
     )
     # Assert required CLI tools
-    Assert-CliInstalled -Name "dotnet" -Cmdlet $PSCmdlet
+    Assert-CommandExists -Name "dotnet" -Cmdlet $PSCmdlet
 
     # Load and parse JSON config
     $assertFileExistsSplat = @{
