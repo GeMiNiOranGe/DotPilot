@@ -72,15 +72,20 @@ function Assert-ParentDirectoryExists {
 
     $fullPath = [System.IO.Path]::GetFullPath($Path)
 
-    $exception = $ExtraMessage `
-        ? [DirectoryNotFoundException]::new($fullPath, $parentDir, $ExtraMessage) `
-        : [DirectoryNotFoundException]::new($fullPath, $parentDir)
+    $exception = [DirectoryNotFoundException]::new($fullPath, $parentDir)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
         'DirectoryNotFound',
         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
         $Path
     )
+
+    if ($ExtraMessage) {
+        $errorDetails = [System.Management.Automation.ErrorDetails]::new(
+            $exception.Message + " $ExtraMessage"
+        )
+        $errorRecord.ErrorDetails = $errorDetails
+    }
 
     $Cmdlet.ThrowTerminatingError($errorRecord)
 }

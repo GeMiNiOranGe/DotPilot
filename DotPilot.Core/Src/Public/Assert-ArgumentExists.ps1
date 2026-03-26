@@ -73,15 +73,20 @@ function Assert-ArgumentExists {
         return
     }
 
-    $exception = $ExtraMessage `
-        ? [ArgumentNullOrEmptyException]::new($Name, $ExtraMessage) `
-        : [ArgumentNullOrEmptyException]::new($Name)
+    $exception = [ArgumentNullOrEmptyException]::new($Name)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
         "ArgumentNullOrEmpty",
         [System.Management.Automation.ErrorCategory]::InvalidArgument,
         $Value
     )
+
+    if ($ExtraMessage) {
+        $errorDetails = [System.Management.Automation.ErrorDetails]::new(
+            $exception.Message + " $ExtraMessage"
+        )
+        $errorRecord.ErrorDetails = $errorDetails
+    }
 
     $Cmdlet.ThrowTerminatingError($errorRecord)
 }

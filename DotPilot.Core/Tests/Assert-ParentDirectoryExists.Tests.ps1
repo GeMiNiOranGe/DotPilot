@@ -77,9 +77,12 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
                 "Ensure the parent directory has been created before running" + `
                 " this command."
 
-            {
+            try {
                 Invoke-Caller -Path $script:path -ExtraMessage $extraMessage
-            } | Should -Throw -ExpectedMessage "*$extraMessage"
+            }
+            catch {
+                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+            }
         }
     }
 

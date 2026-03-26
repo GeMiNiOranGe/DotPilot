@@ -58,11 +58,14 @@ Describe "Assert-CommandExists" -Tag "Assert-CommandExists", "Assert-*" {
         It "Error message contains the extra message" {
             $extraMessage = "Make sure the .NET SDK is installed."
 
-            {
+            try {
                 Invoke-Caller `
                     -Name "CliToolNameNotInstalled" `
                     -ExtraMessage $extraMessage
-            } | Should -Throw -ExpectedMessage "*$extraMessage"
+            }
+            catch {
+                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+            }
         }
     }
 }

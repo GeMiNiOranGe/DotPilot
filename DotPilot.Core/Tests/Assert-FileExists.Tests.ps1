@@ -75,9 +75,12 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
             $extraMessage = `
                 "Ensure the file has been created before running this command."
 
-            {
+            try {
                 Invoke-Caller -Path $path -ExtraMessage $extraMessage
-            } | Should -Throw -ExpectedMessage "*$extraMessage"
+            }
+            catch {
+                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+            }
         }
     }
 

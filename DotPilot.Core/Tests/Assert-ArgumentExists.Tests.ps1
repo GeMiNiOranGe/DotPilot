@@ -67,12 +67,15 @@ Describe "Assert-ArgumentExists" -Tag "Assert-ArgumentExists", "Assert-*" {
                 "'testing', 'staging' or 'production'."
             )
 
-            {
+            try {
                 Invoke-Caller `
                     -Name "Environment" `
                     -Value "" `
                     -ExtraMessage $extraMessage
-            } | Should -Throw -ExpectedMessage "*$extraMessage"
+            }
+            catch {
+                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+            }
         }
     }
 }

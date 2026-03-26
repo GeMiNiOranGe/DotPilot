@@ -64,15 +64,20 @@ function Assert-CommandExists {
         return
     }
 
-    $exception = $ExtraMessage `
-        ? [CommandNotFoundException]::new($Name, $ExtraMessage) `
-        : [CommandNotFoundException]::new($Name)
+    $exception = [CommandNotFoundException]::new($Name)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
         "CommandNotFound",
         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
         $Name
     )
+
+    if ($ExtraMessage) {
+        $errorDetails = [System.Management.Automation.ErrorDetails]::new(
+            $exception.Message + " $ExtraMessage"
+        )
+        $errorRecord.ErrorDetails = $errorDetails
+    }
 
     $Cmdlet.ThrowTerminatingError($errorRecord)
 }

@@ -67,15 +67,20 @@ function Assert-DirectoryExists {
     $fullPath = [System.IO.Path]::GetFullPath($Path)
     $directoryName = [System.IO.Path]::GetFileName($Path)
 
-    $exception = $ExtraMessage `
-        ? [DirectoryNotFoundException]::new($fullPath, $directoryName, $ExtraMessage) `
-        : [DirectoryNotFoundException]::new($fullPath, $directoryName)
+    $exception = [DirectoryNotFoundException]::new($fullPath, $directoryName)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
         'DirectoryNotFound',
         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
         $Path
     )
+
+    if ($ExtraMessage) {
+        $errorDetails = [System.Management.Automation.ErrorDetails]::new(
+            $exception.Message + " $ExtraMessage"
+        )
+        $errorRecord.ErrorDetails = $errorDetails
+    }
 
     $Cmdlet.ThrowTerminatingError($errorRecord)
 }
