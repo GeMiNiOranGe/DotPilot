@@ -72,8 +72,7 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
     Context "When ExtraMessage is provided" {
         It "Error message contains the extra message" {
             $path = Join-Path $TestDrive "NonExistentFile.txt"
-            $extraMessage = `
-                "Ensure the file has been created before running this command."
+            $extraMessage = "Create the file first."
 
             try {
                 Invoke-Caller -Path $path -ExtraMessage $extraMessage

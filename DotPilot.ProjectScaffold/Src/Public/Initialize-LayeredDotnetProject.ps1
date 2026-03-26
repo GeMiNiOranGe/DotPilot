@@ -63,10 +63,10 @@ function Initialize-LayeredDotnetProject {
     $assertFileExistsSplat = @{
         Path         = $TemplateJsonPath
         Cmdlet       = $PSCmdlet
-        ExtraMessage = (
-            "Use the 'New-LayeredDotnetTemplate' command to create a template" +
+        ExtraMessage = @(
+            "Use the 'New-LayeredDotnetTemplate' command to create a template"
             " if needed."
-        )
+        ) -join ''
     }
     Assert-FileExists @assertFileExistsSplat
 

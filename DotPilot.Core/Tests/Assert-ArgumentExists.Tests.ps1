@@ -62,10 +62,10 @@ Describe "Assert-ArgumentExists" -Tag "Assert-ArgumentExists", "Assert-*" {
 
     Context "When ExtraMessage is provided" {
         It "Error message contains the extra message" {
-            $extraMessage = (
-                "Specify a target environment such as 'development', " +
-                "'testing', 'staging' or 'production'."
-            )
+            $extraMessage = @(
+                "Specify a target environment such as 'development', 'testing',"
+                " 'staging' or 'production'."
+            ) -join ''
 
             try {
                 Invoke-Caller `

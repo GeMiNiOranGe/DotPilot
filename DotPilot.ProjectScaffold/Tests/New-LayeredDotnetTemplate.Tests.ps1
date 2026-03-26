@@ -44,20 +44,14 @@ Describe "New-LayeredDotnetTemplate" -Tag "Dotnet" {
     }
 
     Context "When using an invalid '-OutputPath' option" {
-        It (
-            "Throws a DirectoryNotFound error if the output directory does " +
-            "not exist"
-        ) {
+        It "Throws if directory does not exist" {
             $invalidPath = "$tempDir\DirectoryNotExist\Template.json"
 
             { New-LayeredDotnetTemplate -OutputPath $invalidPath } |
             Should -Throw -ErrorId "DirectoryNotFound,New-LayeredDotnetTemplate"
         }
 
-        It (
-            "Throws an error when the output path points to a file instead " +
-            "of a directory"
-        ) {
+        It "Throws if path is a file" {
             $directoryName = "DirectoryIsFile"
             $directoryPath = "$tempDir\$directoryName"
 
@@ -74,11 +68,7 @@ Describe "New-LayeredDotnetTemplate" -Tag "Dotnet" {
     }
 
     Context "When replacing the '{{solutionName}}' placeholder" {
-        It (
-            "Replaces '{{solutionName}}' with the default value 'Example' " +
-            "for different architectures (Architecture: " +
-            "<TemplateArguments.Architecture>)"
-        ) -TestCases @(
+        It "Uses 'Example' (<TemplateArguments.Architecture>)" -TestCases @(
             @{ TemplateArguments = @{ Architecture = "Clean" } }
             @{ TemplateArguments = @{ Architecture = "WinFormsThreeLayers" } }
             @{ TemplateArguments = @{} }

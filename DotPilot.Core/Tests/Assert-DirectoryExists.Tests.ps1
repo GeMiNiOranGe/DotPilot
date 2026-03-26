@@ -71,8 +71,7 @@ Describe "Assert-DirectoryExists" -Tag "Assert-DirectoryExists", "Assert-*" {
         }
 
         It "Error message contains the extra message" {
-            $extraMessage = `
-                "Ensure the directory has been created before running this command."
+            $extraMessage = "Create the directory first."
 
             try {
                 Invoke-Caller -Path $script:path -ExtraMessage $extraMessage

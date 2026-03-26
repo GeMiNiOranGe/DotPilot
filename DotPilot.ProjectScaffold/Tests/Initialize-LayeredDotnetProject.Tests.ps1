@@ -20,10 +20,7 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
     }
 
     Context "When the JSON template is invalid" {
-        It (
-            "Throws '<ExpectedErrorId>' when required fields are missing or " +
-            "schema is incorrect"
-        ) -TestCases @(
+        It "Throws '<ExpectedErrorId>'" -TestCases @(
             @{
                 Template        = @(
                     '"solutionName": "Example",'
@@ -119,10 +116,7 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
             Should -Invoke Write-LogConsole -Times 1
         }
 
-        It (
-            "Creates Directory.Build.props unless NoDirectoryBuildFile is " +
-            "specified"
-        ) {
+        It "Creates Directory.Build.props unless NoDirectoryBuildFile is set" {
             New-LayeredDotnetTemplate
 
             Initialize-LayeredDotnetProject `
