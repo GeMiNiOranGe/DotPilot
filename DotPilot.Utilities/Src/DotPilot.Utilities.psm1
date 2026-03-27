@@ -1,16 +1,21 @@
-$public = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Public\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
+# Directory entry order
+$loadOrder = @('Public')
 
-foreach ($import in @($public)) {
-    try {
-        . $import.FullName
+$files = $loadOrder | ForEach-Object {
+    $getChildItemSplat = @{
+        Path        = Join-Path -Path $PSScriptRoot -ChildPath "$_\*.ps1"
+        Recurse     = $true
+        ErrorAction = 'Stop'
     }
-    catch {
-        throw "Unable to dot source [$($import.FullName)]"
-    }
+    Get-ChildItem @getChildItemSplat
 }
 
-Export-ModuleMember -Function $public.Basename
+# Dot source
+foreach ($file in $files) {
+    try {
+        . $file.FullName
+    }
+    catch {
+        throw "Unable to dot source [$($file.FullName)]"
+    }
+}

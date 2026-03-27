@@ -4,35 +4,24 @@ $corePsd1 = Join-Path `
     -ChildPath "..\..\DotPilot.Core\Src\DotPilot.Core.psd1"
 Import-Module -Name (Resolve-Path $corePsd1) -Force -Global
 
-# Dot source classes/public/private
-$private = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Private\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
-$public = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Public\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
-$config = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Config\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
-$types = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Types\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
+# Directory entry order
+$loadOrder = @('Types', 'Config', 'Private', 'Public')
 
-foreach ($import in @($private + $public + $config + $types)) {
-    try {
-        . $import.FullName
+$files = $loadOrder | ForEach-Object {
+    $getChildItemSplat = @{
+        Path        = Join-Path -Path $PSScriptRoot -ChildPath "$_\*.ps1"
+        Recurse     = $true
+        ErrorAction = 'Stop'
     }
-    catch {
-        throw "Unable to dot source [$($import.FullName)]"
-    }
+    Get-ChildItem @getChildItemSplat
 }
 
-Export-ModuleMember -Function $public.Basename
+# Dot source
+foreach ($file in $files) {
+    try {
+        . $file.FullName
+    }
+    catch {
+        throw "Unable to dot source [$($file.FullName)]"
+    }
+}

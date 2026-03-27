@@ -1,37 +1,21 @@
-# Dot source classes/public/private
-$classes = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Classes\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
-$config = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Config\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
-$enums = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Enums\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
-$private = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Private\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
-$public = @(
-    Get-ChildItem -Path (
-        Join-Path -Path $PSScriptRoot -ChildPath 'Public\*.ps1'
-    ) -Recurse -ErrorAction Stop
-)
+# Directory entry order
+$loadOrder = @('Enums', 'Config', 'Classes', 'Private', 'Public')
 
-foreach ($import in @($classes + $enums + $config + $private + $public)) {
-    try {
-        . $import.FullName
+$files = $loadOrder | ForEach-Object {
+    $getChildItemSplat = @{
+        Path        = Join-Path -Path $PSScriptRoot -ChildPath "$_\*.ps1"
+        Recurse     = $true
+        ErrorAction = 'Stop'
     }
-    catch {
-        throw "Unable to dot source [$($import.FullName)]"
-    }
+    Get-ChildItem @getChildItemSplat
 }
 
-Export-ModuleMember -Function $public.Basename
+# Dot source
+foreach ($file in $files) {
+    try {
+        . $file.FullName
+    }
+    catch {
+        throw "Unable to dot source [$($file.FullName)]"
+    }
+}
