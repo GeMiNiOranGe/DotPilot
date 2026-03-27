@@ -1,14 +1,17 @@
 Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
     BeforeAll {
+        . "$PSScriptRoot\..\Src\Enums\LogFormat.ps1"
         . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogConsole.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
+        . "$PSScriptRoot\..\Src\Private\Write-LogJson.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-DirectoryExists.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-ArgumentExists.ps1"
         . "$PSScriptRoot\..\Src\Public\Write-Log.ps1"
 
         Mock Write-LogConsole {}
         Mock Write-LogFile {}
+        Mock Write-LogJson {}
         Mock Assert-DirectoryExists {}
         Mock Assert-ArgumentExists {}
     }
@@ -116,6 +119,77 @@ Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
                 [string]::IsNullOrEmpty($Source)
             }
         }
+
+        It "Calls Write-LogJson when FileFormat is Json" {
+            $global:DotPilot.Log.FileLogging = $true
+            $global:DotPilot.Log.FileFormat = "Json"
+
+            Write-Log `
+                -Level Info `
+                -Message "A test message" `
+                -FileName $script:fileName
+
+            Should -Invoke Write-LogJson -Times 1 -Exactly
+        }
+
+        It "Does not call Write-LogFile when FileFormat is Json" {
+            $global:DotPilot.Log.FileLogging = $true
+            $global:DotPilot.Log.FileFormat = "Json"
+
+            Write-Log `
+                -Level Info `
+                -Message "A test message" `
+                -FileName $script:fileName
+
+            Should -Invoke Write-LogFile -Times 0
+        }
+
+        It "Passes correct parameters to Write-LogJson with -OutputDirectory" {
+            $global:DotPilot.Log.FileLogging = $true
+            $global:DotPilot.Log.FileFormat = "Json"
+
+            Write-Log `
+                -Level Error `
+                -Message "A test message" `
+                -Source "MyFunction" `
+                -FileName $script:fileName `
+                -OutputDirectory $script:outputDir
+
+            Should -Invoke Write-LogJson -ParameterFilter {
+                $Level -eq "Error" -and
+                $Message -eq "A test message" -and
+                $Source -eq "MyFunction" -and
+                $Path -eq (Join-Path $script:outputDir "$script:fileName.jsonl")
+            }
+        }
+
+        It "Resolves path to current directory when -OutputDirectory is not provided (Json)" {
+            $global:DotPilot.Log.FileLogging = $true
+            $global:DotPilot.Log.FileFormat = "Json"
+
+            Write-Log `
+                -Level Info `
+                -Message "A test message" `
+                -FileName $script:fileName
+
+            Should -Invoke Write-LogJson -ParameterFilter {
+                $Path -eq "$script:fileName.jsonl"
+            }
+        }
+
+        It "Passes empty Source to Write-LogJson when -Source is not provided" {
+            $global:DotPilot.Log.FileLogging = $true
+            $global:DotPilot.Log.FileFormat = "Json"
+
+            Write-Log `
+                -Level Info `
+                -Message "A test message" `
+                -FileName $script:fileName
+
+            Should -Invoke Write-LogJson -ParameterFilter {
+                [string]::IsNullOrEmpty($Source)
+            }
+        }
     }
 
     Context "Input validation" {
@@ -146,7 +220,7 @@ Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
                     -Message "A test message" `
                     -FileName $script:fileName
 
-            } | Should -Throw
+            } | Should -Throw "*Invalid log file format value*"
         }
 
         It "Calls Assert-DirectoryExists when file logging is enabled and -OutputDirectory is provided" {
@@ -182,6 +256,18 @@ Describe "Write-Log" -Tag "Write-Log", "Write-Log*" {
                 -OutputDirectory $script:outputDir
 
             Should -Invoke Assert-DirectoryExists -Times 0
+        }
+
+        It "Throws when FileFormat is None" {
+            $global:DotPilot.Log.FileLogging = $true
+            $global:DotPilot.Log.FileFormat = "None"
+
+            {
+                Write-Log `
+                    -Level Info `
+                    -Message "A test message" `
+                    -FileName $script:fileName
+            } | Should -Throw
         }
     }
 }
