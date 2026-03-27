@@ -64,13 +64,10 @@ function Write-Log {
         [Parameter(Position = 1)]
         [string]$Message,
 
-        [Parameter(ParameterSetName = "FileLogging")]
         [string]$Source,
 
-        [Parameter(ParameterSetName = "FileLogging")]
         [string]$FileName,
 
-        [Parameter(ParameterSetName = "FileLogging")]
         [string]$OutputDirectory
     )
 
@@ -86,36 +83,46 @@ function Write-Log {
         if ($OutputDirectory) {
             Assert-DirectoryExists -Path $OutputDirectory -Cmdlet $PSCmdlet
         }
+
+        $rawFormat = $global:DotPilot.Log.FileFormat
+        $format = [LogFormat]::None
+
+        if (-not [LogFormat]::TryParse($rawFormat, [ref]$format)) {
+            throw "Invalid log file format value: '$rawFormat'. Expected one of: $(
+                [Enum]::GetNames([LogFormat]) -join ', '
+            )."
+        }
+
+        if ($format -eq [LogFormat]::None) {
+            throw "Log file format has not been set. Please configure '$format'."
+        }
+
+        $extensionMap = @{
+            [LogFormat]::Log  = "log"
+            [LogFormat]::Json = "jsonl"
+        }
+
+        if (-not $extensionMap.ContainsKey($format)) {
+            throw "Unsupported log file format: $format"
+        }
+
+        $extension = $extensionMap[$format]
+        $resolvedPath = $OutputDirectory `
+            ? (Join-Path $OutputDirectory "$FileName.$extension") `
+            : "$FileName.$extension"
+
+        $writeLogSplat = @{
+            Level   = $Level
+            Message = $Message
+            Source  = $Source
+            Path    = $resolvedPath
+        }
+
+        switch ($format) {
+            ([LogFormat]::Log) { Write-LogFile @writeLogSplat }
+            ([LogFormat]::Json) { Write-LogJson @writeLogSplat }
+        }
     }
 
     Write-LogConsole -Level $Level -Message $Message
-
-    if (-not $global:DotPilot.Log.FileLogging) {
-        return
-    }
-
-    switch ($global:DotPilot.Log.FileFormat) {
-        "Log" {
-            $extension = "log"
-            $resolvedPath = if ($OutputDirectory) {
-                Join-Path $OutputDirectory "$FileName.$extension"
-            }
-            else {
-                # Current directory
-                "$FileName.$extension"
-            }
-            $writeLogFileSplat = @{
-                Level   = $Level
-                Message = $Message
-                Source  = $Source
-                Path    = $resolvedPath
-            }
-            Write-LogFile @writeLogFileSplat
-        }
-        default {
-            throw "Unsupported log file format: $(
-                $global:DotPilot.Log.FileFormat
-            )"
-        }
-    }
 }

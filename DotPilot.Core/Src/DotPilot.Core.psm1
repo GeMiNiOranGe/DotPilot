@@ -25,7 +25,7 @@ $public = @(
     ) -Recurse -ErrorAction Stop
 )
 
-foreach ($import in @($classes + $config + $enums + $private + $public)) {
+foreach ($import in @($classes + $enums + $config + $private + $public)) {
     try {
         . $import.FullName
     }

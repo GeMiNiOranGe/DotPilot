@@ -2,7 +2,7 @@ if (-not (Get-Variable -Name 'DotPilot' -Scope Global -ErrorAction SilentlyConti
     $global:DotPilot = [PSCustomObject]@{
         Log = [PSCustomObject]@{
             FileLogging = $false
-            FileFormat  = "Log" # hoặc "Json"
+            FileFormat  = [LogFormat]::Log
         }
     }
 }
