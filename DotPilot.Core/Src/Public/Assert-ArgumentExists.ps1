@@ -1,11 +1,9 @@
 <#
 .SYNOPSIS
-Asserts that a specified parameter value is not null or empty, terminating the caller if it is.
+Guard clause for validating required string parameters inside advanced functions.
 
 .DESCRIPTION
-`Assert-ArgumentExists` checks whether the provided parameter value is null or empty. If the value is null or empty, the function throws a terminating `ArgumentException` through the caller's `$PSCmdlet`, ensuring the error is attributed to the calling command rather than to this function.
-
-This function is intended to be used as a guard clause inside advanced functions to validate that required string parameters have been supplied with a meaningful value.
+`Assert-ArgumentExists` is intended to be called from within advanced functions that have access to `$PSCmdlet`. Calling it directly from the terminal with a synthetic `$PSCmdlet` will not produce clean error output.
 
 .EXAMPLE
 function Invoke-Deploy {
