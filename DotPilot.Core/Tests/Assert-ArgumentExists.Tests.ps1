@@ -87,7 +87,7 @@ Describe "Assert-ArgumentExists" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Classes\ArgumentNullOrEmptyException.ps1"
+        . "$PSScriptRoot\..\Src\Classes\ArgumentBlankException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-ArgumentExists.ps1"
 
         function Invoke-Caller {
@@ -168,9 +168,9 @@ Describe "Assert-ArgumentExists" -Tag @(
         }
 
         # 02
-        It "Throws ArgumentNullOrEmptyException" {
+        It "Throws ArgumentBlankException" {
             $script:caughtError.Exception | Should -BeOfType (
-                [ArgumentNullOrEmptyException]
+                [ArgumentBlankException]
             )
         }
 
@@ -187,9 +187,9 @@ Describe "Assert-ArgumentExists" -Tag @(
         }
 
         # 05
-        It "FullyQualifiedErrorId is 'ArgumentNullOrEmpty,Invoke-Caller'" {
+        It "FullyQualifiedErrorId is 'ArgumentBlank,Invoke-Caller'" {
             $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "ArgumentNullOrEmpty,Invoke-Caller"
+                Should -Be "ArgumentBlank,Invoke-Caller"
         }
     }
 
@@ -241,9 +241,9 @@ Describe "Assert-ArgumentExists" -Tag @(
         }
 
         # 07
-        It "Throws ArgumentNullOrEmptyException" {
+        It "Throws ArgumentBlankException" {
             $script:caughtError.Exception | Should -BeOfType (
-                [ArgumentNullOrEmptyException]
+                [ArgumentBlankException]
             )
         }
 
@@ -260,9 +260,9 @@ Describe "Assert-ArgumentExists" -Tag @(
         }
 
         # 10
-        It "FullyQualifiedErrorId is 'ArgumentNullOrEmpty,Invoke-Caller'" {
+        It "FullyQualifiedErrorId is 'ArgumentBlank,Invoke-Caller'" {
             $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "ArgumentNullOrEmpty,Invoke-Caller"
+                Should -Be "ArgumentBlank,Invoke-Caller"
         }
     }
 

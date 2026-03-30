@@ -71,10 +71,10 @@ function Assert-ArgumentExists {
         return
     }
 
-    $exception = [ArgumentNullOrEmptyException]::new($Name)
+    $exception = [ArgumentBlankException]::new($Name)
     $errorRecord = [System.Management.Automation.ErrorRecord]::new(
         $exception,
-        "ArgumentNullOrEmpty",
+        "ArgumentBlank",
         [System.Management.Automation.ErrorCategory]::InvalidArgument,
         $Value
     )
