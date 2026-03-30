@@ -81,7 +81,11 @@ WS  - Whitespace
 Abs - Absent
 Pre - Present
 #>
-Describe "Assert-ArgumentExists" -Tag "Assert-ArgumentExists", "Assert-*" {
+Describe "Assert-ArgumentExists" -Tag @(
+    "Assert-ArgumentExists"
+    "Assert-*"
+    "Unit"
+) {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Classes\ArgumentNullOrEmptyException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-ArgumentExists.ps1"
@@ -102,63 +106,163 @@ Describe "Assert-ArgumentExists" -Tag "Assert-ArgumentExists", "Assert-*" {
         }
     }
 
-    Context "When parameter value is provided" {
-        It "Does not throw when parameter value is not empty" {
-            {
-                Invoke-Caller -Name "Environment" -Value "staging"
-            } | Should -Not -Throw
+    Context "When value is valid and ExtraMessage is absent" {
+        # 01
+        It "Does not throw" {
+            { Invoke-Caller -Name "Environment" -Value "staging" } | `
+                Should -Not -Throw
         }
     }
 
-    Context "When parameter value is null or empty" {
-        BeforeEach {
-            $script:name = "Environment"
-        }
-
-        It "Throws ArgumentNullOrEmptyException when parameter value is empty" {
-            {
-                Invoke-Caller -Name $script:name -Value ""
-            } | Should -Throw -ExceptionType ([ArgumentNullOrEmptyException])
-        }
-
-        It "Error message contains the parameter name" {
-            {
-                Invoke-Caller -Name $script:name -Value ""
-            } | Should -Throw -ExpectedMessage "*'-$($script:name)'*"
-        }
-
-        It "Error is attributed to the caller, not to Assert-ArgumentExists" {
+    Context "When value is empty and ExtraMessage is absent" {
+        BeforeAll {
+            $script:caughtError = $null
             try {
-                Invoke-Caller -Name $script:name -Value ""
+                Invoke-Caller -Name "Environment" -Value ""
             }
             catch {
-                $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
+                $script:caughtError = $_
+            }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
             }
         }
 
-        It "ErrorRecord has FullyQualifiedErrorId of 'ArgumentNullOrEmpty'" {
-            {
-                Invoke-Caller -Name $script:name -Value ""
-            } | Should -Throw -ErrorId "ArgumentNullOrEmpty,Invoke-Caller"
+        # 02
+        It "Throws ArgumentNullOrEmptyException" {
+            $script:caughtError.Exception | Should -BeOfType (
+                [ArgumentNullOrEmptyException]
+            )
+        }
+
+        # 03
+        It "Exception message contains the parameter name" {
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'-Environment'*"
+        }
+
+        # 04
+        It "Error is attributed to the caller" {
+            $script:caughtError.InvocationInfo.MyCommand.Name | `
+                Should -Be "Invoke-Caller"
+        }
+
+        # 05
+        It "FullyQualifiedErrorId is 'ArgumentNullOrEmpty,Invoke-Caller'" {
+            $script:caughtError.FullyQualifiedErrorId | `
+                Should -Be "ArgumentNullOrEmpty,Invoke-Caller"
         }
     }
 
-    Context "When ExtraMessage is provided" {
-        It "Error message contains the extra message" {
-            $extraMessage = @(
+    Context "When value is empty and ExtraMessage is present" {
+        BeforeAll {
+            $script:extraMessage = @(
                 "Specify a target environment such as 'development', 'testing',"
                 " 'staging' or 'production'."
             ) -join ''
-
+            $script:caughtError = $null
             try {
                 Invoke-Caller `
                     -Name "Environment" `
                     -Value "" `
-                    -ExtraMessage $extraMessage
+                    -ExtraMessage $script:extraMessage
             }
             catch {
-                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+                $script:caughtError = $_
             }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
+            }
+        }
+
+        # 06
+        It "ErrorDetails contains extra message" {
+            $script:caughtError.ErrorDetails.Message | `
+                Should -BeLike "*$($script:extraMessage)"
+        }
+    }
+
+    Context "When value is whitespace-only and ExtraMessage is absent" {
+        BeforeAll {
+            $script:caughtError = $null
+            try {
+                Invoke-Caller -Name "Environment" -Value "   "
+            }
+            catch {
+                $script:caughtError = $_
+            }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
+            }
+        }
+
+        # 07
+        It "Throws ArgumentNullOrEmptyException" {
+            $script:caughtError.Exception | Should -BeOfType (
+                [ArgumentNullOrEmptyException]
+            )
+        }
+
+        # 08
+        It "Exception message contains the parameter name" {
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'-Environment'*"
+        }
+
+        # 09
+        It "Error is attributed to the caller" {
+            $script:caughtError.InvocationInfo.MyCommand.Name | `
+                Should -Be "Invoke-Caller"
+        }
+
+        # 10
+        It "FullyQualifiedErrorId is 'ArgumentNullOrEmpty,Invoke-Caller'" {
+            $script:caughtError.FullyQualifiedErrorId | `
+                Should -Be "ArgumentNullOrEmpty,Invoke-Caller"
+        }
+    }
+
+    Context "When value is whitespace-only and ExtraMessage is present" {
+        BeforeAll {
+            $script:extraMessage = @(
+                "Specify a target environment such as 'development', 'testing',"
+                " 'staging' or 'production'."
+            ) -join ''
+            $script:caughtError = $null
+            try {
+                Invoke-Caller `
+                    -Name "Environment" `
+                    -Value "   " `
+                    -ExtraMessage $script:extraMessage
+            }
+            catch {
+                $script:caughtError = $_
+            }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
+            }
+        }
+
+        # 11
+        It "ErrorDetails contains extra message" {
+            $script:caughtError.ErrorDetails.Message | `
+                Should -BeLike "*$($script:extraMessage)"
         }
     }
 }
