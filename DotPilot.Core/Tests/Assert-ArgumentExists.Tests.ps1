@@ -104,6 +104,44 @@ Describe "Assert-ArgumentExists" -Tag @(
                 -Cmdlet $PSCmdlet `
                 -ExtraMessage $ExtraMessage
         }
+
+        function Assert-GuardThrew {
+            param (
+                [object]$CaughtError,
+                [string]$Value,
+                [switch]$HasExtraMessage
+            )
+
+            if ($null -ne $CaughtError) {
+                return
+            }
+
+            $valueDisplay = switch ($Value) {
+                $null {
+                    '<null>'
+                    break
+                }
+                '' {
+                    '<empty>'
+                    break
+                }
+                ({ $_.Trim() -eq '' }) {
+                    "<whitespace: '$_'>"
+                    break
+                }
+                default {
+                    "'$_'"
+                    break
+                }
+            }
+            $extraPart = $HasExtraMessage ? ', with ExtraMessage' : ''
+
+            throw @(
+                "Guard: Invoke-Caller did not throw for "
+                "Value=$valueDisplay$extraPart - all assertions in "
+                "this Context are invalid."
+            ) -join ''
+        }
     }
 
     Context "When value is valid and ExtraMessage is absent" {
@@ -117,19 +155,16 @@ Describe "Assert-ArgumentExists" -Tag @(
     Context "When value is empty and ExtraMessage is absent" {
         BeforeAll {
             $script:caughtError = $null
+            $value = ""
+
             try {
-                Invoke-Caller -Name "Environment" -Value ""
+                Invoke-Caller -Name "Environment" -Value $value
             }
             catch {
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Invoke-Caller did not throw - all assertions in "
-                    "this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew -CaughtError $script:caughtError -Value $value
         }
 
         # 02
@@ -165,22 +200,22 @@ Describe "Assert-ArgumentExists" -Tag @(
                 " 'staging' or 'production'."
             ) -join ''
             $script:caughtError = $null
+            $value = ""
+
             try {
                 Invoke-Caller `
                     -Name "Environment" `
-                    -Value "" `
+                    -Value $value `
                     -ExtraMessage $script:extraMessage
             }
             catch {
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Invoke-Caller did not throw - all assertions in "
-                    "this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -Value $value `
+                -HasExtraMessage
         }
 
         # 06
@@ -193,19 +228,16 @@ Describe "Assert-ArgumentExists" -Tag @(
     Context "When value is whitespace-only and ExtraMessage is absent" {
         BeforeAll {
             $script:caughtError = $null
+            $value = "   "
+
             try {
-                Invoke-Caller -Name "Environment" -Value "   "
+                Invoke-Caller -Name "Environment" -Value $value
             }
             catch {
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Invoke-Caller did not throw - all assertions in "
-                    "this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew -CaughtError $script:caughtError -Value $value
         }
 
         # 07
@@ -241,22 +273,22 @@ Describe "Assert-ArgumentExists" -Tag @(
                 " 'staging' or 'production'."
             ) -join ''
             $script:caughtError = $null
+            $value = "   "
+
             try {
                 Invoke-Caller `
                     -Name "Environment" `
-                    -Value "   " `
+                    -Value $value `
                     -ExtraMessage $script:extraMessage
             }
             catch {
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Invoke-Caller did not throw - all assertions in "
-                    "this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -Value $value `
+                -HasExtraMessage
         }
 
         # 11
