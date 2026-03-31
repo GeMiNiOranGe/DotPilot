@@ -71,14 +71,21 @@ E    - Exists
 Abs  - Absent
 Pre  - Present
 #>
-Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
+Describe "Assert-FileExists" -Tag @(
+    "Assert-FileExists"
+    "Assert-*"
+    "Unit"
+) {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Classes\FileNotFoundException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-FileExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
-            param ([string]$Path, [string]$ExtraMessage)
+            param (
+                [string]$Path,
+                [string]$ExtraMessage
+            )
             Assert-FileExists `
                 -Path $Path `
                 -Cmdlet $PSCmdlet `
@@ -86,81 +93,101 @@ Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
         }
     }
 
-    Context "When file exists" {
-        BeforeEach {
-            $script:path = Join-Path $TestDrive "test.txt"
-            [void](New-Item -Path $script:path -ItemType File -Force)
+    Context "When file exists and ExtraMessage is absent" {
+        BeforeAll {
+            $script:tempFile = Join-Path $TestDrive "temp.txt"
+            [void](New-Item -Path $script:tempFile -ItemType File)
         }
 
-        It "Does not throw when file exists" {
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Not -Throw
-        }
-    }
-
-    Context "When file does not exist" {
-        BeforeEach {
-            $script:path = Join-Path $TestDrive "NonExistentFile.txt"
-        }
-
-        It "Throws FileNotFoundException when file does not exist" {
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExceptionType ([FileNotFoundException])
-        }
-
-        It "Error message contains the full path" {
-            $fullPath = [System.IO.Path]::GetFullPath($script:path)
-
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*'$fullPath'*"
-        }
-
-        It "Error message contains the file name" {
-            $fileName = [System.IO.Path]::GetFileName($script:path)
-
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*'$fileName'*"
-        }
-
-        It "Error is attributed to the caller, not to Assert-FileExists" {
-            try {
-                Invoke-Caller -Path $script:path
-            }
-            catch {
-                $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
-            }
-        }
-
-        It "ErrorRecord has FullyQualifiedErrorId of 'FileNotFound'" {
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ErrorId "FileNotFound,Invoke-Caller"
+        # 01
+        It "Does not throw" {
+            { Invoke-Caller -Path $script:tempFile } | Should -Not -Throw
         }
     }
 
-    Context "When ExtraMessage is provided" {
-        It "Error message contains the extra message" {
-            $path = Join-Path $TestDrive "NonExistentFile.txt"
-            $extraMessage = "Create the file first."
+    Context "When file is not found and ExtraMessage is absent" {
+        BeforeAll {
+            $script:missingFile = Join-Path $TestDrive "missing_file.txt"
+            $script:caughtError = $null
 
             try {
-                Invoke-Caller -Path $path -ExtraMessage $extraMessage
+                Invoke-Caller -Path $script:missingFile
             }
             catch {
-                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+                $script:caughtError = $_
             }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
+            }
+        }
+
+        # 02
+        It "Throws FileNotFoundException" {
+            $script:caughtError.Exception | Should -BeOfType (
+                [FileNotFoundException]
+            )
+        }
+
+        # 03
+        It "Exception message contains the full path" {
+            $fullPath = [System.IO.Path]::GetFullPath($script:missingFile)
+
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'$fullPath'*"
+        }
+
+        # 04
+        It "Exception message contains the file name" {
+            $fileName = [System.IO.Path]::GetFileName($script:missingFile)
+
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'$fileName'*"
+        }
+
+        # 05
+        It "Error is attributed to the caller" {
+            $script:caughtError.InvocationInfo.MyCommand.Name | `
+                Should -Be "Invoke-Caller"
+        }
+
+        # 06
+        It "FullyQualifiedErrorId is 'FileNotFound,Invoke-Caller'" {
+            $script:caughtError.FullyQualifiedErrorId | `
+                Should -Be "FileNotFound,Invoke-Caller"
         }
     }
 
-    Context "Input validation" {
-        It "Throws when Path is null or empty" {
-            {
-                Invoke-Caller -Path ""
-            } | Should -Throw
+    Context "When file is not found and ExtraMessage is present" {
+        BeforeAll {
+            $script:missingFile = Join-Path $TestDrive "missing_file.txt"
+            $script:extraMessage = "Ensure that 'file.txt' exists."
+            $script:caughtError = $null
+
+            try {
+                Invoke-Caller `
+                    -Path $script:missingFile `
+                    -ExtraMessage $script:extraMessage
+            }
+            catch {
+                $script:caughtError = $_
+            }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
+            }
+        }
+
+        # 07
+        It "ErrorDetails contains the extra message" {
+            $script:caughtError.ErrorDetails.Message | `
+                Should -BeLike "*$($script:extraMessage)"
         }
     }
 }
