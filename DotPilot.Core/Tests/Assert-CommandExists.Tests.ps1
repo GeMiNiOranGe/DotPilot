@@ -17,9 +17,8 @@ Partition   Representative          Expected
 Exists      "pwsh"                  No throw
 Not found   "__nonexistent_cli__"   Throw CommandNotFoundException
 
-Note: $null or "" are outside the valid input domain (Get-Command would
-raise a parameter binding error, not CommandNotFoundException) and are
-excluded.
+Note: $null or "" are outside the valid input domain (Get-Command would raise
+a parameter binding error, not CommandNotFoundException) and are excluded.
 
 2. For `$ExtraMessage`
 Partition   Representative      Expected
@@ -31,23 +30,20 @@ Present     "Install via ..."   ErrorDetails.Message contains extra message
 
 Decision table
 --------------
-$Name (exists?)   $ExtraMessage   Expected
----------------   -------------   --------
-Exists            Absent          No throw
-Exists            Present         No throw
-Not found         Absent          Throw; ErrorDetails = null
-Not found         Present         Throw; ErrorDetails has extra message
+$Name       $ExtraMessage   Expected
+-----       -------------   --------
+Exists      Absent          No throw
+Exists      Present         No throw
+Not found   Absent          Throw; ErrorDetails = null
+Not found   Present         Throw; ErrorDetails has extra message
 
 Note:
-1.  'Exists + Present' is not tested. $ExtraMessage is only evaluated on the
-    throw path; on the valid path the function returns early before
-    $ExtraMessage is ever reached, so the combination produces no observable
-    behavior difference.
+1.  'Exists + Present' is not tested. $ExtraMessage is only reached on the
+    throw path; the valid path returns early, so no behavior difference exists.
 
 2.  Exception type, message, attribution, and FullyQualifiedErrorId are tested
-    only against 'Absent' combinations ('Not found + Absent'). These properties
-    are determined by command existence alone; $ExtraMessage only affects
-    ErrorDetails.
+    only on 'Absent' combinations. They are determined by command existence
+    alone; $ExtraMessage only affects ErrorDetails ('Not found + Absent').
 
 ################################################################################
 

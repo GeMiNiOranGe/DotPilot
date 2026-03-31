@@ -42,15 +42,13 @@ Whitespace   Absent          Throw; ErrorDetails = null
 Whitespace   Present         Throw; ErrorDetails contains extra message
 
 Note:
-1.  'Valid + Present' is not tested. $ExtraMessage is only evaluated on the
-    throw path; on the valid path the function returns early before
-    $ExtraMessage is ever reached, so the combination produces no observable
-    behavior difference.
+1.  'Valid + Present' is not tested. $ExtraMessage is only reached on the
+    throw path; the valid path returns early, so no behavior difference exists.
 
-2.  Exception type, message, attribution, and FullyQualifiedErrorId are only
-    tested against 'Absent' combinations ('Empty + Absent' and
-    'Whitespace + Absent'). These properties are determined entirely by
-    $Value; $ExtraMessage has no effect on them.
+2.  Exception type, message, attribution, and FullyQualifiedErrorId are tested
+    only on 'Absent' combinations. They are determined entirely by $Value;
+    $ExtraMessage only affects ErrorDetails ('Empty + Absent' and
+    'Whitespace + Absent').
 
 ################################################################################
 
