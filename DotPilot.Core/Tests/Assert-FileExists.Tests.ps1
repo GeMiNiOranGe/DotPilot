@@ -1,3 +1,76 @@
+<#
+Input space
+-----------
+$Path        : Any string representing a file path. Drives the branch:
+               file exists -> return; not found -> throw.
+$Cmdlet      : Fixed to $PSCmdlet of the synthetic wrapper in all tests.
+               No partitioning needed.
+$ExtraMessage: Absent | Present
+
+################################################################################
+
+Equivalence Partitioning
+------------------------
+1. For `$Path`
+Partition   Representative        Expected
+---------   --------------        --------
+Exists      (temp file on disk)   No throw
+Not found   "missing_file.txt"    Throw FileNotFoundException
+
+Note: $null is excluded; PowerShell's [string] binding coerces it to "",
+which does not resolve to a Leaf - same outcome as Not found but is not
+a real path domain value; Not found already covers the throw path.
+
+2. For `$ExtraMessage`
+Partition   Representative      Expected
+---------   --------------      --------
+Absent      (omit)              ErrorDetails is null
+Present     "Ensure that ..."   ErrorDetails.Message contains extra message
+
+################################################################################
+
+Decision table
+--------------
+$Path       $ExtraMessage   Expected
+-----       -------------   --------
+Exists      Absent          No throw
+Exists      Present         No throw
+Not found   Absent          Throw; ErrorDetails = null
+Not found   Present         Throw; ErrorDetails has extra message
+
+Note:
+1.  'Exists + Present' is not tested. $ExtraMessage is only reached on the
+    throw path; the valid path returns early, so no behavior difference exists.
+
+2.  Exception type, message, attribution, and FullyQualifiedErrorId are tested
+    only on 'Absent' combinations. They are determined by path existence alone;
+    $ExtraMessage only affects ErrorDetails ('Not found + Absent').
+
+################################################################################
+
+Test map
+--------
+ID   Context    Input                   Technique   Assert
+--   -------    -----                   ---------   ------
+01   E + Abs    <temp file>, no extra   DT          No throw
+02   NF + Abs   "missing_file.txt",     DT          Exception type
+                no extra
+03   NF + Abs   ^                       ^           Message contains full path
+04   NF + Abs   ^                       ^           Message contains file name
+05   NF + Abs   ^                       ^           Attribution = Invoke-Caller
+06   NF + Abs   ^                       ^           FullyQualifiedErrorId
+07   NF + Pre   "missing_file.txt",     DT          ErrorDetails contains
+                "Ensure that ..."                   extra message
+
+List of Abbreviations:
+'^'  - Same capture as previous assertion(s)
+DT   - Decision Table
+EP   - Equivalence Partitioning
+NF   - Not Found (file does not exist on disk)
+E    - Exists
+Abs  - Absent
+Pre  - Present
+#>
 Describe "Assert-FileExists" -Tag "Assert-FileExists", "Assert-*" {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Classes\FileNotFoundException.ps1"

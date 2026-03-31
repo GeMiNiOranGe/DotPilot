@@ -69,7 +69,6 @@ ID   Context    Input                 Technique   Assert
 11   WS + Pre   "   ", "Specify"      DT          ErrorDetails has $ExtraMessage
 
 List of Abbreviations:
-'~' - None
 '^' - Same capture as previous assertion(s)
 EP  - Equivalence Partitioning
 DT  - Decision Table
