@@ -73,74 +73,120 @@ E    - Exists
 Abs  - Absent
 Pre  - Present
 #>
-Describe "Assert-CommandExists" -Tag "Assert-CommandExists", "Assert-*" {
+Describe "Assert-CommandExists" -Tag @(
+    "Assert-CommandExists",
+    "Assert-*"
+    "Unit"
+) {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Classes\CommandNotFoundException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-CommandExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
-            param ([string]$Name, [string]$ExtraMessage)
+            param (
+                [string]$Name,
+                [string]$ExtraMessage
+            )
             Assert-CommandExists `
                 -Name $Name `
                 -Cmdlet $PSCmdlet `
                 -ExtraMessage $ExtraMessage
         }
-    }
 
-    Context "When CLI tool is installed" {
-        It "Does not throw when CLI tool is installed" {
-            {
-                Invoke-Caller -Name "pwsh"
-            } | Should -Not -Throw
+        function Assert-GuardThrew {
+            param (
+                [object]$CaughtError,
+                [string]$CommandName,
+                [switch]$HasExtraMessage
+            )
+
+            if ($null -ne $CaughtError) {
+                return
+            }
+
+            $extraPart = $HasExtraMessage ? ', with ExtraMessage' : ''
+
+            throw @(
+                "Guard: Invoke-Caller did not throw for "
+                "CommandName='$CommandName'$extraPart - all assertions in "
+                "this Context are invalid."
+            ) -join ''
         }
     }
 
-    Context "When CLI tool is not installed" {
-        BeforeEach {
-            $script:name = "CliToolNameNotInstalled"
+    Context "When command exists and ExtraMessage is absent" {
+        # 01
+        It "Does not throw" {
+            { Invoke-Caller -Name "pwsh" } | Should -Not -Throw
         }
+    }
 
-        It "Throws CommandNotFoundException when CLI tool is not installed" {
-            {
-                Invoke-Caller -Name $script:name
-            } | Should -Throw -ExceptionType ([CommandNotFoundException])
-        }
-
-        It "Error is attributed to the caller, not to Assert-CommandExists" {
+    Context "When command is not found and ExtraMessage is absent" {
+        BeforeAll {
+            $script:notFound = "__nonexistent_cli__"
+            $script:caughtError = $null
             try {
-                Invoke-Caller -Name $script:name
+                Invoke-Caller -Name $script:notFound
             }
             catch {
-                $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
+                $script:caughtError = $_
             }
+
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -CommandName $script:notFound
         }
 
-        It "Error message contains the CLI tool name" {
-            {
-                Invoke-Caller -Name $script:name
-            } | Should -Throw -ExpectedMessage "*'$($script:name)'*"
+        # 02
+        It "Throws CommandNotFoundException" {
+            $script:caughtError.Exception | Should -BeOfType (
+                [CommandNotFoundException]
+            )
         }
 
-        It "ErrorRecord has FullyQualifiedErrorId of 'CommandNotFound'" {
-            {
-                Invoke-Caller -Name $script:name
-            } | Should -Throw -ErrorId "CommandNotFound,Invoke-Caller"
+        # 03
+        It "Exception message contains the command name" {
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'$($script:notFound)'*"
+        }
+
+        # 04
+        It "Error is attributed to the caller" {
+            $script:caughtError.InvocationInfo.MyCommand.Name | `
+                Should -Be "Invoke-Caller"
+        }
+
+        # 05
+        It "FullyQualifiedErrorId is 'CommandNotFound,Invoke-Caller'" {
+            $script:caughtError.FullyQualifiedErrorId | `
+                Should -Be "CommandNotFound,Invoke-Caller"
         }
     }
 
-    Context "When ExtraMessage is provided" {
-        It "Error message contains the extra message" {
-            $extraMessage = "Make sure the .NET SDK is installed."
-
+    Context "When command is not found and ExtraMessage is present" {
+        BeforeAll {
+            $script:extraMessage = "Install via ..."
+            $script:caughtError = $null
             try {
                 Invoke-Caller `
-                    -Name "CliToolNameNotInstalled" `
-                    -ExtraMessage $extraMessage
+                    -Name "__nonexistent_cli__" `
+                    -ExtraMessage $script:extraMessage
             }
             catch {
-                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+                $script:caughtError = $_
             }
+
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -CommandName "__nonexistent_cli__" `
+                -HasExtraMessage
+        }
+
+        # 06
+        It "ErrorDetails contains the extra message" {
+            $script:caughtError.ErrorDetails.Message | `
+                Should -BeLike "*$($script:extraMessage)"
         }
     }
 }
