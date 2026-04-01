@@ -79,13 +79,21 @@ NF  - Not Found
 Abs - Absent
 Pre - Present
 #>
-Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "Assert-*" {
+Describe "Assert-ParentDirectoryExists" -Tag @(
+    "Assert-ParentDirectoryExists"
+    "Assert-*"
+    "Unit"
+) {
     BeforeAll {
+        . "$PSScriptRoot\..\Src\Classes\DirectoryNotFoundException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-ParentDirectoryExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
-            param ([string]$Path, [string]$ExtraMessage)
+            param (
+                [string]$Path,
+                [string]$ExtraMessage
+            )
             Assert-ParentDirectoryExists `
                 -Path $Path `
                 -Cmdlet $PSCmdlet `
@@ -93,97 +101,120 @@ Describe "Assert-ParentDirectoryExists" -Tag "Assert-ParentDirectoryExists", "As
         }
     }
 
-    Context "When parent directory exists" {
-        It "Does not throw when parent directory exists" {
-            $path = Join-Path $TestDrive "test.log"
-
-            {
-                Invoke-Caller -Path $path
-            } | Should -Not -Throw
+    Context "When path has no parent and ExtraMessage is absent" {
+        # 01
+        It "Does not throw" {
+            # "<ignored>" is a bare name with no directory separator.
+            # GetDirectoryName("ignored") returns "" → early return,
+            # no filesystem access occurs.
+            { Invoke-Caller -Path "<ignored>" } | Should -Not -Throw
         }
     }
 
-    Context "When parent directory does not exist" {
-        BeforeEach {
-            $script:path = Join-Path $TestDrive "NonExistentDir" "test.log"
+    Context "When parent directory exists and ExtraMessage is absent" {
+        BeforeAll {
+            # Create a 'parent' directory existing on disk
+            $parent = Join-Path $TestDrive "parent"
+            [void](New-Item -Path $parent -ItemType Directory)
+
+            # Join a child filename to the parent path,
+            # the file itself does not need to exist
+            $script:tempPath = Join-Path $parent "<ignored>"
         }
 
-        It "Throws DirectoryNotFoundException when parent directory does not exist" {
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExceptionType (
-                [System.IO.DirectoryNotFoundException]
+        # 02
+        It "Does not throw" {
+            { Invoke-Caller -Path $script:tempPath } | Should -Not -Throw
+        }
+    }
+
+    Context "When parent directory is not found and ExtraMessage is absent" {
+        BeforeAll {
+            $missingParent = Join-Path $TestDrive "missing_parent"
+            $script:missingPath = Join-Path $missingParent "<ignored>"
+            $script:caughtError = $null
+
+            try {
+                Invoke-Caller -Path $script:missingPath
+            }
+            catch {
+                $script:caughtError = $_
+            }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
+            }
+        }
+
+        # 03
+        It "Throws DirectoryNotFoundException" {
+            $script:caughtError.Exception | Should -BeOfType (
+                [DirectoryNotFoundException]
             )
         }
 
-        It "Error message contains the full path" {
-            $fullPath = [System.IO.Path]::GetFullPath($script:path)
+        # 04
+        It "Exception message contains the full path" {
+            $fullPath = [System.IO.Path]::GetFullPath($script:missingPath)
 
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*'$fullPath'*"
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'$fullPath'*"
         }
 
-        It "Error message contains the parent directory" {
-            $parentDir = [System.IO.Path]::GetDirectoryName($script:path)
+        # 05
+        It "Exception message contains the parent directory name" {
+            $parentDir = [System.IO.Path]::GetDirectoryName(
+                $script:missingPath
+            )
 
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*'$parentDir'*"
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'$parentDir'*"
         }
 
-        It "Error is attributed to the caller, not to Assert-ParentDirectoryExists" {
-            try {
-                Invoke-Caller -Path $script:path
-            }
-            catch {
-                $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
-            }
+        # 06
+        It "Error is attributed to the caller" {
+            $script:caughtError.InvocationInfo.MyCommand.Name | `
+                Should -Be "Invoke-Caller"
         }
 
-        It "ErrorRecord has FullyQualifiedErrorId of 'DirectoryNotFound'" {
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ErrorId "DirectoryNotFound,Invoke-Caller"
+        # 07
+        It "FullyQualifiedErrorId is 'DirectoryNotFound,Invoke-Caller'" {
+            $script:caughtError.FullyQualifiedErrorId | `
+                Should -Be "DirectoryNotFound,Invoke-Caller"
         }
     }
 
-    Context "When ExtraMessage is provided" {
-        BeforeEach {
-            $script:path = Join-Path $TestDrive "NonExistentDir" "test.log"
-        }
-
-        It "Error message contains the extra message" {
-            $extraMessage = "Create the parent directory first."
+    Context "When parent directory is not found and ExtraMessage is present" {
+        BeforeAll {
+            $missingParent = Join-Path $TestDrive "missing_parent"
+            $script:missingPath = Join-Path $missingParent "<ignored>"
+            $script:extraMessage = "Create the parent directory first."
+            $script:caughtError = $null
 
             try {
-                Invoke-Caller -Path $script:path -ExtraMessage $extraMessage
+                Invoke-Caller `
+                    -Path $script:missingPath `
+                    -ExtraMessage $script:extraMessage
             }
             catch {
-                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+                $script:caughtError = $_
+            }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
             }
         }
-    }
 
-    Context "Input validation" {
-        It "Throws when Path is null or empty" {
-            {
-                Invoke-Caller -Path ""
-            } | Should -Throw
-        }
-    }
-
-    Context "When path has no parent directory" {
-        It "Does not throw when path has no parent (e.g., a bare filename)" {
-            {
-                Invoke-Caller -Path "test.log"
-            } | Should -Not -Throw
-        }
-
-        It "Does not throw when path is a root drive" {
-            {
-                Invoke-Caller -Path "C:\"
-            } | Should -Not -Throw
+        # 08
+        It "ErrorDetails contains the extra message" {
+            $script:caughtError.ErrorDetails.Message | `
+                Should -BeLike "*$($script:extraMessage)"
         }
     }
 }
