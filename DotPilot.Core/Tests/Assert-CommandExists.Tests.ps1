@@ -64,8 +64,8 @@ List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
 DT   - Decision Table
 EP   - Equivalence Partitioning
-NF   - Not Found (command does not exist on the system)
 E    - Exists
+NF   - Not Found (command does not exist on the system)
 Abs  - Absent
 Pre  - Present
 #>

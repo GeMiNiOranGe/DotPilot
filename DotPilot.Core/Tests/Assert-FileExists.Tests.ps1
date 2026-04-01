@@ -66,8 +66,8 @@ List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
 DT   - Decision Table
 EP   - Equivalence Partitioning
-NF   - Not Found (file does not exist on disk)
 E    - Exists
+NF   - Not Found (file does not exist on disk)
 Abs  - Absent
 Pre  - Present
 #>

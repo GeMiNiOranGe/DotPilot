@@ -72,8 +72,8 @@ List of Abbreviations:
 '^' - Same capture as previous assertion(s)
 EP  - Equivalence Partitioning
 DT  - Decision Table
-E   - Empty
 V   - Valid
+E   - Empty
 WS  - Whitespace
 Abs - Absent
 Pre - Present
