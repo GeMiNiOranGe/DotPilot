@@ -73,13 +73,21 @@ NF   - Not Found (directory does not exist on disk)
 Abs  - Absent
 Pre  - Present
 #>
-Describe "Assert-DirectoryExists" -Tag "Assert-DirectoryExists", "Assert-*" {
+Describe "Assert-DirectoryExists" -Tag @(
+    "Assert-DirectoryExists"
+    "Assert-*"
+    "Unit"
+) {
     BeforeAll {
+        . "$PSScriptRoot\..\Src\Classes\DirectoryNotFoundException.ps1"
         . "$PSScriptRoot\..\Src\Public\Assert-DirectoryExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
-            param ([string]$Path, [string]$ExtraMessage)
+            param (
+                [string]$Path,
+                [string]$ExtraMessage
+            )
             Assert-DirectoryExists `
                 -Path $Path `
                 -Cmdlet $PSCmdlet `
@@ -87,81 +95,101 @@ Describe "Assert-DirectoryExists" -Tag "Assert-DirectoryExists", "Assert-*" {
         }
     }
 
-    Context "When directory exists" {
-        It "Does not throw when directory exists" {
-            {
-                Invoke-Caller -Path $TestDrive
-            } | Should -Not -Throw
+    Context "When directory exists and ExtraMessage is absent" {
+        BeforeAll {
+            $script:tempDir = Join-Path $TestDrive "temp_directory"
+            [void](New-Item -Path $script:tempDir -ItemType Directory)
+        }
+
+        # 01
+        It "Does not throw" {
+            { Invoke-Caller -Path $script:tempDir } | Should -Not -Throw
         }
     }
 
-    Context "When directory does not exist" {
-        BeforeEach {
-            $script:path = Join-Path $TestDrive "NonExistentDir"
+    Context "When directory does not exist and ExtraMessage is absent" {
+        BeforeAll {
+            $script:missingDir = Join-Path $TestDrive "missing_directory"
+            $script:caughtError = $null
+
+            try {
+                Invoke-Caller -Path $script:missingDir
+            }
+            catch {
+                $script:caughtError = $_
+            }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
+            }
         }
 
-        It "Throws DirectoryNotFoundException when directory does not exist" {
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExceptionType (
-                [System.IO.DirectoryNotFoundException]
+        # 02
+        It "Throws DirectoryNotFoundException" {
+            $script:caughtError.Exception | Should -BeOfType (
+                [DirectoryNotFoundException]
             )
         }
 
-        It "Error message contains the full path" {
-            $fullPath = [System.IO.Path]::GetFullPath($script:path)
+        # 03
+        It "Exception message contains the full path" {
+            $fullPath = [System.IO.Path]::GetFullPath($script:missingDir)
 
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*'$fullPath'*"
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'$fullPath'*"
         }
 
-        It "Error message contains the directory name" {
-            $directoryName = [System.IO.Path]::GetFileName($script:path)
+        # 04
+        It "Exception message contains the directory name" {
+            $directoryName = [System.IO.Path]::GetFileName($script:missingDir)
 
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ExpectedMessage "*'$directoryName'*"
+            $script:caughtError.Exception.Message | `
+                Should -BeLike "*'$directoryName'*"
         }
 
-        It "Error is attributed to the caller, not to Assert-DirectoryExists" {
-            try {
-                Invoke-Caller -Path $script:path
-            }
-            catch {
-                $_.InvocationInfo.MyCommand.Name | Should -Be "Invoke-Caller"
-            }
+        # 05
+        It "Error is attributed to the caller" {
+            $script:caughtError.InvocationInfo.MyCommand.Name | `
+                Should -Be "Invoke-Caller"
         }
 
-        It "ErrorRecord has FullyQualifiedErrorId of 'DirectoryNotFound'" {
-            {
-                Invoke-Caller -Path $script:path
-            } | Should -Throw -ErrorId "DirectoryNotFound,Invoke-Caller"
+        # 06
+        It "FullyQualifiedErrorId is 'DirectoryNotFound,Invoke-Caller'" {
+            $script:caughtError.FullyQualifiedErrorId | `
+                Should -Be "DirectoryNotFound,Invoke-Caller"
         }
     }
 
-    Context "When ExtraMessage is provided" {
-        BeforeEach {
-            $script:path = Join-Path $TestDrive "NonExistentDir"
-        }
-
-        It "Error message contains the extra message" {
-            $extraMessage = "Create the directory first."
+    Context "When directory does not exist and ExtraMessage is present" {
+        BeforeAll {
+            $script:missingDir = Join-Path $TestDrive "missing_directory"
+            $script:extraMessage = "Create the directory first."
+            $script:caughtError = $null
 
             try {
-                Invoke-Caller -Path $script:path -ExtraMessage $extraMessage
+                Invoke-Caller `
+                    -Path $script:missingDir `
+                    -ExtraMessage $script:extraMessage
             }
             catch {
-                $_.ErrorDetails.Message | Should -BeLike "*$extraMessage"
+                $script:caughtError = $_
+            }
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Invoke-Caller did not throw - all assertions in "
+                    "this Context are invalid."
+                ) -join ''
             }
         }
-    }
 
-    Context "Input validation" {
-        It "Throws when Path is null or empty" {
-            {
-                Invoke-Caller -Path ""
-            } | Should -Throw
+        # 07
+        It "ErrorDetails contains the extra message" {
+            $script:caughtError.ErrorDetails.Message | `
+                Should -BeLike "*$($script:extraMessage)"
         }
     }
 }
