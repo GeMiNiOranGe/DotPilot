@@ -70,7 +70,6 @@ ID   Context    Input                 Technique   Assert
 
 List of Abbreviations:
 '^' - Same capture as previous assertion(s)
-EP  - Equivalence Partitioning
 DT  - Decision Table
 V   - Valid
 E   - Empty

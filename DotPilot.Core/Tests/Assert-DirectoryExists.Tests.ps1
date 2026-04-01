@@ -61,15 +61,14 @@ ID   Context    Input                  Technique   Assert
                                                    name
 05   NF + Abs   ^                      ^           Attribution = Invoke-Caller
 06   NF + Abs   ^                      ^           FullyQualifiedErrorId
-07   NF + Pre   "missing_directory",   DT          ErrorDetails has extra msg
+07   NF + Pre   "missing_directory",   DT          ErrorDetails has ExtraMessage
                 "Create..."
 
 List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
 DT   - Decision Table
-EP   - Equivalence Partitioning
 E    - Exists
-NF   - Not Found (directory does not exist on disk)
+NF   - Not Found
 Abs  - Absent
 Pre  - Present
 #>

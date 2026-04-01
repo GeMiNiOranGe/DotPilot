@@ -63,9 +63,8 @@ ID   Context    Input                    Technique   Assert
 List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
 DT   - Decision Table
-EP   - Equivalence Partitioning
 E    - Exists
-NF   - Not Found (command does not exist on the system)
+NF   - Not Found
 Abs  - Absent
 Pre  - Present
 #>
