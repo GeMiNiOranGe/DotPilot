@@ -78,6 +78,7 @@ Describe "Assert-FileExists" -Tag @(
     BeforeAll {
         . "$PSScriptRoot\..\..\Src\Classes\FileNotFoundException.ps1"
         . "$PSScriptRoot\..\..\Src\Public\Assert-FileExists.ps1"
+        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
@@ -90,6 +91,8 @@ Describe "Assert-FileExists" -Tag @(
                 -Cmdlet $PSCmdlet `
                 -Reason $Reason
         }
+
+        $script:missingFileContext = "Path='<missing_file.txt>'"
     }
 
     Context "When file exists and Reason is absent" {
@@ -116,12 +119,9 @@ Describe "Assert-FileExists" -Tag @(
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Invoke-Caller did not throw - all assertions in "
-                    "this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -Context $script:missingFileContext
         }
 
         # 02
@@ -175,12 +175,9 @@ Describe "Assert-FileExists" -Tag @(
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Invoke-Caller did not throw - all assertions in "
-                    "this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -Context "$script:missingFileContext, with Reason"
         }
 
         # 07

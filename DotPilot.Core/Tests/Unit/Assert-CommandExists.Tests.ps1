@@ -76,6 +76,7 @@ Describe "Assert-CommandExists" -Tag @(
     BeforeAll {
         . "$PSScriptRoot\..\..\Src\Classes\CommandNotFoundException.ps1"
         . "$PSScriptRoot\..\..\Src\Public\Assert-CommandExists.ps1"
+        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
@@ -89,25 +90,8 @@ Describe "Assert-CommandExists" -Tag @(
                 -Reason $Reason
         }
 
-        function Assert-GuardThrew {
-            param (
-                [object]$CaughtError,
-                [string]$CommandName,
-                [switch]$HasReason
-            )
-
-            if ($null -ne $CaughtError) {
-                return
-            }
-
-            $reasonPart = $HasReason ? ', with Reason' : ''
-
-            throw @(
-                "Guard: Invoke-Caller did not throw for "
-                "CommandName='$CommandName'$reasonPart - all assertions in "
-                "this Context are invalid."
-            ) -join ''
-        }
+        $script:notFound = "__nonexistent_cli__"
+        $script:notFoundContext = "CommandName='$script:notFound'"
     }
 
     Context "When command exists and Reason is absent" {
@@ -119,8 +103,8 @@ Describe "Assert-CommandExists" -Tag @(
 
     Context "When command is not found and Reason is absent" {
         BeforeAll {
-            $script:notFound = "__nonexistent_cli__"
             $script:caughtError = $null
+
             try {
                 Invoke-Caller -Name $script:notFound
             }
@@ -130,7 +114,7 @@ Describe "Assert-CommandExists" -Tag @(
 
             Assert-GuardThrew `
                 -CaughtError $script:caughtError `
-                -CommandName $script:notFound
+                -Context $script:notFoundContext
         }
 
         # 02
@@ -163,10 +147,9 @@ Describe "Assert-CommandExists" -Tag @(
         BeforeAll {
             $script:reason = "Install via ..."
             $script:caughtError = $null
+
             try {
-                Invoke-Caller `
-                    -Name "__nonexistent_cli__" `
-                    -Reason $script:reason
+                Invoke-Caller -Name $script:notFound -Reason $script:reason
             }
             catch {
                 $script:caughtError = $_
@@ -174,8 +157,7 @@ Describe "Assert-CommandExists" -Tag @(
 
             Assert-GuardThrew `
                 -CaughtError $script:caughtError `
-                -CommandName "__nonexistent_cli__" `
-                -HasReason
+                -Context "$script:notFoundContext, with Reason"
         }
 
         # 06

@@ -87,6 +87,7 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
     BeforeAll {
         . "$PSScriptRoot\..\..\Src\Classes\DirectoryNotFoundException.ps1"
         . "$PSScriptRoot\..\..\Src\Public\Assert-ParentDirectoryExists.ps1"
+        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
@@ -99,6 +100,8 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
                 -Cmdlet $PSCmdlet `
                 -Reason $Reason
         }
+
+        $script:missingParentDirContext = "Path='<missing_parent>'"
     }
 
     Context "When path contains no parent and Reason is absent" {
@@ -141,12 +144,9 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Invoke-Caller did not throw - all assertions in "
-                    "this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -Context $script:missingParentDirContext
         }
 
         # 03
@@ -203,12 +203,9 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Invoke-Caller did not throw - all assertions in "
-                    "this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -Context "$script:missingParentDirContext, with Reason"
         }
 
         # 08

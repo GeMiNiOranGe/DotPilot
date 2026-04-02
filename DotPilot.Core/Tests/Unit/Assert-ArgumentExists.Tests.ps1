@@ -84,6 +84,7 @@ Describe "Assert-ArgumentExists" -Tag @(
     BeforeAll {
         . "$PSScriptRoot\..\..\Src\Classes\ArgumentBlankException.ps1"
         . "$PSScriptRoot\..\..\Src\Public\Assert-ArgumentExists.ps1"
+        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
@@ -100,43 +101,8 @@ Describe "Assert-ArgumentExists" -Tag @(
                 -Reason $Reason
         }
 
-        function Assert-GuardThrew {
-            param (
-                [object]$CaughtError,
-                [string]$Value,
-                [switch]$HasReason
-            )
-
-            if ($null -ne $CaughtError) {
-                return
-            }
-
-            $valueDisplay = switch ($Value) {
-                $null {
-                    '<null>'
-                    break
-                }
-                '' {
-                    '<empty>'
-                    break
-                }
-                ({ $_.Trim() -eq '' }) {
-                    "<whitespace: '$_'>"
-                    break
-                }
-                default {
-                    "'$_'"
-                    break
-                }
-            }
-            $reasonPart = $HasReason ? ', with Reason' : ''
-
-            throw @(
-                "Guard: Invoke-Caller did not throw for "
-                "Value=$valueDisplay$reasonPart - all assertions in "
-                "this Context are invalid."
-            ) -join ''
-        }
+        $script:emptyContext = "Value='<empty>'"
+        $script:whiteSpaceContext = "Value='<whitespace: '   '>'"
     }
 
     Context "When value is valid and Reason is absent" {
@@ -150,16 +116,17 @@ Describe "Assert-ArgumentExists" -Tag @(
     Context "When value is empty and Reason is absent" {
         BeforeAll {
             $script:caughtError = $null
-            $value = ""
 
             try {
-                Invoke-Caller -Name "Environment" -Value $value
+                Invoke-Caller -Name "Environment" -Value ""
             }
             catch {
                 $script:caughtError = $_
             }
 
-            Assert-GuardThrew -CaughtError $script:caughtError -Value $value
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -Context $script:emptyContext
         }
 
         # 02
@@ -195,12 +162,11 @@ Describe "Assert-ArgumentExists" -Tag @(
                 " 'staging' or 'production'."
             ) -join ''
             $script:caughtError = $null
-            $value = ""
 
             try {
                 Invoke-Caller `
                     -Name "Environment" `
-                    -Value $value `
+                    -Value "" `
                     -Reason $script:reason
             }
             catch {
@@ -209,8 +175,7 @@ Describe "Assert-ArgumentExists" -Tag @(
 
             Assert-GuardThrew `
                 -CaughtError $script:caughtError `
-                -Value $value `
-                -HasReason
+                -Context "$script:emptyContext, with Reason" `
         }
 
         # 06
@@ -223,16 +188,17 @@ Describe "Assert-ArgumentExists" -Tag @(
     Context "When value is whitespace-only and Reason is absent" {
         BeforeAll {
             $script:caughtError = $null
-            $value = "   "
 
             try {
-                Invoke-Caller -Name "Environment" -Value $value
+                Invoke-Caller -Name "Environment" -Value "   "
             }
             catch {
                 $script:caughtError = $_
             }
 
-            Assert-GuardThrew -CaughtError $script:caughtError -Value $value
+            Assert-GuardThrew `
+                -CaughtError $script:caughtError `
+                -Context $script:whiteSpaceContext
         }
 
         # 07
@@ -268,12 +234,11 @@ Describe "Assert-ArgumentExists" -Tag @(
                 " 'staging' or 'production'."
             ) -join ''
             $script:caughtError = $null
-            $value = "   "
 
             try {
                 Invoke-Caller `
                     -Name "Environment" `
-                    -Value $value `
+                    -Value "   " `
                     -Reason $script:reason
             }
             catch {
@@ -282,8 +247,7 @@ Describe "Assert-ArgumentExists" -Tag @(
 
             Assert-GuardThrew `
                 -CaughtError $script:caughtError `
-                -Value $value `
-                -HasReason
+                -Context "$script:whiteSpaceContext, with Reason"
         }
 
         # 11
