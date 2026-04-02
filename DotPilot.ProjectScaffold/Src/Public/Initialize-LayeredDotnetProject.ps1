@@ -61,9 +61,9 @@ function Initialize-LayeredDotnetProject {
 
     # Load and parse JSON config
     $assertFileExistsSplat = @{
-        Path         = $TemplateJsonPath
-        Cmdlet       = $PSCmdlet
-        ExtraMessage = @(
+        Path   = $TemplateJsonPath
+        Cmdlet = $PSCmdlet
+        Reason = @(
             "Use the 'New-LayeredDotnetTemplate' command to create a template"
             " if needed."
         ) -join ''

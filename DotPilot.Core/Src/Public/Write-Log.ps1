@@ -73,10 +73,10 @@ function Write-Log {
 
     if ($global:DotPilot.Log.FileLogging) {
         $assertParameterExistsSplat = @{
-            Name         = "FileName"
-            Value        = $FileName
-            Cmdlet       = $PSCmdlet
-            ExtraMessage = "It is required when file logging is enabled."
+            Name   = "FileName"
+            Value  = $FileName
+            Cmdlet = $PSCmdlet
+            Reason = "It is required when file logging is enabled."
         }
         Assert-ArgumentExists @assertParameterExistsSplat
 

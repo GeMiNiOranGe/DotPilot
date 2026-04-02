@@ -15,7 +15,7 @@ function Invoke-Deploy {
         -Name 'Environment' `
         -Value $Environment `
         -Cmdlet $PSCmdlet `
-        -ExtraMessage 'Specify a target environment such as "staging" or "production".'
+        -Reason 'Specify a target environment such as "staging" or "production".'
     # ... proceed with deploy
 }
 
@@ -35,7 +35,7 @@ Specifies the value of the parameter being validated. Accepts empty strings so t
 .PARAMETER Cmdlet
 Specifies the `$PSCmdlet` object of the calling function. Used to throw the terminating error in the caller's context via `ThrowTerminatingError`.
 
-.PARAMETER ExtraMessage
+.PARAMETER Reason
 Specifies an optional message appended to the error output. Use this to provide usage hints or additional context about the expected value.
 
 .INPUTS
@@ -64,7 +64,7 @@ function Assert-ArgumentExists {
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCmdlet]$Cmdlet,
 
-        [string]$ExtraMessage
+        [string]$Reason
     )
 
     if (-not [string]::IsNullOrEmpty($Value)) {
@@ -79,9 +79,9 @@ function Assert-ArgumentExists {
         $Value
     )
 
-    if ($ExtraMessage) {
+    if ($Reason) {
         $errorDetails = [System.Management.Automation.ErrorDetails]::new(
-            $exception.Message + " $ExtraMessage"
+            $exception.Message + " $Reason"
         )
         $errorRecord.ErrorDetails = $errorDetails
     }

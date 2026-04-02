@@ -16,7 +16,7 @@ function Import-Config {
     Assert-FileExists `
         -Path $Path `
         -Cmdlet $PSCmdlet `
-        -ExtraMessage "Ensure the file has been created before running this command."
+        -Reason "Ensure the file has been created before running this command."
     # ... proceed with import
 }
 
@@ -33,7 +33,7 @@ Specifies the full path of the file to validate.
 .PARAMETER Cmdlet
 Specifies the `$PSCmdlet` object of the calling function. Used to throw the terminating error in the caller's context via `ThrowTerminatingError`.
 
-.PARAMETER ExtraMessage
+.PARAMETER Reason
 Specifies an optional message appended to the error output. Use this to provide remediation hints or additional context about the expected file.
 
 .INPUTS
@@ -57,7 +57,7 @@ function Assert-FileExists {
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCmdlet]$Cmdlet,
 
-        [string]$ExtraMessage
+        [string]$Reason
     )
 
     if (Test-Path -Path $Path -PathType Leaf) {
@@ -75,9 +75,9 @@ function Assert-FileExists {
         $Path
     )
 
-    if ($ExtraMessage) {
+    if ($Reason) {
         $errorDetails = [System.Management.Automation.ErrorDetails]::new(
-            $exception.Message + " $ExtraMessage"
+            $exception.Message + " $Reason"
         )
         $errorRecord.ErrorDetails = $errorDetails
     }

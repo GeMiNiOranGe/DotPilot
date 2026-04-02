@@ -16,7 +16,7 @@ function Read-LogDirectory {
     Assert-DirectoryExists `
         -Path $Path `
         -Cmdlet $PSCmdlet `
-        -ExtraMessage "Ensure the directory has been created before running this command."
+        -Reason "Ensure the directory has been created before running this command."
     # ... proceed with read
 }
 
@@ -33,7 +33,7 @@ Specifies the full path of the directory to validate.
 .PARAMETER Cmdlet
 Specifies the `$PSCmdlet` object of the calling function. Used to throw the terminating error in the caller's context via `ThrowTerminatingError`.
 
-.PARAMETER ExtraMessage
+.PARAMETER Reason
 Specifies an optional message appended to the error output. Use this to provide remediation hints or additional context about the expected file.
 
 .INPUTS
@@ -57,7 +57,7 @@ function Assert-DirectoryExists {
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCmdlet]$Cmdlet,
 
-        [string]$ExtraMessage
+        [string]$Reason
     )
 
     if (Test-Path -Path $Path -PathType Container) {
@@ -75,9 +75,9 @@ function Assert-DirectoryExists {
         $Path
     )
 
-    if ($ExtraMessage) {
+    if ($Reason) {
         $errorDetails = [System.Management.Automation.ErrorDetails]::new(
-            $exception.Message + " $ExtraMessage"
+            $exception.Message + " $Reason"
         )
         $errorRecord.ErrorDetails = $errorDetails
     }

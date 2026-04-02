@@ -1,13 +1,12 @@
 <#
 Input space
 -----------
-$Name        : Any string (e.g. "Environment", "   ", "")
-               Appears only in error messages; does not affect control flow.
-               No partitioning needed.
-$Value       : Valid ("staging") | Whitespace ("   ") | Empty ("")
-$Cmdlet      : Fixed to $PSCmdlet of the synthetic wrapper in all tests.
-               No partitioning needed.
-$ExtraMessage: Absent | Present
+$Name  : Any string (e.g. "Environment", "   ", "") Appears only in
+         error messages; does not affect control flow. No partitioning needed.
+$Value : Valid ("staging") | Whitespace ("   ") | Empty ("")
+$Cmdlet: Fixed to $PSCmdlet of the synthetic wrapper in all tests.
+         No partitioning needed.
+$Reason: Absent | Present
 
 ################################################################################
 
@@ -22,51 +21,51 @@ Empty        ""               Throw
 Null         $null            Coerced to "" by PowerShell's [string] binding;
                               same partition as Empty, skip
 
-2. For `$ExtraMessage`
+2. For `$Reason`
 Partition   Representative   Expected
 ---------   --------------   --------
 Absent      (omit)           ErrorDetails is null
-Present     "Specify..."     ErrorDetails.Message contains extra message
+Present     "Specify..."     ErrorDetails.Message contains $Reason
 
 ################################################################################
 
 Decision table
 --------------
-$Value       $ExtraMessage   Expected
-------       -------------   --------
-Valid        Absent          No throw
-Valid        Present         No throw
-Empty        Absent          Throw; ErrorDetails = null
-Empty        Present         Throw; ErrorDetails contains extra message
-Whitespace   Absent          Throw; ErrorDetails = null
-Whitespace   Present         Throw; ErrorDetails contains extra message
+$Value       $Reason   Expected
+------       -------   --------
+Valid        Absent    No throw
+Valid        Present   No throw
+Empty        Absent    Throw; ErrorDetails = null
+Empty        Present   Throw; ErrorDetails contains $Reason
+Whitespace   Absent    Throw; ErrorDetails = null
+Whitespace   Present   Throw; ErrorDetails contains $Reason
 
 Note:
-1.  'Valid + Present' is not tested. $ExtraMessage is only reached on the
-    throw path; the valid path returns early, so no behavior difference exists.
+1.  'Valid + Present' is not tested. $Reason is only reached on the throw path;
+    the valid path returns early, so no behavior difference exists.
 
 2.  Exception type, message, attribution, and FullyQualifiedErrorId are tested
     only on 'Absent' combinations. They are determined entirely by $Value;
-    $ExtraMessage only affects ErrorDetails ('Empty + Absent' and
+    $Reason only affects ErrorDetails ('Empty + Absent' and
     'Whitespace + Absent').
 
 ################################################################################
 
 Test map
 --------
-ID   Context    Input                 Technique   Assert
---   -------    -----                 ---------   ------
-01   V + Abs    "staging", no extra   DT          No throw
-02   E + Abs    "", no extra          DT          Exception type
-03   E + Abs    ^                     ^           Message contains $Name
-04   E + Abs    ^                     ^           Attribution = Invoke-Caller
-05   E + Abs    ^                     ^           FullyQualifiedErrorId
-06   E + Pre    "", "Specify"         DT          ErrorDetails has $ExtraMessage
-07   WS + Abs   "   ", no extra       DT          Exception type
-08   WS + Abs   ^                     ^           Message contains $Name
-09   WS + Abs   ^                     ^           Attribution = Invoke-Caller
-10   WS + Abs   ^                     ^           FullyQualifiedErrorId
-11   WS + Pre   "   ", "Specify"      DT          ErrorDetails has $ExtraMessage
+ID   Context    Input                  Technique   Assert
+--   -------    -----                  ---------   ------
+01   V + Abs    "staging", no reason   DT          No throw
+02   E + Abs    "", no reason          DT          Exception type
+03   E + Abs    ^                      ^           Message contains $Name
+04   E + Abs    ^                      ^           Attribution = Invoke-Caller
+05   E + Abs    ^                      ^           FullyQualifiedErrorId
+06   E + Pre    "", "Specify"          DT          ErrorDetails contains $Reason
+07   WS + Abs   "   ", no reason       DT          Exception type
+08   WS + Abs   ^                      ^           Message contains $Name
+09   WS + Abs   ^                      ^           Attribution = Invoke-Caller
+10   WS + Abs   ^                      ^           FullyQualifiedErrorId
+11   WS + Pre   "   ", "Specify"       DT          ErrorDetails contains $Reason
 
 List of Abbreviations:
 '^' - Same capture as previous assertion(s)
@@ -92,20 +91,20 @@ Describe "Assert-ArgumentExists" -Tag @(
                 [string]$Name,
                 [AllowEmptyString()]
                 [string]$Value,
-                [string]$ExtraMessage
+                [string]$Reason
             )
             Assert-ArgumentExists `
                 -Name $Name `
                 -Value $Value `
                 -Cmdlet $PSCmdlet `
-                -ExtraMessage $ExtraMessage
+                -Reason $Reason
         }
 
         function Assert-GuardThrew {
             param (
                 [object]$CaughtError,
                 [string]$Value,
-                [switch]$HasExtraMessage
+                [switch]$HasReason
             )
 
             if ($null -ne $CaughtError) {
@@ -130,17 +129,17 @@ Describe "Assert-ArgumentExists" -Tag @(
                     break
                 }
             }
-            $extraPart = $HasExtraMessage ? ', with ExtraMessage' : ''
+            $reasonPart = $HasReason ? ', with Reason' : ''
 
             throw @(
                 "Guard: Invoke-Caller did not throw for "
-                "Value=$valueDisplay$extraPart - all assertions in "
+                "Value=$valueDisplay$reasonPart - all assertions in "
                 "this Context are invalid."
             ) -join ''
         }
     }
 
-    Context "When value is valid and ExtraMessage is absent" {
+    Context "When value is valid and Reason is absent" {
         # 01
         It "Does not throw" {
             { Invoke-Caller -Name "Environment" -Value "staging" } | `
@@ -148,7 +147,7 @@ Describe "Assert-ArgumentExists" -Tag @(
         }
     }
 
-    Context "When value is empty and ExtraMessage is absent" {
+    Context "When value is empty and Reason is absent" {
         BeforeAll {
             $script:caughtError = $null
             $value = ""
@@ -189,9 +188,9 @@ Describe "Assert-ArgumentExists" -Tag @(
         }
     }
 
-    Context "When value is empty and ExtraMessage is present" {
+    Context "When value is empty and Reason is present" {
         BeforeAll {
-            $script:extraMessage = @(
+            $script:reason = @(
                 "Specify a target environment such as 'development', 'testing',"
                 " 'staging' or 'production'."
             ) -join ''
@@ -202,7 +201,7 @@ Describe "Assert-ArgumentExists" -Tag @(
                 Invoke-Caller `
                     -Name "Environment" `
                     -Value $value `
-                    -ExtraMessage $script:extraMessage
+                    -Reason $script:reason
             }
             catch {
                 $script:caughtError = $_
@@ -211,17 +210,17 @@ Describe "Assert-ArgumentExists" -Tag @(
             Assert-GuardThrew `
                 -CaughtError $script:caughtError `
                 -Value $value `
-                -HasExtraMessage
+                -HasReason
         }
 
         # 06
-        It "ErrorDetails contains extra message" {
+        It "ErrorDetails contains Reason" {
             $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:extraMessage)"
+                Should -BeLike "*$($script:reason)"
         }
     }
 
-    Context "When value is whitespace-only and ExtraMessage is absent" {
+    Context "When value is whitespace-only and Reason is absent" {
         BeforeAll {
             $script:caughtError = $null
             $value = "   "
@@ -262,9 +261,9 @@ Describe "Assert-ArgumentExists" -Tag @(
         }
     }
 
-    Context "When value is whitespace-only and ExtraMessage is present" {
+    Context "When value is whitespace-only and Reason is present" {
         BeforeAll {
-            $script:extraMessage = @(
+            $script:reason = @(
                 "Specify a target environment such as 'development', 'testing',"
                 " 'staging' or 'production'."
             ) -join ''
@@ -275,7 +274,7 @@ Describe "Assert-ArgumentExists" -Tag @(
                 Invoke-Caller `
                     -Name "Environment" `
                     -Value $value `
-                    -ExtraMessage $script:extraMessage
+                    -Reason $script:reason
             }
             catch {
                 $script:caughtError = $_
@@ -284,13 +283,13 @@ Describe "Assert-ArgumentExists" -Tag @(
             Assert-GuardThrew `
                 -CaughtError $script:caughtError `
                 -Value $value `
-                -HasExtraMessage
+                -HasReason
         }
 
         # 11
-        It "ErrorDetails contains extra message" {
+        It "ErrorDetails contains Reason" {
             $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:extraMessage)"
+                Should -BeLike "*$($script:reason)"
         }
     }
 }

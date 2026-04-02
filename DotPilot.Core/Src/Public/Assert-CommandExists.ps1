@@ -16,7 +16,7 @@ function Invoke-DotnetBuild {
     Assert-CommandExists `
         -Name 'dotnet' `
         -Cmdlet $PSCmdlet `
-        -ExtraMessage 'Make sure the .NET SDK is installed.'
+        -Reason 'Make sure the .NET SDK is installed.'
     # ... proceed with build
 }
 
@@ -33,7 +33,7 @@ Specifies the name of the CLI tool to check for.
 .PARAMETER Cmdlet
 Specifies the `$PSCmdlet` object of the calling function. Used to throw the terminating error in the caller's context via `ThrowTerminatingError`.
 
-.PARAMETER ExtraMessage
+.PARAMETER Reason
 Specifies an optional message appended to the error output. Use this to provide installation hints or additional context.
 
 .INPUTS
@@ -57,7 +57,7 @@ function Assert-CommandExists {
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCmdlet]$Cmdlet,
 
-        [string]$ExtraMessage
+        [string]$Reason
     )
 
     if (Get-Command -Name $Name -ErrorAction SilentlyContinue) {
@@ -72,9 +72,9 @@ function Assert-CommandExists {
         $Name
     )
 
-    if ($ExtraMessage) {
+    if ($Reason) {
         $errorDetails = [System.Management.Automation.ErrorDetails]::new(
-            $exception.Message + " $ExtraMessage"
+            $exception.Message + " $Reason"
         )
         $errorRecord.ErrorDetails = $errorDetails
     }

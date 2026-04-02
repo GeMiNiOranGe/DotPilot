@@ -1,12 +1,11 @@
 <#
 Input space
 -----------
-$Path        : Any string representing a file path. Drives the branch:
-               no parent -> return; Exists -> return;
-               parent not found -> throw.
-$Cmdlet      : Fixed to $PSCmdlet of the synthetic wrapper in all tests.
-               No partitioning needed.
-$ExtraMessage: Absent | Present
+$Path  : Any string representing a file path. Drives the branch:
+         no parent -> return; exists -> return; not found -> throw.
+$Cmdlet: Fixed to $PSCmdlet of the synthetic wrapper in all tests.
+         No partitioning needed.
+$Reason: Absent | Present
 
 ################################################################################
 
@@ -22,33 +21,33 @@ Not found   "missing_parent\<ignored>"   Throw DirectoryNotFoundException
 Note: $null is coerced to "" by PowerShell's [string] binding, which has no
 parent. Same outcome as No parent partition; skip duplicate.
 
-2. For `$ExtraMessage`
+2. For `$Reason`
 Partition   Representative           Expected
 ---------   --------------           --------
 Absent      (omit)                   ErrorDetails is null
-Present     "Create the parent..."   ErrorDetails.Message has extra
+Present     "Create the parent..."   ErrorDetails.Message contains $Reason
 
 ################################################################################
 
 Decision table
 --------------
-$Path       $ExtraMessage   Expected
------       -------------   --------
-No parent   Absent          No throw
-No parent   Present         No throw
-Exists      Absent          No throw
-Exists      Present         No throw
-Not found   Absent          Throw; ErrorDetails = null
-Not found   Present         Throw; ErrorDetails has extra
+$Path       $Reason   Expected
+-----       -------   --------
+No parent   Absent    No throw
+No parent   Present   No throw
+Exists      Absent    No throw
+Exists      Present   No throw
+Not found   Absent    Throw; ErrorDetails = null
+Not found   Present   Throw; ErrorDetails contains $Reason
 
 Note:
-1.  'No parent + Present' and 'Exists + Present' are not tested.
-    $ExtraMessage is only reached on the throw path; the valid path returns
-    early, so no behavior difference Exists ('Exists + Absent').
+1.  'No parent + Present' and 'Exists + Present' are not tested. $Reason is only
+    reached on the throw path; the valid path returns early, so no behavior
+    difference Exists ('Exists + Absent').
 
 2.  Exception type, message, attribution, and FullyQualifiedErrorId are tested
     only on 'Absent' combinations. They are determined by path status alone;
-    $ExtraMessage only affects ErrorDetails ('Not found + Absent').
+    $Reason only affects ErrorDetails ('Not found + Absent').
 
 ################################################################################
 
@@ -56,19 +55,20 @@ Test map
 --------
 ID   Context    Input                         Technique   Assert
 --   -------    -----                         ---------   ------
-01   NP + Abs   "<ignored>", no extra         DT          No throw
+01   NP + Abs   "<ignored>", no reason        DT          No throw
 02   E + Abs    "parent\<ignored>",           DT          No throw
-                no extra
+                no reason
 03   NF + Abs   "missing_parent\<ignored>",   DT          Exception type
-                no extra
-04   NF + Abs   ^                             ^           Message has full path
-05   NF + Abs   ^                             ^           Message has parent
-                                                          directory name
+                no reason
+04   NF + Abs   ^                             ^           Message contains full
+                                                          path
+05   NF + Abs   ^                             ^           Message contains
+                                                          parent directory name
 06   NF + Abs   ^                             ^           Attribution =
                                                           Invoke-Caller
 07   NF + Abs   ^                             ^           FullyQualifiedErrorId
-08   NF + Pre   "missing_parent\<ignored>",   DT          ErrorDetails has extra
-                "Create the parent..."                    message
+08   NF + Pre   "missing_parent\<ignored>",   DT          ErrorDetails contains
+                "Create the parent..."                    $Reason
 
 List of Abbreviations:
 '^' - Same capture as previous assertion(s)
@@ -92,26 +92,26 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
             [CmdletBinding()]
             param (
                 [string]$Path,
-                [string]$ExtraMessage
+                [string]$Reason
             )
             Assert-ParentDirectoryExists `
                 -Path $Path `
                 -Cmdlet $PSCmdlet `
-                -ExtraMessage $ExtraMessage
+                -Reason $Reason
         }
     }
 
-    Context "When path has no parent and ExtraMessage is absent" {
+    Context "When path contains no parent and Reason is absent" {
         # 01
         It "Does not throw" {
             # "<ignored>" is a bare name with no directory separator.
-            # GetDirectoryName("ignored") returns "" → early return,
+            # GetDirectoryName("ignored") returns "" -> early return,
             # no filesystem access occurs.
             { Invoke-Caller -Path "<ignored>" } | Should -Not -Throw
         }
     }
 
-    Context "When parent directory exists and ExtraMessage is absent" {
+    Context "When parent directory exists and Reason is absent" {
         BeforeAll {
             # Create a 'parent' directory existing on disk
             $parent = Join-Path $TestDrive "parent"
@@ -128,7 +128,7 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
         }
     }
 
-    Context "When parent directory is not found and ExtraMessage is absent" {
+    Context "When parent directory is not found and Reason is absent" {
         BeforeAll {
             $missingParent = Join-Path $TestDrive "missing_parent"
             $script:missingPath = Join-Path $missingParent "<ignored>"
@@ -187,17 +187,17 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
         }
     }
 
-    Context "When parent directory is not found and ExtraMessage is present" {
+    Context "When parent directory is not found and Reason is present" {
         BeforeAll {
             $missingParent = Join-Path $TestDrive "missing_parent"
             $script:missingPath = Join-Path $missingParent "<ignored>"
-            $script:extraMessage = "Create the parent directory first."
+            $script:reason = "Create the parent directory first."
             $script:caughtError = $null
 
             try {
                 Invoke-Caller `
                     -Path $script:missingPath `
-                    -ExtraMessage $script:extraMessage
+                    -Reason $script:reason
             }
             catch {
                 $script:caughtError = $_
@@ -212,9 +212,9 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
         }
 
         # 08
-        It "ErrorDetails contains the extra message" {
+        It "ErrorDetails contains Reason" {
             $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:extraMessage)"
+                Should -BeLike "*$($script:reason)"
         }
     }
 }

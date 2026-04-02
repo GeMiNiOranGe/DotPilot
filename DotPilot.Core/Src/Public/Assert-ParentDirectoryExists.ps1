@@ -16,7 +16,7 @@ function Write-Something {
     Assert-ParentDirectoryExists `
         -Path $Path `
         -Cmdlet $PSCmdlet `
-        -ExtraMessage "Ensure the parent directory has been created before running this command."
+        -Reason "Ensure the parent directory has been created before running this command."
     # ... proceed with write
 }
 
@@ -33,7 +33,7 @@ Specifies the full path whose parent directory will be validated.
 .PARAMETER Cmdlet
 Specifies the `$PSCmdlet` object of the calling function. Used to throw the terminating error in the caller's context via `ThrowTerminatingError`.
 
-.PARAMETER ExtraMessage
+.PARAMETER Reason
 Specifies an optional message appended to the error output. Use this to provide remediation hints or additional context about the expected file.
 
 .INPUTS
@@ -57,7 +57,7 @@ function Assert-ParentDirectoryExists {
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCmdlet]$Cmdlet,
 
-        [string]$ExtraMessage
+        [string]$Reason
     )
 
     $parentDir = [System.IO.Path]::GetDirectoryName($Path)
@@ -80,9 +80,9 @@ function Assert-ParentDirectoryExists {
         $Path
     )
 
-    if ($ExtraMessage) {
+    if ($Reason) {
         $errorDetails = [System.Management.Automation.ErrorDetails]::new(
-            $exception.Message + " $ExtraMessage"
+            $exception.Message + " $Reason"
         )
         $errorRecord.ErrorDetails = $errorDetails
     }

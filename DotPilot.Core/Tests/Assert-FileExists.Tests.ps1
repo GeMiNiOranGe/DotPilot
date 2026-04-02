@@ -1,11 +1,11 @@
 <#
 Input space
 -----------
-$Path        : Any string representing a file path. Drives the branch:
-               file exists -> return; not found -> throw.
-$Cmdlet      : Fixed to $PSCmdlet of the synthetic wrapper in all tests.
-               No partitioning needed.
-$ExtraMessage: Absent | Present
+$Path  : Any string representing a file path. Drives the branch:
+         file exists -> return; not found -> throw.
+$Cmdlet: Fixed to $PSCmdlet of the synthetic wrapper in all tests.
+         No partitioning needed.
+$Reason: Absent | Present
 
 ################################################################################
 
@@ -21,46 +21,46 @@ Note: $null is excluded; PowerShell's [string] binding coerces it to "",
 which does not resolve to a Leaf - same outcome as Not found but is not
 a real path domain value; Not found already covers the throw path.
 
-2. For `$ExtraMessage`
+2. For `$Reason`
 Partition   Representative      Expected
 ---------   --------------      --------
 Absent      (omit)              ErrorDetails is null
-Present     "Ensure that ..."   ErrorDetails.Message contains extra message
+Present     "Ensure that ..."   ErrorDetails.Message contains $Reason
 
 ################################################################################
 
 Decision table
 --------------
-$Path       $ExtraMessage   Expected
------       -------------   --------
-Exists      Absent          No throw
-Exists      Present         No throw
-Not found   Absent          Throw; ErrorDetails = null
-Not found   Present         Throw; ErrorDetails has extra message
+$Path       $Reason   Expected
+-----       -------   --------
+Exists      Absent    No throw
+Exists      Present   No throw
+Not found   Absent    Throw; ErrorDetails = null
+Not found   Present   Throw; ErrorDetails contains $Reason
 
 Note:
-1.  'Exists + Present' is not tested. $ExtraMessage is only reached on the
-    throw path; the valid path returns early, so no behavior difference exists.
+1.  'Exists + Present' is not tested. $Reason is only reached on the throw path;
+    the valid path returns early, so no behavior difference exists.
 
 2.  Exception type, message, attribution, and FullyQualifiedErrorId are tested
     only on 'Absent' combinations. They are determined by path existence alone;
-    $ExtraMessage only affects ErrorDetails ('Not found + Absent').
+    $Reason only affects ErrorDetails ('Not found + Absent').
 
 ################################################################################
 
 Test map
 --------
-ID   Context    Input                   Technique   Assert
---   -------    -----                   ---------   ------
-01   E + Abs    <temp file>, no extra   DT          No throw
-02   NF + Abs   "missing_file.txt",     DT          Exception type
-                no extra
-03   NF + Abs   ^                       ^           Message contains full path
-04   NF + Abs   ^                       ^           Message contains file name
-05   NF + Abs   ^                       ^           Attribution = Invoke-Caller
-06   NF + Abs   ^                       ^           FullyQualifiedErrorId
-07   NF + Pre   "missing_file.txt",     DT          ErrorDetails contains
-                "Ensure that ..."                   extra message
+ID   Context    Input                    Technique   Assert
+--   -------    -----                    ---------   ------
+01   E + Abs    <temp file>, no reason   DT          No throw
+02   NF + Abs   "missing_file.txt",      DT          Exception type
+                no reason
+03   NF + Abs   ^                        ^           Message contains full path
+04   NF + Abs   ^                        ^           Message contains file name
+05   NF + Abs   ^                        ^           Attribution = Invoke-Caller
+06   NF + Abs   ^                        ^           FullyQualifiedErrorId
+07   NF + Pre   "missing_file.txt",      DT          ErrorDetails contains
+                "Ensure that ..."                    $Reason
 
 List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
@@ -83,16 +83,16 @@ Describe "Assert-FileExists" -Tag @(
             [CmdletBinding()]
             param (
                 [string]$Path,
-                [string]$ExtraMessage
+                [string]$Reason
             )
             Assert-FileExists `
                 -Path $Path `
                 -Cmdlet $PSCmdlet `
-                -ExtraMessage $ExtraMessage
+                -Reason $Reason
         }
     }
 
-    Context "When file exists and ExtraMessage is absent" {
+    Context "When file exists and Reason is absent" {
         BeforeAll {
             $script:tempFile = Join-Path $TestDrive "temp.txt"
             [void](New-Item -Path $script:tempFile -ItemType File)
@@ -104,7 +104,7 @@ Describe "Assert-FileExists" -Tag @(
         }
     }
 
-    Context "When file is not found and ExtraMessage is absent" {
+    Context "When file is not found and Reason is absent" {
         BeforeAll {
             $script:missingFile = Join-Path $TestDrive "missing_file.txt"
             $script:caughtError = $null
@@ -160,16 +160,16 @@ Describe "Assert-FileExists" -Tag @(
         }
     }
 
-    Context "When file is not found and ExtraMessage is present" {
+    Context "When file is not found and Reason is present" {
         BeforeAll {
             $script:missingFile = Join-Path $TestDrive "missing_file.txt"
-            $script:extraMessage = "Ensure that 'file.txt' exists."
+            $script:reason = "Ensure that 'file.txt' exists."
             $script:caughtError = $null
 
             try {
                 Invoke-Caller `
                     -Path $script:missingFile `
-                    -ExtraMessage $script:extraMessage
+                    -Reason $script:reason
             }
             catch {
                 $script:caughtError = $_
@@ -184,9 +184,9 @@ Describe "Assert-FileExists" -Tag @(
         }
 
         # 07
-        It "ErrorDetails contains the extra message" {
+        It "ErrorDetails contains Reason" {
             $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:extraMessage)"
+                Should -BeLike "*$($script:reason)"
         }
     }
 }

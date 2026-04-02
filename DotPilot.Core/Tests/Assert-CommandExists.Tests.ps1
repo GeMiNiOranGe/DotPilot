@@ -1,11 +1,11 @@
 <#
 Input space
 -----------
-$Name        : Any string representing a CLI tool name. Drives the branch:
-               command found -> return; not found -> throw.
-$Cmdlet      : Fixed to $PSCmdlet of the synthetic wrapper in all tests.
-               No partitioning needed.
-$ExtraMessage: Absent | Present
+$Name  : Any string representing a CLI tool name. Drives the branch:
+         command found -> return; not found -> throw.
+$Cmdlet: Fixed to $PSCmdlet of the synthetic wrapper in all tests.
+         No partitioning needed.
+$Reason: Absent | Present
 
 ################################################################################
 
@@ -20,30 +20,30 @@ Not found   "__nonexistent_cli__"   Throw CommandNotFoundException
 Note: $null or "" are outside the valid input domain (Get-Command would raise
 a parameter binding error, not CommandNotFoundException) and are excluded.
 
-2. For `$ExtraMessage`
+2. For `$Reason`
 Partition   Representative      Expected
 ---------   --------------      --------
 Absent      (omit)              ErrorDetails is null
-Present     "Install via ..."   ErrorDetails.Message contains extra message
+Present     "Install via ..."   ErrorDetails.Message contains $Reason
 
 ################################################################################
 
 Decision table
 --------------
-$Name       $ExtraMessage   Expected
------       -------------   --------
-Exists      Absent          No throw
-Exists      Present         No throw
-Not found   Absent          Throw; ErrorDetails = null
-Not found   Present         Throw; ErrorDetails has extra message
+$Name       $Reason   Expected
+-----       -------   --------
+Exists      Absent    No throw
+Exists      Present   No throw
+Not found   Absent    Throw; ErrorDetails = null
+Not found   Present   Throw; ErrorDetails contains $Reason
 
 Note:
-1.  'Exists + Present' is not tested. $ExtraMessage is only reached on the
-    throw path; the valid path returns early, so no behavior difference exists.
+1.  'Exists + Present' is not tested. $Reason is only reached on the throw path;
+    the valid path returns early, so no behavior difference exists.
 
 2.  Exception type, message, attribution, and FullyQualifiedErrorId are tested
     only on 'Absent' combinations. They are determined by command existence
-    alone; $ExtraMessage only affects ErrorDetails ('Not found + Absent').
+    alone; $Reason only affects ErrorDetails ('Not found + Absent').
 
 ################################################################################
 
@@ -51,14 +51,14 @@ Test map
 --------
 ID   Context    Input                    Technique   Assert
 --   -------    -----                    ---------   ------
-01   E + Abs    "pwsh", no extra         DT          No throw
+01   E + Abs    "pwsh", no reason        DT          No throw
 02   NF + Abs   "__nonexistent_cli__",   DT          Exception type
-                no extra
+                no reason
 03   NF + Abs   ^                        ^           Message contains $Name
 04   NF + Abs   ^                        ^           Attribution = Invoke-Caller
 05   NF + Abs   ^                        ^           FullyQualifiedErrorId
 06   NF + Pre   "__nonexistent_cli__",   DT          ErrorDetails contains
-                "Install via ..."                    extra message
+                "Install via ..."                    $Reason
 
 List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
@@ -81,43 +81,43 @@ Describe "Assert-CommandExists" -Tag @(
             [CmdletBinding()]
             param (
                 [string]$Name,
-                [string]$ExtraMessage
+                [string]$Reason
             )
             Assert-CommandExists `
                 -Name $Name `
                 -Cmdlet $PSCmdlet `
-                -ExtraMessage $ExtraMessage
+                -Reason $Reason
         }
 
         function Assert-GuardThrew {
             param (
                 [object]$CaughtError,
                 [string]$CommandName,
-                [switch]$HasExtraMessage
+                [switch]$HasReason
             )
 
             if ($null -ne $CaughtError) {
                 return
             }
 
-            $extraPart = $HasExtraMessage ? ', with ExtraMessage' : ''
+            $reasonPart = $HasReason ? ', with Reason' : ''
 
             throw @(
                 "Guard: Invoke-Caller did not throw for "
-                "CommandName='$CommandName'$extraPart - all assertions in "
+                "CommandName='$CommandName'$reasonPart - all assertions in "
                 "this Context are invalid."
             ) -join ''
         }
     }
 
-    Context "When command exists and ExtraMessage is absent" {
+    Context "When command exists and Reason is absent" {
         # 01
         It "Does not throw" {
             { Invoke-Caller -Name "pwsh" } | Should -Not -Throw
         }
     }
 
-    Context "When command is not found and ExtraMessage is absent" {
+    Context "When command is not found and Reason is absent" {
         BeforeAll {
             $script:notFound = "__nonexistent_cli__"
             $script:caughtError = $null
@@ -159,14 +159,14 @@ Describe "Assert-CommandExists" -Tag @(
         }
     }
 
-    Context "When command is not found and ExtraMessage is present" {
+    Context "When command is not found and Reason is present" {
         BeforeAll {
-            $script:extraMessage = "Install via ..."
+            $script:reason = "Install via ..."
             $script:caughtError = $null
             try {
                 Invoke-Caller `
                     -Name "__nonexistent_cli__" `
-                    -ExtraMessage $script:extraMessage
+                    -Reason $script:reason
             }
             catch {
                 $script:caughtError = $_
@@ -175,13 +175,13 @@ Describe "Assert-CommandExists" -Tag @(
             Assert-GuardThrew `
                 -CaughtError $script:caughtError `
                 -CommandName "__nonexistent_cli__" `
-                -HasExtraMessage
+                -HasReason
         }
 
         # 06
-        It "ErrorDetails contains the extra message" {
+        It "ErrorDetails contains Reason" {
             $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:extraMessage)"
+                Should -BeLike "*$($script:reason)"
         }
     }
 }
