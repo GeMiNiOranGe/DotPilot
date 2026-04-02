@@ -85,8 +85,8 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Classes\DirectoryNotFoundException.ps1"
-        . "$PSScriptRoot\..\Src\Public\Assert-ParentDirectoryExists.ps1"
+        . "$PSScriptRoot\..\..\Src\Classes\DirectoryNotFoundException.ps1"
+        . "$PSScriptRoot\..\..\Src\Public\Assert-ParentDirectoryExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]

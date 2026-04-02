@@ -82,8 +82,8 @@ Describe "Assert-ArgumentExists" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Classes\ArgumentBlankException.ps1"
-        . "$PSScriptRoot\..\Src\Public\Assert-ArgumentExists.ps1"
+        . "$PSScriptRoot\..\..\Src\Classes\ArgumentBlankException.ps1"
+        . "$PSScriptRoot\..\..\Src\Public\Assert-ArgumentExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]

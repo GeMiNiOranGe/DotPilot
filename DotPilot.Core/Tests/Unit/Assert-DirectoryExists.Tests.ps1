@@ -1,8 +1,8 @@
 <#
 Input space
 -----------
-$Path  : Any string representing a file path. Drives the branch:
-         file exists -> return; not found -> throw.
+$Path  : Any string representing a directory path. Drives the branch:
+         directory exists -> return; not found -> throw.
 $Cmdlet: Fixed to $PSCmdlet of the synthetic wrapper in all tests.
          No partitioning needed.
 $Reason: Absent | Present
@@ -12,20 +12,20 @@ $Reason: Absent | Present
 Equivalence Partitioning
 ------------------------
 1. For `$Path`
-Partition   Representative        Expected
----------   --------------        --------
-Exists      (temp file on disk)   No throw
-Not found   "missing_file.txt"    Throw FileNotFoundException
+Partition   Representative             Expected
+---------   --------------             --------
+Exists      (temp directory on disk)   No throw
+Not found   "missing_directory"        Throw DirectoryNotFoundException
 
 Note: $null is excluded; PowerShell's [string] binding coerces it to "",
-which does not resolve to a Leaf - same outcome as Not found but is not
+which does not resolve to a Container - same outcome as Not found but is not
 a real path domain value; Not found already covers the throw path.
 
 2. For `$Reason`
-Partition   Representative      Expected
----------   --------------      --------
-Absent      (omit)              ErrorDetails is null
-Present     "Ensure that ..."   ErrorDetails.Message contains $Reason
+Partition   Representative        Expected
+---------   --------------        --------
+Absent      (omit)                ErrorDetails is null
+Present     "Create the dir..."   ErrorDetails.Message contains $Reason
 
 ################################################################################
 
@@ -50,17 +50,19 @@ Note:
 
 Test map
 --------
-ID   Context    Input                    Technique   Assert
---   -------    -----                    ---------   ------
-01   E + Abs    <temp file>, no reason   DT          No throw
-02   NF + Abs   "missing_file.txt",      DT          Exception type
+ID   Context    Input                  Technique   Assert
+--   -------    -----                  ---------   ------
+01   E + Abs    <temp directory>,      DT          No throw
                 no reason
-03   NF + Abs   ^                        ^           Message contains full path
-04   NF + Abs   ^                        ^           Message contains file name
-05   NF + Abs   ^                        ^           Attribution = Invoke-Caller
-06   NF + Abs   ^                        ^           FullyQualifiedErrorId
-07   NF + Pre   "missing_file.txt",      DT          ErrorDetails contains
-                "Ensure that ..."                    $Reason
+02   NF + Abs   "missing_directory",   DT          Exception type
+                no reason
+03   NF + Abs   ^                      ^           Message contains full path
+04   NF + Abs   ^                      ^           Message contains directory
+                                                   name
+05   NF + Abs   ^                      ^           Attribution = Invoke-Caller
+06   NF + Abs   ^                      ^           FullyQualifiedErrorId
+07   NF + Pre   "missing_directory",   DT          ErrorDetails contains $Reason
+                "Create..."
 
 List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
@@ -70,14 +72,14 @@ NF   - Not Found
 Abs  - Absent
 Pre  - Present
 #>
-Describe "Assert-FileExists" -Tag @(
-    "Assert-FileExists"
+Describe "Assert-DirectoryExists" -Tag @(
+    "Assert-DirectoryExists"
     "Assert-*"
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Classes\FileNotFoundException.ps1"
-        . "$PSScriptRoot\..\Src\Public\Assert-FileExists.ps1"
+        . "$PSScriptRoot\..\..\Src\Classes\DirectoryNotFoundException.ps1"
+        . "$PSScriptRoot\..\..\Src\Public\Assert-DirectoryExists.ps1"
 
         function Invoke-Caller {
             [CmdletBinding()]
@@ -85,32 +87,32 @@ Describe "Assert-FileExists" -Tag @(
                 [string]$Path,
                 [string]$Reason
             )
-            Assert-FileExists `
+            Assert-DirectoryExists `
                 -Path $Path `
                 -Cmdlet $PSCmdlet `
                 -Reason $Reason
         }
     }
 
-    Context "When file exists and Reason is absent" {
+    Context "When directory exists and Reason is absent" {
         BeforeAll {
-            $script:tempFile = Join-Path $TestDrive "temp.txt"
-            [void](New-Item -Path $script:tempFile -ItemType File)
+            $script:tempDir = Join-Path $TestDrive "temp_directory"
+            [void](New-Item -Path $script:tempDir -ItemType Directory)
         }
 
         # 01
         It "Does not throw" {
-            { Invoke-Caller -Path $script:tempFile } | Should -Not -Throw
+            { Invoke-Caller -Path $script:tempDir } | Should -Not -Throw
         }
     }
 
-    Context "When file is not found and Reason is absent" {
+    Context "When directory does not exist and Reason is absent" {
         BeforeAll {
-            $script:missingFile = Join-Path $TestDrive "missing_file.txt"
+            $script:missingDir = Join-Path $TestDrive "missing_directory"
             $script:caughtError = $null
 
             try {
-                Invoke-Caller -Path $script:missingFile
+                Invoke-Caller -Path $script:missingDir
             }
             catch {
                 $script:caughtError = $_
@@ -125,26 +127,26 @@ Describe "Assert-FileExists" -Tag @(
         }
 
         # 02
-        It "Throws FileNotFoundException" {
+        It "Throws DirectoryNotFoundException" {
             $script:caughtError.Exception | Should -BeOfType (
-                [FileNotFoundException]
+                [DirectoryNotFoundException]
             )
         }
 
         # 03
         It "Exception message contains the full path" {
-            $fullPath = [System.IO.Path]::GetFullPath($script:missingFile)
+            $fullPath = [System.IO.Path]::GetFullPath($script:missingDir)
 
             $script:caughtError.Exception.Message | `
                 Should -BeLike "*'$fullPath'*"
         }
 
         # 04
-        It "Exception message contains the file name" {
-            $fileName = [System.IO.Path]::GetFileName($script:missingFile)
+        It "Exception message contains the directory name" {
+            $directoryName = [System.IO.Path]::GetFileName($script:missingDir)
 
             $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$fileName'*"
+                Should -BeLike "*'$directoryName'*"
         }
 
         # 05
@@ -154,21 +156,21 @@ Describe "Assert-FileExists" -Tag @(
         }
 
         # 06
-        It "FullyQualifiedErrorId is 'FileNotFound,Invoke-Caller'" {
+        It "FullyQualifiedErrorId is 'DirectoryNotFound,Invoke-Caller'" {
             $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "FileNotFound,Invoke-Caller"
+                Should -Be "DirectoryNotFound,Invoke-Caller"
         }
     }
 
-    Context "When file is not found and Reason is present" {
+    Context "When directory does not exist and Reason is present" {
         BeforeAll {
-            $script:missingFile = Join-Path $TestDrive "missing_file.txt"
-            $script:reason = "Ensure that 'file.txt' exists."
+            $script:missingDir = Join-Path $TestDrive "missing_directory"
+            $script:reason = "Create the directory first."
             $script:caughtError = $null
 
             try {
                 Invoke-Caller `
-                    -Path $script:missingFile `
+                    -Path $script:missingDir `
                     -Reason $script:reason
             }
             catch {
