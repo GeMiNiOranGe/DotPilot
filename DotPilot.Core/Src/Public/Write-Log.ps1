@@ -88,13 +88,31 @@ function Write-Log {
         $format = [LogFormat]::None
 
         if (-not [LogFormat]::TryParse($rawFormat, [ref]$format)) {
-            throw "Invalid log file format value: '$rawFormat'. Expected one of: $(
-                [Enum]::GetNames([LogFormat]) -join ', '
-            )."
+            $message = @(
+                "Invalid log file format value: '$rawFormat'. "
+                "Expected one of: $([Enum]::GetNames([LogFormat]) -join ', ')."
+            ) -join ""
+            $exception = [System.Exception]::new($message)
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $exception,
+                "InvalidLogFormat",
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $rawFormat
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
 
         if ($format -eq [LogFormat]::None) {
-            throw "Log file format has not been set. Please configure '$format'."
+            $message = `
+                "Log file format has not been set. Please configure '$format'."
+            $exception = [System.Exception]::new($message)
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $exception,
+                "LogFormatNotSet",
+                [System.Management.Automation.ErrorCategory]::NotSpecified,
+                $format
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
 
         $extensionMap = @{
@@ -103,7 +121,15 @@ function Write-Log {
         }
 
         if (-not $extensionMap.ContainsKey($format)) {
-            throw "Unsupported log file format: $format"
+            $message = "Unsupported log file format: $format"
+            $exception = [System.Exception]::new($message)
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $exception,
+                "UnsupportedLogFormat",
+                [System.Management.Automation.ErrorCategory]::NotImplemented,
+                $format
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
 
         $extension = $extensionMap[$format]
