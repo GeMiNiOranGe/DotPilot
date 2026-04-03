@@ -67,7 +67,7 @@ function Assert-ArgumentExists {
         [string]$Reason
     )
 
-    if (-not [string]::IsNullOrEmpty($Value)) {
+    if (-not [string]::IsNullOrWhiteSpace($Value)) {
         return
     }
 
