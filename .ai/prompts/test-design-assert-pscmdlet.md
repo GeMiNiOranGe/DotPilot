@@ -30,7 +30,7 @@ Partition each parameter that affects behavior. Each partition needs: name, repr
 ### 3. Decision Table
 Combine partitions across parameters. List only combinations that produce different behaviors. Add a **Note block** below the table to explain:
 - Which combinations are listed in the table but cannot be tested, and why (e.g., a parameter is only meaningful when throwing, ignored on the valid path). These rows remain in the Decision Table; the Note explains the reason. They do not appear in the test map.
-- Which assertions are only tested on a subset of combinations and why (e.g., Exception type/message/attribution are unaffected by ExtraMessage, so they are only tested against the Absent combinations)
+- Which assertions are only tested on a subset of combinations and why (e.g., Exception type/message/attribution are unaffected by Reason, so they are only tested against the Absent combinations)
 - Notes are numbered starting from 1.
 - In each note, any combination references such as 'X + Y', ('X + Y'), or ('X + Y' and 'X + Z') must appear at the **end** of the sentence, not at the beginning or in the middle.
 
@@ -62,8 +62,8 @@ Write the complete `Describe/Context/It` blocks following these rules:
 - **1 Decision Table row = 1 Context** - do not merge multiple combinations into the same Context even if behavior is identical
 
 **BeforeAll and capture:**
-- If a Context has multiple assertions on the same throw → use `BeforeAll` to capture `$script:caughtError`
-- If a "Present" Context needs to reference ExtraMessage inside an `It` block, assign it to `$script:extraMessage` in `BeforeAll` instead of inlining it in the call
+- If a Context has multiple assertions on the same throw -> use `BeforeAll` to capture `$script:caughtError`
+- If a "Present" Context needs to reference Reason inside an `It` block, assign it to `$script:reason` in `BeforeAll` instead of inlining it in the call
 - Place the Guard inside `BeforeAll` using:
     ```powershell
     if ($null -eq $script:caughtError) {
@@ -96,7 +96,7 @@ Write the complete `Describe/Context/It` blocks following these rules:
     Invoke-Caller `
         -Name "Environment" `
         -Value "" `
-        -ExtraMessage $script:extraMessage
+        -Reason $script:reason
     ```
 3. Break using `@(...) -join ''` for long strings:
     ```powershell
