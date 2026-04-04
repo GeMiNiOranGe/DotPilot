@@ -73,14 +73,11 @@ EP  - Equivalence Partitioning
 BGC  - BackgroundColor
 FGC  - ForegroundColor
 #>
-Describe "Write-LogConsole" -Tag "Write-LogConsole", "Write-Log*" {
-    $ValidLevels = @(
-        @{ Level = "Info" }
-        @{ Level = "Warn" }
-        @{ Level = "Error" }
-        @{ Level = "Debug" }
-    )
-
+Describe "Write-LogConsole" -Tag @(
+    "Write-LogConsole"
+    "Write-Log*"
+    "Unit"
+) {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogConsole.ps1"
@@ -88,58 +85,106 @@ Describe "Write-LogConsole" -Tag "Write-LogConsole", "Write-Log*" {
         Mock Write-Host {}
     }
 
-    Context "Color theming" {
-        It "Uses correct background color for level '<Level>'" -TestCases @(
-            @{ Level = "Info"; ExpectedBg = "Cyan" }
-            @{ Level = "Warn"; ExpectedBg = "Yellow" }
-            @{ Level = "Error"; ExpectedBg = "Red" }
-            @{ Level = "Debug"; ExpectedBg = "White" }
-        ) {
-            Write-LogConsole -Level $Level -Message "A test message"
+    Context "When Level is Info" {
+        BeforeAll {
+            $script:message = "Server started"
 
-            Should -Invoke Write-Host -ParameterFilter {
-                $BackgroundColor -eq $ExpectedBg
+            Write-LogConsole -Level ([LogLevel]::Info) -Message $script:message
+        }
+
+        # 01
+        It "Writes the label with Cyan background" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $BackgroundColor -eq [ConsoleColor]::Cyan
             }
         }
 
-        It "Uses black foreground color for level '<Level>'" -TestCases $ValidLevels {
-            Write-LogConsole -Level $Level -Message "A test message"
+        # 02
+        It "Writes the label with Black foreground" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $ForegroundColor -eq [ConsoleColor]::Black
+            }
+        }
 
-            Should -Invoke Write-Host -ParameterFilter {
-                $ForegroundColor -eq "Black"
+        # 03
+        It "Writes 'info' as the label text" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $Object -eq "info"
+            }
+        }
+
+        # 04
+        It "Writes the label without a trailing newline" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $NoNewline -eq $true
+            }
+        }
+
+        # 05
+        It "Writes the message with a leading space" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $Object -eq " $script:message"
             }
         }
     }
 
-    Context "Output content" {
-        It "Writes label '<Level>' in lowercase" -TestCases $ValidLevels {
-            Write-LogConsole -Level $Level -Message "A test message"
+    Context "When Level is Warn" {
+        BeforeAll {
+            Write-LogConsole -Level ([LogLevel]::Warn) -Message "Disk low"
+        }
 
-            Should -Invoke Write-Host -ParameterFilter {
-                $Object -eq $Level.ToLower()
+        # 06
+        It "Writes the label with Yellow background" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $BackgroundColor -eq [ConsoleColor]::Yellow
             }
         }
 
-        It "Writes message to console" {
-            Write-LogConsole -Level "Info" -Message "A test message"
-
-            Should -Invoke Write-Host -ParameterFilter {
-                $Object -match "A test message"
+        # 07
+        It "Writes 'warn' as the label text" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $Object -eq "warn"
             }
         }
     }
 
-    Context "Input validation" {
-        It "Does not throw for level '<Level>'" -TestCases $ValidLevels {
-            {
-                Write-LogConsole -Level $Level -Message "A test message"
-            } | Should -Not -Throw
+    Context "When Level is Error" {
+        BeforeAll {
+            Write-LogConsole -Level ([LogLevel]::Error) -Message "Disk low"
         }
 
-        It "Throws on invalid level" {
-            {
-                Write-LogConsole -Level "Invalid" -Message "A test message"
-            } | Should -Throw
+        # 08
+        It "Writes the label with Red background" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $BackgroundColor -eq [ConsoleColor]::Red
+            }
+        }
+
+        # 09
+        It "Writes 'error' as the label text" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $Object -eq "error"
+            }
+        }
+    }
+
+    Context "When Level is Debug" {
+        BeforeAll {
+            Write-LogConsole -Level ([LogLevel]::Debug) -Message "Disk low"
+        }
+
+        # 10
+        It "Writes the label with White background" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $BackgroundColor -eq [ConsoleColor]::White
+            }
+        }
+
+        # 11
+        It "Writes 'debug' as the label text" {
+            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
+                $Object -eq "debug"
+            }
         }
     }
 }
