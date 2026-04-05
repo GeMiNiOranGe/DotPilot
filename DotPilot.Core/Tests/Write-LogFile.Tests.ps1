@@ -1,3 +1,100 @@
+<#
+Input space
+-----------
+$Level  : [LogLevel] enum. Drives the level label written to the file. Four
+          valid values: Info, Warn, Error, Debug. Each value maps to a distinct
+          uppercase label in the entry string.
+$Message: Any string. Appended to the entry after the source label. Does not
+          affect control flow or label selection. No partitioning needed beyond
+          confirming it appears in the output.
+$Source : Any string. When non-whitespace, prepends "${Source}: " before
+          $Message. When Absent or whitespace, no prefix is written. $null is
+          coerced to empty string by IsNullOrWhiteSpace - same partition as
+          Absent; no duplicate row needed.
+$Path   : String. Passed directly to Add-Content. Does not affect entry format.
+          No partitioning needed beyond confirming Add-Content receives it.
+
+################################################################################
+
+Equivalence Partitioning
+------------------------
+1. For `$Level`
+Partition   Representative      Expected
+---------   --------------      --------
+Info        [LogLevel]::Info    "INFO"
+Warn        [LogLevel]::Warn    "WARN"
+Error       [LogLevel]::Error   "ERROR"
+Debug       [LogLevel]::Debug   "DEBUG"
+
+Note: All four partitions follow the same code path (ToUpper on the enum name);
+testing all four validates the full label map.
+
+2. For `$Source`
+Partition   Representative   Expected
+---------   --------------   --------
+Absent      (omit)           No source prefix in entry
+Present     "Verb-Noun"      Entry contains "Verb-Noun: " before $Message
+
+################################################################################
+
+Decision table
+--------------
+$Level   $Source   Expected
+------   -------   --------
+Info     Absent    "<timestamp> INFO\t<msg>"
+Info     Present   "<timestamp> INFO\tVerb-Noun: <msg>"
+Warn     Absent    "<timestamp> WARN\t<msg>"
+Error    Absent    "<timestamp> ERROR\t<msg>"
+Debug    Absent    "<timestamp> DEBUG\t<msg>"
+
+Note:
+1.  The timestamp prefix format is structural and identical across all rows;
+    it is verified once on a representative combination rather than repeated on
+    every row ('Info + Absent').
+
+2.  The $Path value passed to Add-Content does not vary across $Level or
+    $Source combinations; it is asserted once on a representative combination
+    ('Info + Absent').
+
+3.  The absence of a source prefix is asserted once on a representative
+    combination ('Info + Absent'); the presence of a source prefix is asserted
+    on ('Info + Present').
+
+################################################################################
+
+Test map
+--------
+ID   Context     Input                Technique   Assert
+--   -------     -----                ---------   ------
+01   INF + Abs   Info,                DT          Add-Content called once
+                 "Server started",
+                 path
+02   INF + Abs   ^                    ^           Path arg = test path
+03   INF + Abs   ^                    ^           Entry ~ timestamp pattern
+04   INF + Abs   ^                    ^           Entry contains "INFO"
+05   INF + Abs   ^                    ^           Message = " Server started"
+06   INF + Abs   ^                    ^           Entry has no source prefix
+07   INF + Pre   Info,                DT          Entry contains "Verb-Noun: "
+                 "Server started",
+                 "Verb-Noun", path
+08   WRN + Abs   Warn, "Disk low",    DT          Entry contains "WARN"
+                 path
+09   ERR + Abs   Error, "Disk low",   DT          Entry contains "ERROR"
+                 path
+10   DBG + Abs   Debug, "Disk low",   DT          Entry contains "DEBUG"
+                 path
+
+List of Abbreviations:
+'^' - Same input/technique as previous row
+DT  - Decision Table
+INF - Info
+WRN - Warn
+ERR - Error
+DBG - Debug
+S   - Source
+Abs - Absent
+Pre - Present
+#>
 Describe "Write-LogFile" -Tag "Write-LogFile", "Write-Log*" {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
