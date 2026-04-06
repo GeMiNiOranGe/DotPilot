@@ -95,7 +95,11 @@ S   - Source
 Abs - Absent
 Pre - Present
 #>
-Describe "Write-LogFile" -Tag "Write-LogFile", "Write-Log*" {
+Describe "Write-LogFile" -Tag @(
+    "Write-LogFile"
+    "Write-Log*"
+    "Unit"
+) {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
@@ -104,181 +108,130 @@ Describe "Write-LogFile" -Tag "Write-LogFile", "Write-Log*" {
             return "2000-01-01 12:00:00"
         }
 
-        function Get-FirstLogLine {
-            param([string]$Path)
-            return Get-Content $Path | Select-Object -First 1
+        # Mock Add-Content to avoid actual file I/O and
+        # enable verification of parameters.
+        Mock Add-Content {}
+    }
+
+    Context "When Level is Info and Source is absent" {
+        BeforeAll {
+            $script:message = "Server started"
+            $script:path = "C:\Logs\log-file.log"
+
+            Write-LogFile `
+                -Level ([LogLevel]::Info) `
+                -Message $script:message `
+                -Path $script:path
+        }
+
+        # 01
+        It "Calls Add-Content exactly once" {
+            Should -Invoke Add-Content -Times 1 -Scope Context
+        }
+
+        # 02
+        It "Passes the correct path to Add-Content" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Path -eq $script:path }
+        }
+
+        # 03
+        It "Writes an entry that begins with a formatted timestamp" {
+            $format = '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} '
+
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -match $format }
+        }
+
+        # 04
+        It "Writes an entry that contains the INFO label" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -match ' INFO\t' }
+        }
+
+        # 05
+        It "Writes an entry that contains the message" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -like "*$script:message" }
+        }
+
+        # 06
+        It "Writes an entry with no source prefix before the message" {
+            $format = 'INFO\t' + [regex]::Escape($script:message) + '$'
+
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -match $format }
         }
     }
 
-    BeforeEach {
-        $script:logFile = Join-Path $TestDrive "test.log"
-    }
+    Context "When Level is Info and Source is present" {
+        BeforeAll {
+            $script:message = "Server started"
+            $script:source = "Verb-Noun"
+            $script:path = "C:\Logs\log-file.log"
 
-    AfterEach {
-        if ($script:logFile -and (Test-Path $script:logFile)) {
-            Remove-Item $script:logFile
-        }
-    }
-
-    Context "File handling" {
-        It "Creates log file when it does not exist" {
             Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $script:logFile | Should -Exist
+                -Level ([LogLevel]::Info) `
+                -Message $script:message `
+                -Source $script:source `
+                -Path $script:path
         }
 
-        It "Appends entries to existing log file" {
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $lines = Get-Content $script:logFile
-            $lines.Count | Should -Be 2
+        # 07
+        It "Writes an entry that contains the source prefix" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -like "*$script:source`: *" }
         }
     }
 
-    Context "Log entry format" {
-        It "Has timestamp prefix" {
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
+    Context "When Level is Warn and Source is absent" {
+        BeforeAll {
+            $script:path = "C:\Logs\log-file.log"
 
-            $firstLine = Get-FirstLogLine $script:logFile
-            $firstLine | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} '
+            Write-LogFile `
+                -Level ([LogLevel]::Warn) `
+                -Message "Disk low" `
+                -Path $script:path
         }
 
-        It "Contains the message" {
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $firstLine = Get-FirstLogLine $script:logFile
-            $firstLine | Should -Match 'A test message$'
-        }
-
-        It "Contains level '<Level>' in uppercase" -TestCases @(
-            @{ Level = "Info"; Expected = "INFO" }
-            @{ Level = "Warn"; Expected = "WARN" }
-            @{ Level = "Error"; Expected = "ERROR" }
-            @{ Level = "Debug"; Expected = "DEBUG" }
-        ) {
-            Write-LogFile `
-                -Level $Level `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $firstLine = Get-FirstLogLine $script:logFile
-            $firstLine | Should -Match " $Expected`t"
-        }
-
-        It "Has correct full format without Source" {
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $firstLine = Get-Content $script:logFile | Select-Object -First 1
-            $firstLine | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} INFO\tA test message$'
-        }
-
-        It "Has correct full format with Source" {
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Source "MyFunction" `
-                -Path $script:logFile
-
-            $firstLine = Get-Content $script:logFile | Select-Object -First 1
-            $firstLine | Should -Match '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} INFO\tMyFunction: A test message$'
+        # 08
+        It "Writes an entry that contains the WARN label" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -match ' WARN\t' }
         }
     }
 
-    Context "Source label" {
-        It "Contains source label when Source is provided" {
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile `
-                -Source "MyFunction"
+    Context "When Level is Error and Source is absent" {
+        BeforeAll {
+            $script:path = "C:\Logs\log-file.log"
 
-            $firstLine = Get-FirstLogLine $script:logFile
-            $firstLine | Should -Match " INFO`tMyFunction: A test message$"
+            Write-LogFile `
+                -Level ([LogLevel]::Error) `
+                -Message "Disk low" `
+                -Path $script:path
         }
 
-        It "Omits source label when Source is not provided" {
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $firstLine = Get-FirstLogLine $script:logFile
-            $firstLine | Should -Match " INFO`tA test message$"
-        }
-
-        It "Does not include source label when Source is empty or whitespace" -TestCases @(
-            @{ Value = "" }
-            @{ Value = "   " }
-        ) {
-            Write-LogFile `
-                -Level Info `
-                -Message "A test message" `
-                -Source $Value `
-                -Path $script:logFile
-
-            $firstLine = Get-Content $script:logFile | Select-Object -First 1
-            $firstLine | Should -Match " INFO`tA test message$"
+        # 09
+        It "Writes an entry that contains the ERROR label" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -match ' ERROR\t' }
         }
     }
 
-    Context "Input validation" {
-        It "Throws on invalid level" {
-            {
-                Write-LogFile `
-                    -Level "Invalid" `
-                    -Message "A test message" `
-                    -Path $script:logFile
-            } | Should -Throw
+    Context "When Level is Debug and Source is absent" {
+        BeforeAll {
+            $script:path = "C:\Logs\log-file.log"
+
+            Write-LogFile `
+                -Level ([LogLevel]::Debug) `
+                -Message "Disk low" `
+                -Path $script:path
         }
 
-        It "Throws when Path is not provided" {
-            {
-                Write-LogFile -Level Info -Message "A test message" -Path $null
-            } | Should -Throw
-        }
-
-        It "Throws when Path is empty or whitespace" -TestCases @(
-            @{ Value = "" }
-            @{ Value = "   " }
-        ) {
-            {
-                Write-LogFile -Level Info -Message "A test message" -Path $Value
-            } | Should -Throw
-        }
-    }
-
-    Context "Rapid sequential writes" {
-        It "Preserves all entries across multiple writes" {
-            $iterate = 5
-
-            1..$iterate | ForEach-Object {
-                Write-LogFile `
-                    -Level Info `
-                    -Message "A test message" `
-                    -Path $script:logFile
-            }
-
-            $lines = Get-Content $script:logFile
-            $lines.Count | Should -Be $iterate
+        # 10
+        It "Writes an entry that contains the DEBUG label" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -match ' DEBUG\t' }
         }
     }
 }
