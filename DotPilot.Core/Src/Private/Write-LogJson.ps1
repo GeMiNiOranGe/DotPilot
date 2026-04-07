@@ -7,6 +7,7 @@ function Write-LogJson {
         [Parameter(Position = 1)]
         [string]$Message,
 
+        [ValidateNotNullOrWhiteSpace()]
         [string]$Source,
 
         [Parameter(Mandatory)]
@@ -22,7 +23,7 @@ function Write-LogJson {
 
     # Omit Source entirely when not provided,
     # consistent with Write-LogFile behavior.
-    if (-not [string]::IsNullOrWhiteSpace($Source)) {
+    if ($Source) {
         $entry.Source = $Source
     }
 

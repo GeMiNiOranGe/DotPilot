@@ -7,6 +7,7 @@ function Write-LogFile {
         [Parameter(Position = 1)]
         [string]$Message,
 
+        [ValidateNotNullOrWhiteSpace()]
         [string]$Source,
 
         [Parameter(Mandatory)]
@@ -17,7 +18,7 @@ function Write-LogFile {
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
     # Omit the prefix entirely when Source is not provided.
-    $sourceLabel = [string]::IsNullOrWhiteSpace($Source) ? "" : "${Source}: "
+    $sourceLabel = $Source ? "${Source}: " : ""
 
     # Format: "2000-01-01 12:00:00 INFO\t<Source: ><Message>"
     # Tab separates the level from the body for easier parsing.
