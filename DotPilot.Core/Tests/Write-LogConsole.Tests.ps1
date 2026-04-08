@@ -70,8 +70,8 @@ ID   Context   Input                    Technique   Assert
 List of Abbreviations:
 '^' - Same capture as previous assertion(s)
 EP  - Equivalence Partitioning
-BGC  - BackgroundColor
-FGC  - ForegroundColor
+BGC - BackgroundColor
+FGC - ForegroundColor
 #>
 Describe "Write-LogConsole" -Tag @(
     "Write-LogConsole"

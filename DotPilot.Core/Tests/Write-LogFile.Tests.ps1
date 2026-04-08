@@ -9,8 +9,8 @@ $Message: Any string. Appended to the entry after the source label. Does not
           confirming it appears in the output.
 $Source : Any string. When non-whitespace, prepends "${Source}: " before
           $Message. When Absent or whitespace, no prefix is written. $null is
-          coerced to empty string by IsNullOrWhiteSpace - same partition as
-          Absent; no duplicate row needed.
+          coerced to empty string by ValidateNotNullOrWhiteSpace - same
+          partition as Absent; no duplicate row needed.
 $Path   : String. Passed directly to Add-Content. Does not affect entry format.
           No partitioning needed beyond confirming Add-Content receives it.
 
@@ -56,7 +56,7 @@ Note:
     $Source combinations; it is asserted once on a representative combination
     ('Info + Absent').
 
-3.  The absence of a source prefix is asserted once on a representative
+3.  The absence of a Source prefix is asserted once on a representative
     combination ('Info + Absent'); the presence of a source prefix is asserted
     on ('Info + Present').
 
@@ -73,7 +73,7 @@ ID   Context     Input                Technique   Assert
 03   INF + Abs   ^                    ^           Entry ~ timestamp pattern
 04   INF + Abs   ^                    ^           Entry contains "INFO"
 05   INF + Abs   ^                    ^           Message = " Server started"
-06   INF + Abs   ^                    ^           Entry has no source prefix
+06   INF + Abs   ^                    ^           Entry has no Source prefix
 07   INF + Pre   Info,                DT          Entry contains "Verb-Noun: "
                  "Server started",
                  "Verb-Noun", path
