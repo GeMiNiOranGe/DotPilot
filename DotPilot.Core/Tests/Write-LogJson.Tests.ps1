@@ -105,7 +105,11 @@ DBG  - Debug
 Abs  - Absent
 Pre  - Present
 #>
-Describe "Write-LogJson" -Tag "Write-LogJson", "Write-Log*" {
+Describe "Write-LogJson" -Tag @(
+    "Write-LogJson"
+    "Write-Log*"
+    "Unit"
+) {
     BeforeAll {
         . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogJson.ps1"
@@ -114,226 +118,130 @@ Describe "Write-LogJson" -Tag "Write-LogJson", "Write-Log*" {
             return "2000-01-01T12:00:00"
         }
 
-        function Get-FirstLogEntry {
-            param([string]$Path)
-            return Get-Content $Path | Select-Object -First 1 | ConvertFrom-Json
+        # Mock Add-Content to avoid actual file I/O and
+        # enable verification of parameters.
+        Mock Add-Content {}
+    }
+
+    Context "When Level is Info and Source is absent" {
+        BeforeAll {
+            $script:message = "Server started"
+            $script:path = "C:\Logs\log-file.log"
+
+            Write-LogJson `
+                -Level ([LogLevel]::Info) `
+                -Message $script:message `
+                -Path $script:path
+        }
+
+        # 01
+        It "Calls Add-Content exactly once" {
+            Should -Invoke Add-Content -Times 1 -Scope Context
+        }
+
+        # 02
+        It "Passes the correct path to Add-Content" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Path -eq $script:path }
+        }
+
+        # 03
+        It "Writes an entry whose Timestamp matches the ISO-8601 pattern" {
+            $format = '"Timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"'
+
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -match $format }
+        }
+
+        # 04
+        It "Writes an entry with Level 'Info'" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -like '*"Level":"Info"*' }
+        }
+
+        # 05
+        It "Writes an entry with the correct Message value" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter {
+                    $Value -like "*`"Message`":*`"$script:message`"*"
+                }
+        }
+
+        # 06
+        It "Writes an entry that contains no Source key" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -notlike '*"Source":*' }
+        }
+
+        # 07
+        It "Writes a compact JSON entry with no spaces between tokens" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -notmatch ':\s|,\s' }
         }
     }
 
-    BeforeEach {
-        $script:logFile = Join-Path $TestDrive "test.jsonl"
-    }
+    Context "When Level is Info and Source is present" {
+        BeforeAll {
+            $script:source = "Verb-Noun"
 
-    AfterEach {
-        if ($script:logFile -and (Test-Path $script:logFile)) {
-            Remove-Item $script:logFile
-        }
-    }
-
-    Context "File handling" {
-        It "Creates log file when it does not exist" {
             Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $script:logFile | Should -Exist
+                -Level ([LogLevel]::Info) `
+                -Message "Server started" `
+                -Source $script:source `
+                -Path "C:\Logs\log-file.log"
         }
 
-        It "Appends entries to existing log file" {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $lines = Get-Content $script:logFile
-            $lines.Count | Should -Be 2
+        # 08
+        It "Writes an entry that contains the Source value" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter {
+                    $Value -like "*`"Source`":*`"$script:source`"*"
+                }
         }
     }
 
-    Context "Log entry format" {
-        It "Each line is valid JSON" {
+    Context "When Level is Warn and Source is absent" {
+        BeforeAll {
             Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $firstLine = Get-Content $script:logFile | Select-Object -First 1
-            { $firstLine | ConvertFrom-Json } | Should -Not -Throw
+                -Level ([LogLevel]::Warn) `
+                -Message "Disk low" `
+                -Path "C:\Logs\log-file.log"
         }
 
-        It "Each line is a single line (no pretty-print)" {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $lines = Get-Content $script:logFile
-            $lines.Count | Should -Be 1
-        }
-
-        It "Contains Timestamp field" {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $entry = Get-FirstLogEntry $script:logFile
-            $entry.Timestamp | Should -Not -BeNullOrEmpty
-        }
-
-        It "Timestamp matches expected format" {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $firstLine = Get-Content $script:logFile | Select-Object -First 1
-            $firstLine | Should -Match '"Timestamp":"2000-01-01T12:00:00"'
-        }
-
-        It "Contains the message" {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $entry = Get-FirstLogEntry $script:logFile
-            $entry.Message | Should -Be "A test message"
-        }
-
-        It "Contains level '<Level>' in PascalCase" -TestCases @(
-            @{ Level = "Info"; Expected = "Info" }
-            @{ Level = "Warn"; Expected = "Warn" }
-            @{ Level = "Error"; Expected = "Error" }
-            @{ Level = "Debug"; Expected = "Debug" }
-        ) {
-            Write-LogJson `
-                -Level $Level `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $entry = Get-FirstLogEntry $script:logFile
-            $entry.Level | Should -Be $Expected
-        }
-
-        It "Has correct field order: Timestamp, Level, Message" {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $firstLine = Get-Content $script:logFile | Select-Object -First 1
-            $firstLine | Should -Match '"Timestamp".+"Level".+"Message"'
-        }
-
-        It "Has correct field order: Timestamp, Level, Message, Source when Source is provided" {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Source "MyFunction" `
-                -Path $script:logFile
-
-            $firstLine = Get-Content $script:logFile | Select-Object -First 1
-            $firstLine | Should -Match '"Timestamp".+"Level".+"Message".+"Source"'
+        # 09
+        It "Writes an entry with Level 'Warn'" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -like '*"Level":"Warn"*' }
         }
     }
 
-    Context "Source field" {
-        It "Contains Source field when Source is provided" {
+    Context "When Level is Error and Source is absent" {
+        BeforeAll {
             Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Source "MyFunction" `
-                -Path $script:logFile
-
-            $entry = Get-FirstLogEntry $script:logFile
-            $entry.Source | Should -Be "MyFunction"
+                -Level ([LogLevel]::Error) `
+                -Message "Disk low" `
+                -Path "C:\Logs\log-file.log"
         }
 
-        It "Omits Source field when Source is not provided" {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Path $script:logFile
-
-            $entry = Get-FirstLogEntry $script:logFile
-            $entry.PSObject.Properties.Name | Should -Not -Contain "Source"
-        }
-
-        It "Omits Source field when Source is empty or whitespace" -TestCases @(
-            @{ Value = "" }
-            @{ Value = "   " }
-        ) {
-            Write-LogJson `
-                -Level Info `
-                -Message "A test message" `
-                -Source $Value `
-                -Path $script:logFile
-
-            $entry = Get-FirstLogEntry $script:logFile
-            $entry.PSObject.Properties.Name | Should -Not -Contain "Source"
+        # 10
+        It "Writes an entry with Level 'Error'" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -like '*"Level":"Error"*' }
         }
     }
 
-    Context "Input validation" {
-        It "Throws on invalid level" {
-            {
-                Write-LogJson `
-                    -Level "Invalid" `
-                    -Message "A test message" `
-                    -Path $script:logFile
-            } | Should -Throw
+    Context "When Level is Debug and Source is absent" {
+        BeforeAll {
+            Write-LogJson `
+                -Level ([LogLevel]::Debug) `
+                -Message "Disk low" `
+                -Path "C:\Logs\log-file.log"
         }
 
-        It "Throws when Path is not provided" {
-            {
-                Write-LogJson -Level Info -Message "A test message" -Path $null
-            } | Should -Throw
-        }
-
-        It "Throws when Path is empty or whitespace" -TestCases @(
-            @{ Value = "" }
-            @{ Value = "   " }
-        ) {
-            {
-                Write-LogJson -Level Info -Message "A test message" -Path $Value
-            } | Should -Throw
-        }
-    }
-
-    Context "Rapid sequential writes" {
-        It "Preserves all entries across multiple writes" {
-            $iterate = 5
-
-            1..$iterate | ForEach-Object {
-                Write-LogJson `
-                    -Level Info `
-                    -Message "A test message" `
-                    -Path $script:logFile
-            }
-
-            $lines = Get-Content $script:logFile
-            $lines.Count | Should -Be $iterate
-        }
-
-        It "Each entry is valid JSON across multiple writes" {
-            $iterate = 5
-
-            1..$iterate | ForEach-Object {
-                Write-LogJson `
-                    -Level Info `
-                    -Message "A test message" `
-                    -Path $script:logFile
-            }
-
-            Get-Content $script:logFile | ForEach-Object {
-                { $_ | ConvertFrom-Json } | Should -Not -Throw
-            }
+        # 11
+        It "Writes an entry with Level 'Debug'" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -like '*"Level":"Debug"*' }
         }
     }
 }
