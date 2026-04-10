@@ -104,10 +104,6 @@ Describe "Write-LogFile" -Tag @(
         . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
 
-        Mock Get-Date {
-            return "2000-01-01 12:00:00"
-        }
-
         # Mock Add-Content to avoid actual file I/O and
         # enable verification of parameters.
         Mock Add-Content {}
@@ -137,7 +133,7 @@ Describe "Write-LogFile" -Tag @(
 
         # 03
         It "Writes an entry that begins with a formatted timestamp" {
-            $format = '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} '
+            $format = '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2} '
 
             Should -Invoke Add-Content -Times 1 -Scope Context `
                 -ParameterFilter { $Value -match $format }

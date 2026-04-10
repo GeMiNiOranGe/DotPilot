@@ -114,10 +114,6 @@ Describe "Write-LogJson" -Tag @(
         . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
         . "$PSScriptRoot\..\Src\Private\Write-LogJson.ps1"
 
-        Mock Get-Date {
-            return "2000-01-01T12:00:00"
-        }
-
         # Mock Add-Content to avoid actual file I/O and
         # enable verification of parameters.
         Mock Add-Content {}

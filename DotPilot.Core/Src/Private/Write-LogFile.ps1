@@ -15,7 +15,7 @@ function Write-LogFile {
         [string]$Path
     )
 
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ss"
 
     # Omit the prefix entirely when Source is not provided.
     $sourceLabel = $Source ? "${Source}: " : ""
