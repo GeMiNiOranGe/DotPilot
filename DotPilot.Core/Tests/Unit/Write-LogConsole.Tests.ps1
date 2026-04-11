@@ -79,8 +79,8 @@ Describe "Write-LogConsole" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\Src\Private\Write-LogConsole.ps1"
+        . "$PSScriptRoot\..\..\Src\Enums\LogLevel.ps1"
+        . "$PSScriptRoot\..\..\Src\Private\Write-LogConsole.ps1"
 
         Mock Write-Host {}
     }

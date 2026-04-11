@@ -101,8 +101,8 @@ Describe "Write-LogFile" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
+        . "$PSScriptRoot\..\..\Src\Enums\LogLevel.ps1"
+        . "$PSScriptRoot\..\..\Src\Private\Write-LogFile.ps1"
 
         # Mock Add-Content to avoid actual file I/O and
         # enable verification of parameters.

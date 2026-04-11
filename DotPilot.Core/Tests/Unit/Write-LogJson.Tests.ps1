@@ -111,8 +111,8 @@ Describe "Write-LogJson" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\Src\Private\Write-LogJson.ps1"
+        . "$PSScriptRoot\..\..\Src\Enums\LogLevel.ps1"
+        . "$PSScriptRoot\..\..\Src\Private\Write-LogJson.ps1"
 
         # Mock Add-Content to avoid actual file I/O and
         # enable verification of parameters.
