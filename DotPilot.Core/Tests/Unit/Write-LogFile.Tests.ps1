@@ -1,18 +1,25 @@
 <#
 Input space
 -----------
-$Level  : [LogLevel] enum. Drives the level label written to the file. Four
-          valid values: Info, Warn, Error, Debug. Each value maps to a distinct
-          uppercase label in the entry string.
-$Message: Any string. Appended to the entry after the source label. Does not
-          affect control flow or label selection. No partitioning needed beyond
-          confirming it appears in the output.
-$Source : Any string. When non-whitespace, prepends "${Source}: " before
-          $Message. When Absent or whitespace, no prefix is written. $null is
-          coerced to empty string by ValidateNotNullOrWhiteSpace - same
-          partition as Absent; no duplicate row needed.
-$Path   : String. Passed directly to Add-Content. Does not affect entry format.
-          No partitioning needed beyond confirming Add-Content receives it.
+Param `$Level`:
+    [LogLevel] enum. Drives the level label written to the file. Four valid
+    values: Info, Warn, Error, Debug. Each value maps to a distinct uppercase
+    label in the entry string.
+
+Param `$Message`:
+    Any string. Appended to the entry after the source label. Does not affect
+    control flow or label selection. No partitioning needed beyond confirming it
+    appears in the output.
+
+Param `$Source`:
+    Any string. When non-whitespace, prepends "${Source}: " before $Message.
+    When Absent or whitespace, no prefix is written. $null is coerced to
+    empty string by ValidateNotNullOrWhiteSpace - same partition as Absent;
+    no duplicate row needed.
+
+Param `$Path`:
+    String. Passed directly to Add-Content. Does not affect entry format.
+    No partitioning needed beyond confirming Add-Content receives it.
 
 ################################################################################
 

@@ -1,13 +1,15 @@
 <#
 Input space
 -----------
-$Level  : [LogLevel] enum. Drives the color map lookup and the label written
-          to the console. Four valid values: Info, Warn, Error, Debug.
-          Each value maps to a distinct foreground/background color pair and a
-          distinct label string.
-$Message: Any string. Appended to the output after the colored label.
-          Does not affect control flow or color selection. No partitioning
-          needed beyond confirming it appears in the output.
+Param `$Level`:
+    [LogLevel] enum. Drives the color map lookup and the label written to the
+    console. Four valid values: Info, Warn, Error, Debug. Each value maps to a
+    distinct foreground/background color pair and a distinct label string.
+
+Param `$Message`:
+    Any string. Appended to the output after the colored label. Does not affect
+    control flow or color selection. No partitioning needed beyond confirming
+    it appears in the output.
 
 ################################################################################
 

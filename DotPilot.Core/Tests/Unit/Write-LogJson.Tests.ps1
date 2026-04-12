@@ -1,20 +1,27 @@
 <#
 Input space
 -----------
-$Level  : [LogLevel] enum. Drives the "Level" field written to the JSON entry.
-          Four valid values: Info, Warn, Error, Debug. Each value maps to its
-          string name in the serialised output.
-$Message: Any string. Written to the "Message" field of the JSON entry. Does not
-          affect control flow or Level serialisation. No partitioning needed
-          beyond confirming it appears in the output.
-$Source : Any string. When non-whitespace, adds a "Source" key to the ordered
-          hashtable before serialisation. When absent or whitespace, the key
-          is omitted entirely. $null is coerced to "" by PowerShell's [string]
-          binding and fails ValidateNotNullOrWhiteSpace, so it is not a valid
-          domain value; no duplicate partition needed.
-$Path   : Mandatory string, ValidateNotNullOrWhiteSpace. Passed directly to
-          Add-Content. Does not affect the JSON entry format. No partitioning
-          needed beyond confirming Add-Content receives it.
+Param `$Level`:
+    [LogLevel] enum. Drives the "Level" field written to the JSON entry. Four
+    valid values: Info, Warn, Error, Debug. Each value maps to its string name
+    in the serialised output.
+
+Param `$Message`:
+    Any string. Written to the "Message" field of the JSON entry. Does not
+    affect control flow or Level serialisation. No partitioning needed beyond
+    confirming it appears in the output.
+
+Param `$Source`:
+    Any string. When non-whitespace, adds a "Source" key to the ordered
+    hashtable before serialisation. When absent or whitespace, the key is
+    omitted entirely. $null is coerced to "" by PowerShell's [string] binding
+    and fails ValidateNotNullOrWhiteSpace, so it is not a valid domain value;
+    no duplicate partition needed.
+
+Param `$Path`:
+    Mandatory string, ValidateNotNullOrWhiteSpace. Passed directly to
+    Add-Content. Does not affect the JSON entry format. No partitioning needed
+    beyond confirming Add-Content receives it.
 
 ################################################################################
 

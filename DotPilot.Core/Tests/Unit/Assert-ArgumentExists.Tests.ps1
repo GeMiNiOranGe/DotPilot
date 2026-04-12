@@ -1,12 +1,19 @@
 <#
 Input space
 -----------
-$Name  : Any string (e.g. "Environment", "   ", "") Appears only in
-         error messages; does not affect control flow. No partitioning needed.
-$Value : Valid ("staging") | Whitespace ("   ") | Empty ("")
-$Cmdlet: Fixed to $PSCmdlet of the synthetic wrapper in all tests.
-         No partitioning needed.
-$Reason: Absent | Present
+Param `$Name`:
+    Any string (e.g. "Environment", "   ", "") Appears only in error messages;
+    does not affect control flow. No partitioning needed.
+
+Param `$Value`:
+    Valid ("staging") | Whitespace ("   ") | Empty ("")
+
+Param `$Cmdlet`:
+    Fixed to $PSCmdlet of the synthetic wrapper in all tests. No partitioning
+    needed.
+
+Param `$Reason`:
+    Absent | Present
 
 ################################################################################
 

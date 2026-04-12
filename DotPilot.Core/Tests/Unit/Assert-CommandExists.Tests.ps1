@@ -1,11 +1,16 @@
 <#
 Input space
 -----------
-$Name  : Any string representing a CLI tool name. Drives the branch:
-         command found -> return; not found -> throw.
-$Cmdlet: Fixed to $PSCmdlet of the synthetic wrapper in all tests.
-         No partitioning needed.
-$Reason: Absent | Present
+Param `$Name`:
+    Any string representing a CLI tool name. Drives the branch:
+    command found -> return; not found -> throw.
+
+Param `$Cmdlet`:
+    Fixed to $PSCmdlet of the synthetic wrapper in all tests. No partitioning
+    needed.
+
+Param `$Reason`:
+    Absent | Present
 
 ################################################################################
 

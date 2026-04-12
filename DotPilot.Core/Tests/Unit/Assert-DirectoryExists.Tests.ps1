@@ -1,11 +1,16 @@
 <#
 Input space
 -----------
-$Path  : Any string representing a directory path. Drives the branch:
-         directory exists -> return; not found -> throw.
-$Cmdlet: Fixed to $PSCmdlet of the synthetic wrapper in all tests.
-         No partitioning needed.
-$Reason: Absent | Present
+Param `$Path`:
+    Any string representing a directory path. Drives the branch:
+    directory exists -> return; not found -> throw.
+
+Param `$Cmdlet`:
+    Fixed to $PSCmdlet of the synthetic wrapper in all tests. No partitioning
+    needed.
+
+Param `$Reason`:
+    Absent | Present
 
 ################################################################################
 
