@@ -7,6 +7,9 @@ function Write-LogFile {
         [Parameter(Position = 1)]
         [string]$Message,
 
+        # Source is optional for log file entries, but if provided, it must not
+        # be null or whitespace. Cannot use [ValidateNotNullOrWhiteSpace()] here
+        # because Source is not mandatory.
         [string]$Source,
 
         [Parameter(Mandatory)]
