@@ -13,10 +13,9 @@ Param `$Message`:
 
 Param `$Source`:
     Any string. When non-whitespace, adds a "Source" key to the ordered
-    hashtable before serialisation. When absent or whitespace, the key is
-    omitted entirely. $null is coerced to "" by PowerShell's [string] binding
-    and fails ValidateNotNullOrWhiteSpace, so it is not a valid domain value;
-    no duplicate partition needed.
+    hashtable before serialisation. When absent, $null, or whitespace, the key
+    is omitted entirely. $null and whitespace are tested separately as distinct
+    representatives of the "effectively absent" partition.
 
 Param `$Path`:
     Mandatory string, ValidateNotNullOrWhiteSpace. Passed directly to
@@ -39,43 +38,47 @@ Note: All four partitions follow the same code path (.ToString() on the
 enum); testing all four validates the full label map.
 
 2. For `$Source`
-Partition   Representative   Expected
----------   --------------   --------
-Absent      (omit)           JSON has no "Source" key
-Present     "Verb-Noun"      JSON contains "Source":"Verb-Noun"
+Partition    Representative   Expected
+---------    --------------   --------
+Valid        "Verb-Noun"      JSON contains "Source":"Verb-Noun"
+Null         $null            JSON has no "Source" key
+Empty        ""               Coerced to "" by PowerShell's [string] binding;
+                              same partition as Null, skip
+Whitespace   "   "            JSON has no "Source" key
+
+Note: Null and Whitespace are separate representatives of the "effectively
+absent" partition and are each tested once.
 
 ################################################################################
 
 Decision table
 --------------
-$Level   $Source   Expected
-------   -------   --------
-Info     Absent    Compact JSON: Timestamp, Level "Info", Message, no Source
-Info     Present   Compact JSON: Timestamp, Level "Info", Message, Source
-Warn     Absent    Compact JSON: Level "Warn"
-Error    Absent    Compact JSON: Level "Error"
-Debug    Absent    Compact JSON: Level "Debug"
+$Level   $Source      Expected
+------   -------      --------
+Info     Valid        Compact JSON: Timestamp, Level "Info", Message, Source
+Info     Null         Compact JSON: Timestamp, Level "Info", Message, no Source
+Info     Whitespace   Compact JSON: no Source key
+Warn     Non-Valid    Compact JSON: Level "Warn"
+Error    Non-Valid    Compact JSON: Level "Error"
+Debug    Non-Valid    Compact JSON: Level "Debug"
 
 Note:
-1.  The Timestamp field format is structural and identical across all
-    rows; it is verified once on a representative combination rather
-    than repeated on every row ('Info + Absent').
+1.  The Timestamp field format is structural and identical across all rows; it
+    is verified once on a representative combination rather than repeated on
+    every row ('Info + Valid').
 
-2.  The $Path value passed to Add-Content does not vary across $Level or
-    $Source combinations; it is asserted once on a representative
-    combination ('Info + Absent').
+2.  The $Path value passed to Add-Content does not vary across $Level or $Source
+    combinations; it is asserted once on a representative combination
+    ('Info + Valid').
 
-3.  The Message field appears in the output regardless of $Level or
-    $Source. It is verified once on a representative combination
-    ('Info + Absent').
+3.  The Message field appears in the output regardless of $Level or $Source. It
+    is verified once on a representative combination ('Info + Valid').
 
-4.  The absence of a Source key is asserted once on a representative
-    combination ('Info + Absent'); presence is asserted on
-    ('Info + Present').
+4.  The absence of a Source key is asserted once on a representative combination
+    ('Info + Null'); presence is asserted on ('Info + Valid').
 
-5.  The JSON is compact (no whitespace between tokens). This structural
-    property is verified once on a representative combination
-    ('Info + Absent').
+5.  The JSON is compact (no whitespace between tokens). This structural property
+    is verified once on a representative combination ('Info + Valid').
 
 ################################################################################
 
@@ -83,34 +86,39 @@ Test map
 --------
 ID   Context     Input                Technique   Assert
 --   -------     -----                ---------   ------
-01   INF + Abs   Info,                DT          Add-Content called once
-                 "Server started",
-                 path
-02   INF + Abs   ^                    ^           Path arg = test path
-03   INF + Abs   ^                    ^           Value ~ timestamp pattern
-04   INF + Abs   ^                    ^           Contains "Level":"Info"
-05   INF + Abs   ^                    ^           Contains "Message":"..."
-06   INF + Abs   ^                    ^           Value has no "Source" key
-07   INF + Abs   ^                    ^           Value is compact JSON
-08   INF + Pre   Info,                DT          Contains "Source":"Verb-Noun"
+01   INF + Val   Info,                DT          Add-Content called once
                  "Server started",
                  "Verb-Noun", path
-09   WRN + Abs   Warn, "Disk low",    DT          Contains "Level":"Warn"
+02   INF + Val   ^                    ^           Path arg = test path
+03   INF + Val   ^                    ^           Value ~ timestamp pattern
+04   INF + Val   ^                    ^           Contains "Level":"Info"
+05   INF + Val   ^                    ^           Contains "Message":"..."
+06   INF + Val   ^                    ^           Contains "Source":"Verb-Noun"
+07   INF + Val   ^                    ^           Value is compact JSON
+08   INF + Nul   Info,                DT          Value has no "Source" key
+                 "Server started",
+                 $null, path
+09   INF + WS    Info,                DT          Value has no "Source" key
+                 "Server started",
+                 "   ", path
+10   WRN + Non   Warn, "Disk low",    DT          Contains "Level":"Warn"
                  path
-10   ERR + Abs   Error, "Disk low",   DT          Contains "Level":"Error"
+11   ERR + Non   Error, "Disk low",   DT          Contains "Level":"Error"
                  path
-11   DBG + Abs   Debug, "Disk low",   DT          Contains "Level":"Debug"
+12   DBG + Non   Debug, "Disk low",   DT          Contains "Level":"Debug"
                  path
 
 List of Abbreviations:
-'^'  - Same input/technique as previous row
-DT   - Decision Table
-INF  - Info
-WRN  - Warn
-ERR  - Error
-DBG  - Debug
-Abs  - Absent
-Pre  - Present
+'^' - Same input/technique as previous row
+DT  - Decision Table
+INF - Info
+WRN - Warn
+ERR - Error
+DBG - Debug
+Nul - Null
+Val - Valid
+WS  - Whitespace
+Non - Non-Valid
 #>
 Describe "Write-LogJson" -Tag @(
     "Write-LogJson"
@@ -126,14 +134,16 @@ Describe "Write-LogJson" -Tag @(
         Mock Add-Content {}
     }
 
-    Context "When Level is Info and Source is absent" {
+    Context "When Level is Info and Source is valid" {
         BeforeAll {
             $script:message = "Server started"
+            $script:source = "Verb-Noun"
             $script:path = "C:\Logs\log-file.log"
 
             Write-LogJson `
                 -Level ([LogLevel]::Info) `
                 -Message $script:message `
+                -Source $script:source `
                 -Path $script:path
         }
 
@@ -171,9 +181,11 @@ Describe "Write-LogJson" -Tag @(
         }
 
         # 06
-        It "Writes an entry that contains no Source key" {
+        It "Writes an entry that contains the Source value" {
+            $format = "*`"Source`":*`"$script:source`"*"
+
             Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -notlike '*"Source":*' }
+                -ParameterFilter { $Value -like $format }
         }
 
         # 07
@@ -183,27 +195,45 @@ Describe "Write-LogJson" -Tag @(
         }
     }
 
-    Context "When Level is Info and Source is present" {
+    Context "When Level is Info and Source is null" {
         BeforeAll {
-            $script:source = "Verb-Noun"
+            $script:message = "Server started"
+            $script:path = "C:\Logs\log-file.log"
 
             Write-LogJson `
                 -Level ([LogLevel]::Info) `
-                -Message "Server started" `
-                -Source $script:source `
-                -Path "C:\Logs\log-file.log"
+                -Message $script:message `
+                -Source $null `
+                -Path $script:path
         }
 
         # 08
-        It "Writes an entry that contains the Source value" {
+        It "Writes an entry that contains no Source key" {
             Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter {
-                    $Value -like "*`"Source`":*`"$script:source`"*"
-                }
+                -ParameterFilter { $Value -notlike '*"Source":*' }
         }
     }
 
-    Context "When Level is Warn and Source is absent" {
+    Context "When Level is Info and Source is whitespace" {
+        BeforeAll {
+            $script:message = "Server started"
+            $script:path = "C:\Logs\log-file.log"
+
+            Write-LogJson `
+                -Level ([LogLevel]::Info) `
+                -Message $script:message `
+                -Source "   " `
+                -Path $script:path
+        }
+
+        # 09
+        It "Writes an entry that contains no Source key" {
+            Should -Invoke Add-Content -Times 1 -Scope Context `
+                -ParameterFilter { $Value -notlike '*"Source":*' }
+        }
+    }
+
+    Context "When Level is Warn" {
         BeforeAll {
             Write-LogJson `
                 -Level ([LogLevel]::Warn) `
@@ -211,14 +241,14 @@ Describe "Write-LogJson" -Tag @(
                 -Path "C:\Logs\log-file.log"
         }
 
-        # 09
+        # 10
         It "Writes an entry with Level 'Warn'" {
             Should -Invoke Add-Content -Times 1 -Scope Context `
                 -ParameterFilter { $Value -like '*"Level":"Warn"*' }
         }
     }
 
-    Context "When Level is Error and Source is absent" {
+    Context "When Level is Error" {
         BeforeAll {
             Write-LogJson `
                 -Level ([LogLevel]::Error) `
@@ -226,14 +256,14 @@ Describe "Write-LogJson" -Tag @(
                 -Path "C:\Logs\log-file.log"
         }
 
-        # 10
+        # 11
         It "Writes an entry with Level 'Error'" {
             Should -Invoke Add-Content -Times 1 -Scope Context `
                 -ParameterFilter { $Value -like '*"Level":"Error"*' }
         }
     }
 
-    Context "When Level is Debug and Source is absent" {
+    Context "When Level is Debug" {
         BeforeAll {
             Write-LogJson `
                 -Level ([LogLevel]::Debug) `
@@ -241,7 +271,7 @@ Describe "Write-LogJson" -Tag @(
                 -Path "C:\Logs\log-file.log"
         }
 
-        # 11
+        # 12
         It "Writes an entry with Level 'Debug'" {
             Should -Invoke Add-Content -Times 1 -Scope Context `
                 -ParameterFilter { $Value -like '*"Level":"Debug"*' }
