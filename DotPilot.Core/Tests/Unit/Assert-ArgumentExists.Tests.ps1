@@ -132,6 +132,7 @@ Describe "Assert-ArgumentExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context $script:emptyContext
         }
@@ -181,6 +182,7 @@ Describe "Assert-ArgumentExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context "$script:emptyContext, with Reason" `
         }
@@ -204,6 +206,7 @@ Describe "Assert-ArgumentExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context $script:whiteSpaceContext
         }
@@ -253,6 +256,7 @@ Describe "Assert-ArgumentExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context "$script:whiteSpaceContext, with Reason"
         }

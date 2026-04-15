@@ -118,6 +118,7 @@ Describe "Assert-CommandExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context $script:notFoundContext
         }
@@ -161,6 +162,7 @@ Describe "Assert-CommandExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context "$script:notFoundContext, with Reason"
         }

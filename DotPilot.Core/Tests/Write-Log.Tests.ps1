@@ -215,6 +215,7 @@ Describe "Write-Log" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Write-Log" `
                 -CaughtError $script:caughtError `
                 -Context "FileName='<empty>' with file logging enabled"
         }
@@ -318,6 +319,7 @@ Describe "Write-Log" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Write-Log" `
                 -CaughtError $script:caughtError `
                 -Context "FileFormat='None' with file logging enabled"
         }
@@ -345,6 +347,7 @@ Describe "Write-Log" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Write-Log" `
                 -CaughtError $script:caughtError `
                 -Context "FileFormat='???' with file logging enabled"
         }

@@ -125,6 +125,7 @@ Describe "Assert-FileExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context $script:missingFileContext
         }
@@ -181,6 +182,7 @@ Describe "Assert-FileExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context "$script:missingFileContext, with Reason"
         }

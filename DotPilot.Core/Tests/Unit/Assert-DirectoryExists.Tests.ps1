@@ -127,6 +127,7 @@ Describe "Assert-DirectoryExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context $script:missingDirContext
         }
@@ -183,6 +184,7 @@ Describe "Assert-DirectoryExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context "$script:missingDirContext, with Reason"
         }

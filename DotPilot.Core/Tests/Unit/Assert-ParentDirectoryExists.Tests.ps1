@@ -150,6 +150,7 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context $script:missingParentDirContext
         }
@@ -209,6 +210,7 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
             }
 
             Assert-GuardThrew `
+                -Caller "Invoke-Caller" `
                 -CaughtError $script:caughtError `
                 -Context "$script:missingParentDirContext, with Reason"
         }

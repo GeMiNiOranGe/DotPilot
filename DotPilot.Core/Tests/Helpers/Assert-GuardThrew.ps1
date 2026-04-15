@@ -1,5 +1,6 @@
 function Assert-GuardThrew {
     param (
+        [string]$Caller,
         [System.Management.Automation.ErrorRecord]$CaughtError,
         [string]$Context
     )
@@ -9,7 +10,7 @@ function Assert-GuardThrew {
     }
 
     throw @(
-        "Guard: Invoke-Caller did not throw for $Context - all assertions in "
+        "Guard: $Caller did not throw for $Context - all assertions in "
         "this Context are invalid."
     ) -join ''
 }
