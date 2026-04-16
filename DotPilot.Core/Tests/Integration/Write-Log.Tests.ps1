@@ -159,17 +159,17 @@ Describe "Write-Log" -Tag @(
     "Integration"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\Src\Classes\ArgumentBlankException.ps1"
-        . "$PSScriptRoot\..\Src\Enums\LogFormat.ps1"
-        . "$PSScriptRoot\..\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\Src\Config\Global.ps1"
-        . "$PSScriptRoot\..\Src\Private\Write-LogConsole.ps1"
-        . "$PSScriptRoot\..\Src\Private\Write-LogFile.ps1"
-        . "$PSScriptRoot\..\Src\Private\Write-LogJson.ps1"
-        . "$PSScriptRoot\..\Src\Public\Assert-ArgumentExists.ps1"
-        . "$PSScriptRoot\..\Src\Public\Assert-DirectoryExists.ps1"
-        . "$PSScriptRoot\..\Src\Public\Write-Log.ps1"
-        . "$PSScriptRoot\Helpers\Assert-GuardThrew.ps1"
+        . "$PSScriptRoot\..\..\Src\Classes\ArgumentBlankException.ps1"
+        . "$PSScriptRoot\..\..\Src\Enums\LogFormat.ps1"
+        . "$PSScriptRoot\..\..\Src\Enums\LogLevel.ps1"
+        . "$PSScriptRoot\..\..\Src\Config\Global.ps1"
+        . "$PSScriptRoot\..\..\Src\Private\Write-LogConsole.ps1"
+        . "$PSScriptRoot\..\..\Src\Private\Write-LogFile.ps1"
+        . "$PSScriptRoot\..\..\Src\Private\Write-LogJson.ps1"
+        . "$PSScriptRoot\..\..\Src\Public\Assert-ArgumentExists.ps1"
+        . "$PSScriptRoot\..\..\Src\Public\Assert-DirectoryExists.ps1"
+        . "$PSScriptRoot\..\..\Src\Public\Write-Log.ps1"
+        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
 
         # Suppress console output across all contexts.
         # Write-Host call count is still verifiable via Should -Invoke.
