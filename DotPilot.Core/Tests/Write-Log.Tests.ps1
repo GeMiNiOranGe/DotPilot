@@ -121,19 +121,21 @@ ID   Context   Input                 Technique   Assert
      FN Pre,   started",
      OD Abs,   FL=$true, FN="run",
      Log       OD="", Fmt=Log
-05   FL On,    Info, "msg",          DT          run.log exists under OutputDir
+05   ^         ^                     ^           no .jsonl file created
+06   FL On,    Info, "msg",          DT          run.log exists under OutputDir
      FN Pre,   FL=$true, FN="run",
      OD Pre,   OD=$TestDrive,
      Log       Fmt=Log
-06   FL On,    Info, "msg",          DT          run.jsonl exists
+07   FL On,    Info, "msg",          DT          run.jsonl exists
      FN Pre,   FL=$true, FN="run",
      OD Abs,   OD="", Fmt=Json
      Json
-07   FL On,    Info, "msg",          DT          ErrorId = LogFormatNotSet
+08   ^         ^                     ^           no .log file created
+09   FL On,    Info, "msg",          DT          ErrorId = LogFormatNotSet
      FN Pre,   FL=$true, FN="run",
      OD Abs,   OD="", Fmt=None
      None
-08   FL On,    Info, "msg",          DT          ErrorId = InvalidLogFormat
+10   FL On,    Info, "msg",          DT          ErrorId = InvalidLogFormat
      FN Pre,   FL=$true, FN="run",
      OD Abs,   OD="", Fmt="???"
      Bad
@@ -253,6 +255,12 @@ Describe "Write-Log" -Tag @(
         It "Creates the .log file" {
             $script:logFile | Should -Exist
         }
+
+        # 05
+        It "Does not create a .jsonl file" {
+            $jsonFile = Join-Path $TestDrive "$script:fileName.jsonl"
+            $jsonFile | Should -Not -Exist
+        }
     }
 
     Context "When file logging is on, Log format, OutputDirectory present" {
@@ -270,7 +278,7 @@ Describe "Write-Log" -Tag @(
                 -OutputDirectory $TestDrive
         }
 
-        # 05
+        # 06
         It "Creates the .log file under the specified OutputDirectory" {
             $script:logFile | Should -Exist
         }
@@ -297,9 +305,15 @@ Describe "Write-Log" -Tag @(
             Pop-Location
         }
 
-        # 06
+        # 07
         It "Creates the .jsonl file" {
             $script:jsonFile | Should -Exist
+        }
+
+        # 08
+        It "Does not create a .log file" {
+            $logFile = Join-Path $TestDrive "$script:fileName.log"
+            $logFile | Should -Not -Exist
         }
     }
 
@@ -324,7 +338,7 @@ Describe "Write-Log" -Tag @(
                 -Context "FileFormat='None' with file logging enabled"
         }
 
-        # 07
+        # 09
         It "Throws with ErrorId 'LogFormatNotSet'" {
             $script:caughtError.FullyQualifiedErrorId | `
                 Should -BeLike "*LogFormatNotSet*"
@@ -352,7 +366,7 @@ Describe "Write-Log" -Tag @(
                 -Context "FileFormat='???' with file logging enabled"
         }
 
-        # 08
+        # 10
         It "Throws with ErrorId 'InvalidLogFormat'" {
             $script:caughtError.FullyQualifiedErrorId | `
                 Should -BeLike "*InvalidLogFormat*"
