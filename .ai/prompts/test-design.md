@@ -21,6 +21,9 @@
 
 Based on the source code above, follow these steps **in exact order**:
 
+### 0. Test Type
+State whether this is a **Unit test** or **Integration test**, then follow the rules in Section 8 that correspond to the chosen type.
+
 ### 1. Input Space Analysis
 List all parameters, data types, and constraints. For parameters that do not affect behavior (e.g., appearing only in log/error messages), add a brief note - no need to partition them.
 
@@ -55,13 +58,18 @@ Columns: ID, Context, Input, Technique, Assert
 Write the complete `Describe/Context/It` blocks following these rules:
 
 **Wrapper and dot-sourcing:**
-- If the function under test calls external commands or functions that need to be isolated, define a mock or stub in `BeforeAll` at the appropriate level.
 - Dot-source any supporting type files and the function file in `BeforeAll` at the `Describe` level.
+- **Unit:** Also dot-source only the direct dependencies needed to resolve types; mock everything else.
+- **Integration:** Dot-source all real dependencies (helpers, assert functions, private functions). Do not mock them.
 
 **Mocking:**
-- Use `Mock` for commands whose side effects must be suppressed or whose return values must be controlled (e.g., `Write-Host`, `Set-Content`, `Write-Log`).
-- Place `Mock` inside the `Context` that needs it, or in `BeforeAll` at the `Describe` level if it applies globally.
-- Use `Should -Invoke` / `Should -Not -Invoke` to assert call counts and parameter values when the behavior under test is expressed through side-effecting calls rather than return values.
+- **Unit:** Mock all external commands and functions the SUT calls. Use `Should -Invoke` / `Should -Not -Invoke` to assert wiring.
+- **Integration:** Mock only commands with uncontrollable side effects that cannot be observed or cleaned up in tests (e.g., `Write-Host` to suppress console output). Verify real outcomes instead:
+  - File existence and content via `Get-Content` / `Should -Exist`
+  - Return values via `$script:result`
+  - Thrown errors via `$script:caughtError`
+- Use `Push-Location $TestDrive` / `Pop-Location` in `BeforeAll` / `AfterAll` when the SUT writes to the current directory.
+- Use `$TestDrive` for any output path that must be isolated per Context.
 
 **Mapping Decision Table rows to Contexts:**
 - **1 Decision Table row = 1 Context** - do not merge multiple combinations into the same Context even if behavior is identical
@@ -125,6 +133,8 @@ Place the entire analysis (input space, EP, decision table, test map) inside a `
 - A `###...###` separator between sections
 
 When writing the code in Section 8, embed the comment block from Section 9 directly before the `Describe "..." {` line, at the top of the file. Do not write the analysis separately and append it afterward.
+
+Tag must include either "Unit" or "Integration" matching Section 0.
 
 ### 10. Output
 Return the test content styled consistently with the original sample test file. Style rules to preserve:
