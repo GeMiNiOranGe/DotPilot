@@ -16,7 +16,7 @@ info Template created successfully at: .\Default.template.json
 Creates the default template in the current directory.
 
 .EXAMPLE
-New-LayeredDotnetTemplate -OutputPath '.\MyProject.template.json' -Architecture Clean -SolutionName 'MyProject'
+New-LayeredDotnetTemplate -OutputPath '.\MyProject.template.json' -Preset Clean -SolutionName 'MyProject'
 
 Output
 ```
@@ -28,8 +28,8 @@ Creates a template with the Clean architecture in the current directory, with th
 .PARAMETER OutputPath
 Specifies the output path for the generated JSON template file. If not provided, the file will be created in the current directory with the name "layers.template.json".
 
-.PARAMETER Architecture
-Specifies the architecture of the layered project. Currently, the supported value is "Clean", "WinFormsThreeLayers".
+.PARAMETER Preset
+Specifies the preset of the layered project.
 
 .PARAMETER SolutionName
 Specifies the name of the solution for the layered project. The default value is "Example".
@@ -77,7 +77,7 @@ function New-LayeredDotnetTemplate {
         [string]$OutputPath,
 
         [ValidateSet("Clean", "WinFormsThreeLayers")]
-        [string]$Architecture,
+        [string]$Preset,
 
         [ValidateNotNullOrWhiteSpace()]
         [string]$SolutionName = "Example"
@@ -86,7 +86,7 @@ function New-LayeredDotnetTemplate {
 
     Assert-ParentDirectoryExists -Path $targetOutputPath -Cmdlet $PSCmdlet
 
-    $template = switch ($Architecture) {
+    $rawTemplate = switch ($Preset) {
         "Clean" {
             "CleanArchitecture.template.json"
             break
@@ -100,14 +100,14 @@ function New-LayeredDotnetTemplate {
             break
         }
     }
-    $templateContent = Get-Content -Raw `
-        -Path "$PSScriptRoot\..\Template\Dotnet\$template"
-    $templateContent = $templateContent -replace "{{solutionName}}", $SolutionName
+    $templateDir = "$PSScriptRoot\..\Template\Dotnet"
+    $template = Get-Content -Path "$templateDir\$rawTemplate" -Raw
+    $template = $template -replace "{{solutionName}}", $SolutionName
 
     try {
         $setContentSplat = @{
             Path        = $targetOutputPath
-            Value       = $templateContent
+            Value       = $template
             NoNewline   = $true
             ErrorAction = "Stop"
         }

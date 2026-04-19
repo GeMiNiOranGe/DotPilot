@@ -68,9 +68,9 @@ Describe "New-LayeredDotnetTemplate" -Tag "Dotnet" {
     }
 
     Context "When replacing the '{{solutionName}}' placeholder" {
-        It "Uses 'Example' (<TemplateArguments.Architecture>)" -TestCases @(
-            @{ TemplateArguments = @{ Architecture = "Clean" } }
-            @{ TemplateArguments = @{ Architecture = "WinFormsThreeLayers" } }
+        It "Uses 'Example' (<TemplateArguments.Preset>)" -TestCases @(
+            @{ TemplateArguments = @{ Preset = "Clean" } }
+            @{ TemplateArguments = @{ Preset = "WinFormsThreeLayers" } }
             @{ TemplateArguments = @{} }
         ) {
             param ($TemplateArguments)
