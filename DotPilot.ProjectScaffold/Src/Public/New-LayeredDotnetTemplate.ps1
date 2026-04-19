@@ -76,7 +76,7 @@ function New-LayeredDotnetTemplate {
         [ValidateNotNullOrWhiteSpace()]
         [string]$OutputPath,
 
-        [ValidateSet("Clean", "WinFormsThreeLayers")]
+        [ValidateSet("AspNetWebApiClean", "WinFormsThreeLayers")]
         [string]$Preset,
 
         [ValidateNotNullOrWhiteSpace()]
@@ -87,16 +87,16 @@ function New-LayeredDotnetTemplate {
     Assert-ParentDirectoryExists -Path $targetOutputPath -Cmdlet $PSCmdlet
 
     $rawTemplate = switch ($Preset) {
-        "Clean" {
-            "CleanArchitecture.template.json"
+        "AspNetWebApiClean" {
+            "AspNetWebApiClean.template.json"
             break
         }
         "WinFormsThreeLayers" {
-            "WinFormsThreeLayersArchitecture.template.json"
+            "WinFormsThreeLayers.template.json"
             break
         }
         default {
-            "DefaultArchitecture.template.json"
+            "Default.template.json"
             break
         }
     }

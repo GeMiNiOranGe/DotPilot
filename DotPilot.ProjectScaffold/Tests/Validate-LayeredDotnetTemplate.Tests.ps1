@@ -2,31 +2,31 @@ $script:srcPath = "$PSScriptRoot\..\Src"
 
 Describe "Template Validation" {
     Context "Layered Dotnet Template" -Tag "Dotnet" {
-        It "Should be valid according to LayeredDotnet schema - <ArchitectureTemplate>" -TestCases @(
+        It "Should be valid according to LayeredDotnet schema - <RawTemplate>" -TestCases @(
             @{
-                ArchitectureTemplate = "CleanArchitecture.template.json"
+                RawTemplate = "AspNetWebApiClean.template.json"
             }
             @{
-                ArchitectureTemplate = "WinFormsThreeLayersArchitecture.template.json"
+                RawTemplate = "WinFormsThreeLayers.template.json"
             }
             @{
-                ArchitectureTemplate = "DefaultArchitecture.template.json"
+                RawTemplate = "Default.template.json"
             }
         ) {
-            param($ArchitectureTemplate)
+            param($RawTemplate)
 
-            $architecturePath = "$srcPath\Template\Dotnet\$ArchitectureTemplate"
+            $architecturePath = "$srcPath\Template\Dotnet\$RawTemplate"
 
             $isValidPath = Test-Path -Path $architecturePath
             $isValidPath | Should -BeTrue -Because (
-                "template file '$ArchitectureTemplate' must exist"
+                "template file '$RawTemplate' must exist"
             )
 
             $isValidSchema = Test-Json `
                 -Path $architecturePath `
                 -SchemaFile "$srcPath\Schemas\LayeredDotnet.schema.json"
             $isValidSchema | Should -BeTrue -Because (
-                "template '$ArchitectureTemplate' must conform to LayeredDotnet schema"
+                "template '$RawTemplate' must conform to LayeredDotnet schema"
             )
         }
     }
