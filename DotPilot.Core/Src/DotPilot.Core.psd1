@@ -69,10 +69,11 @@
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @(
+        "Assert-ArgumentExists",
         "Assert-CommandExists",
         "Assert-DirectoryExists",
         "Assert-FileExists",
-        "Assert-ArgumentExists",
+        "Assert-FileNotExists",
         "Assert-ParentDirectoryExists",
         "Write-Log"
     )

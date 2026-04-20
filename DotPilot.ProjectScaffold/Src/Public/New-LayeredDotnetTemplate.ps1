@@ -85,6 +85,7 @@ function New-LayeredDotnetTemplate {
     $targetOutputPath = $OutputPath ? $OutputPath : $DefaultTemplateOutputPath
 
     Assert-ParentDirectoryExists -Path $targetOutputPath -Cmdlet $PSCmdlet
+    Assert-FileNotExists -Path $targetOutputPath -Cmdlet $PSCmdlet
 
     $rawTemplate = switch ($Preset) {
         "AspNetWebApiClean" {
