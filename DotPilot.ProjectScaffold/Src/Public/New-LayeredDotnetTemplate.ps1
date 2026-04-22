@@ -28,6 +28,10 @@ Creates a template with the Clean architecture in the current directory, with th
 .PARAMETER OutputPath
 Specifies the output path for the generated JSON template file. If not provided, the file will be created in the current directory with the name "layers.template.json".
 
+.PARAMETER Force
+If specified, the function will create any missing parent directories in the output path and overwrite the file if it already exists.
+Without this switch, the function terminates with an error if the parent directory does not exist or if the output file is already present.
+
 .PARAMETER Preset
 Specifies the preset of the layered project.
 
@@ -76,6 +80,8 @@ function New-LayeredDotnetTemplate {
         [ValidateNotNullOrWhiteSpace()]
         [string]$OutputPath,
 
+        [switch]$Force,
+
         [ValidateSet("AspNetWebApiClean", "WinFormsThreeLayers")]
         [string]$Preset,
 
@@ -84,8 +90,19 @@ function New-LayeredDotnetTemplate {
     )
     $targetOutputPath = $OutputPath ? $OutputPath : $DefaultTemplateOutputPath
 
-    Assert-ParentDirectoryExists -Path $targetOutputPath -Cmdlet $PSCmdlet
-    Assert-FileNotExists -Path $targetOutputPath -Cmdlet $PSCmdlet
+    if ($Force) {
+        $dirPath = [System.IO.Path]::GetDirectoryName($targetOutputPath)
+        if (
+            -not [string]::IsNullOrEmpty($dirPath) -and
+            -not (Test-Path -Path $dirPath -PathType Container)
+        ) {
+            [void](New-Item -ItemType Directory -Force $dirPath)
+        }
+    }
+    else {
+        Assert-ParentDirectoryExists -Path $targetOutputPath -Cmdlet $PSCmdlet
+        Assert-FileNotExists -Path $targetOutputPath -Cmdlet $PSCmdlet
+    }
 
     $rawTemplate = switch ($Preset) {
         "AspNetWebApiClean" {
