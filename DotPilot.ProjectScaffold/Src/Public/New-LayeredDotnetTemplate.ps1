@@ -90,19 +90,10 @@ function New-LayeredDotnetTemplate {
     )
     $targetOutputPath = $OutputPath ? $OutputPath : $DefaultTemplateOutputPath
 
-    if ($Force) {
-        $dirPath = [System.IO.Path]::GetDirectoryName($targetOutputPath)
-        if (
-            -not [string]::IsNullOrEmpty($dirPath) -and
-            -not (Test-Path -Path $dirPath -PathType Container)
-        ) {
-            [void](New-Item -ItemType Directory -Force $dirPath)
-        }
-    }
-    else {
-        Assert-ParentDirectoryExists -Path $targetOutputPath -Cmdlet $PSCmdlet
-        Assert-FileNotExists -Path $targetOutputPath -Cmdlet $PSCmdlet
-    }
+    Invoke-ForceOutputGuard `
+        -Path $targetOutputPath `
+        -Cmdlet $PSCmdlet `
+        -Force:$Force
 
     $rawTemplate = switch ($Preset) {
         "AspNetWebApiClean" {
