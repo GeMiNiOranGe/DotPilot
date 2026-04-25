@@ -10,7 +10,7 @@ New-LayeredDotnetTemplate
 
 Output
 ```
-info Template created successfully at: .\Default.template.json
+info Template created successfully at '.\Template.json'
 ```
 
 Creates the default template in the current directory.
@@ -20,7 +20,7 @@ New-LayeredDotnetTemplate -OutputPath '.\MyProject.template.json' -Preset Clean 
 
 Output
 ```
-info Template created successfully at: .\MyProject.template.json
+info Template created successfully at '.\MyProject.template.json'
 ```
 
 Creates a template with the Clean architecture in the current directory, with the file name "MyProject.template.json" and the solution name "MyProject".

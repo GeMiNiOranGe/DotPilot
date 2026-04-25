@@ -1,1 +1,1 @@
-$script:DefaultTemplateOutputPath = ".\Default.template.json"
+$script:DefaultTemplateOutputPath = ".\Template.json"
