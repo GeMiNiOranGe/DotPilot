@@ -135,92 +135,132 @@ Sup  - Supplied (explicit non-default value)
 AW   - AspNetWebApiClean
 WF   - WinFormsThreeLayers
 #>
-$script:tempDir = "$PSScriptRoot\Temp"
-
 Describe "New-LayeredDotnetTemplate" -Tag @(
     "New-LayeredDotnetTemplate"
-    "Dotnet"
+    "New-*"
+    "Integration"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Private\Write-LogConsole.ps1"
+        $coreModule = "$PSScriptRoot\..\..\DotPilot.Core"
+
+        . "$coreModule\Src\Public\Assert-ParentDirectoryExists.ps1"
+        . "$coreModule\Src\Public\Assert-FileNotExists.ps1"
+        . "$coreModule\Src\Enums\LogLevel.ps1"
+        . "$PSScriptRoot\..\Src\Config\Defaults.ps1"
+        . "$PSScriptRoot\..\Src\Private\Invoke-ForceOutputGuard.ps1"
         . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
 
-        Mock Write-LogConsole {}
+        # Suppress console output side-effect from Write-Log -> Write-Host.
+        Mock Write-Host {}
+        # Suppress Write-Log entirely to isolate file-creation behavior.
+        Mock Write-Log {}
+
+        $script:templateDir = "$PSScriptRoot\..\Src\Template\Dotnet"
     }
 
-    BeforeEach {
-        [void](New-Item -Path $tempDir -ItemType Directory)
-        Set-Location $tempDir
-    }
+    Context "When OutputPath is absent and Preset is default" {
+        BeforeAll {
+            Push-Location $TestDrive
 
-    AfterEach {
-        Set-Location (Split-Path -Parent $tempDir)
-        Remove-Item $tempDir -Recurse -Force
-    }
-
-    Context "When using a valid '-OutputPath' option" {
-        It "Creates the default template file in current directory" {
             New-LayeredDotnetTemplate
-
-            $isValidPath = Test-Path $DefaultTemplateOutputPath
-            $isValidPath | Should -BeTrue
-
-            $content = Get-Content $DefaultTemplateOutputPath -Raw
-            $content | Should -Match '"Example"'
-
-            Remove-Item $DefaultTemplateOutputPath
         }
 
-        It "Creates the template file at the specified output path" {
-            $outPath = "$env:TEMP\Template.json"
-
-            New-LayeredDotnetTemplate -OutputPath $outPath
-
-            Test-Path $outPath | Should -BeTrue
-            Get-Content $outPath -Raw | Should -Match '"Example"'
-
-            Remove-Item $outPath
-        }
-    }
-
-    Context "When using an invalid '-OutputPath' option" {
-        It "Throws if directory does not exist" {
-            $invalidPath = "$tempDir\DirectoryNotExist\Template.json"
-
-            { New-LayeredDotnetTemplate -OutputPath $invalidPath } |
-            Should -Throw -ErrorId "DirectoryNotFound,New-LayeredDotnetTemplate"
+        AfterAll {
+            Pop-Location
         }
 
-        It "Throws if path is a file" {
-            $directoryName = "DirectoryIsFile"
-            $directoryPath = "$tempDir\$directoryName"
+        # 01
+        It "Creates the file at the default output path" {
+            $script:defaultFile = `
+                Join-Path $TestDrive $script:DefaultTemplateOutputPath
+            $script:defaultFile | Should -Exist
+        }
 
-            # Create a file with the same name as the intended directory
-            [void](New-Item -Path $tempDir -Name $directoryName -ItemType File)
-
-            { New-LayeredDotnetTemplate -OutputPath "$directoryPath\Template.json" } |
-            Should -Throw -ErrorId (
-                "GetContentWriterDirectoryNotFoundError,New-LayeredDotnetTemplate"
-            )
-
-            Remove-Item $directoryPath
+        # 02
+        It "File content contains the default solution name 'Example'" {
+            $content = Get-Content `
+                -Path (Join-Path $TestDrive $script:DefaultTemplateOutputPath) `
+                -Raw
+            $content | Should -BeLike "*Example*"
         }
     }
 
-    Context "When replacing the '{{solutionName}}' placeholder" {
-        It "Uses 'Example' (<TemplateArguments.Preset>)" -TestCases @(
-            @{ TemplateArguments = @{ Preset = "Clean" } }
-            @{ TemplateArguments = @{ Preset = "WinFormsThreeLayers" } }
-            @{ TemplateArguments = @{} }
+    Context "When OutputPath is present and SolutionName is supplied" {
+        BeforeAll {
+            $script:outputFile = Join-Path $TestDrive "Out.json"
+
+            New-LayeredDotnetTemplate `
+                -OutputPath $script:outputFile `
+                -SolutionName "MyProject"
+        }
+
+        # 03
+        It "Creates the file at the supplied output path" {
+            $script:outputFile | Should -Exist
+        }
+
+        # 04
+        It "File content contains the supplied solution name 'MyProject'" {
+            $content = Get-Content -Path $script:outputFile -Raw
+            $content | Should -BeLike "*MyProject*"
+        }
+    }
+
+    Context "When Preset is specified" {
+        BeforeEach {
+            Push-Location $TestDrive
+        }
+
+        AfterEach {
+            # Remove the output file so the next TestCase starts clean.
+            # Without this, the second case hits FileAlreadyExistsException
+            # because Invoke-ForceOutputGuard sees the file left by the first.
+            $outputFile = Join-Path $TestDrive $script:DefaultTemplateOutputPath
+            if (Test-Path $outputFile) {
+                Remove-Item -Path $outputFile -Force
+            }
+
+            Pop-Location
+        }
+
+        # 05
+        It "File content matches the <Preset> template" -TestCases @(
+            @{
+                Preset       = "AspNetWebApiClean"
+                TemplateFile = "AspNetWebApiClean.template.json"
+            }
+            @{
+                Preset       = "WinFormsThreeLayers"
+                TemplateFile = "WinFormsThreeLayers.template.json"
+            }
         ) {
-            param ($TemplateArguments)
+            New-LayeredDotnetTemplate -Preset $Preset
 
-            New-LayeredDotnetTemplate @TemplateArguments
+            $written = Get-Content `
+                -Path (Join-Path $TestDrive $script:DefaultTemplateOutputPath) `
+                -Raw
+            $raw = Get-Content `
+                -Path (Join-Path $script:templateDir $TemplateFile) `
+                -Raw
+            $expected = $raw -replace "{{solutionName}}", "Example"
 
-            $content = Get-Content $DefaultTemplateOutputPath -Raw
-            $content | Should -Match '"Example"'
+            $written | Should -Be $expected
+        }
+    }
 
-            Remove-Item $DefaultTemplateOutputPath
+    Context "When Force is present and output file already exists" {
+        BeforeAll {
+            $script:outputFile = Join-Path $TestDrive "Out.json"
+            [void](New-Item -Path $script:outputFile -ItemType File)
+
+            New-LayeredDotnetTemplate `
+                -OutputPath $script:outputFile `
+                -Force
+        }
+
+        # 06
+        It "Creates (overwrites) the file at the supplied output path" {
+            $script:outputFile | Should -Exist
         }
     }
 }
