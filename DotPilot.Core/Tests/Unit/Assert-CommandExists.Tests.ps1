@@ -54,19 +54,20 @@ Note:
 
 Test map
 --------
-ID   Context    Input                    Technique   Assert
---   -------    -----                    ---------   ------
-01   E + Abs    "pwsh", no reason        DT          No throw
-02   NF + Abs   "__nonexistent_cli__",   DT          Exception type
+ID   Context    Input                    TDT   Assert
+--   -------    -----                    ---   ------
+01   E + Abs    "pwsh", no reason        DT    No throw
+02   NF + Abs   "__nonexistent_cli__",   DT    Exception type
                 no reason
-03   NF + Abs   ^                        ^           Message contains $Name
-04   NF + Abs   ^                        ^           Attribution = Invoke-Caller
-05   NF + Abs   ^                        ^           FullyQualifiedErrorId
-06   NF + Pre   "__nonexistent_cli__",   DT          ErrorDetails contains
-                "Install via ..."                    $Reason
+03   NF + Abs   ^                        ^     Message contains $Name
+04   NF + Abs   ^                        ^     Attribution = Invoke-Caller
+05   NF + Abs   ^                        ^     FullyQualifiedErrorId
+06   NF + Pre   "__nonexistent_cli__",   DT    ErrorDetails contains $Reason
+                "Install via ..."
 
 List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
+TDT - Test Design Technique
 DT   - Decision Table
 E    - Exists
 NF   - Not Found

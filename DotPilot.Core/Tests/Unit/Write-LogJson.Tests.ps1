@@ -84,32 +84,27 @@ Note:
 
 Test map
 --------
-ID   Context     Input                Technique   Assert
---   -------     -----                ---------   ------
-01   INF + Val   Info,                DT          Add-Content called once
-                 "Server started",
+ID   Context     Input                     TDT   Assert
+--   -------     -----                     ---   ------
+01   INF + Val   Info, "Server started",   DT    Add-Content called once
                  "Verb-Noun", path
-02   INF + Val   ^                    ^           Path arg = test path
-03   INF + Val   ^                    ^           Value ~ timestamp pattern
-04   INF + Val   ^                    ^           Contains "Level":"Info"
-05   INF + Val   ^                    ^           Contains "Message":"..."
-06   INF + Val   ^                    ^           Contains "Source":"Verb-Noun"
-07   INF + Val   ^                    ^           Value is compact JSON
-08   INF + Nul   Info,                DT          Value has no "Source" key
-                 "Server started",
+02   INF + Val   ^                         ^     Path arg = test path
+03   INF + Val   ^                         ^     Value ~ timestamp pattern
+04   INF + Val   ^                         ^     Contains "Level":"Info"
+05   INF + Val   ^                         ^     Contains "Message":"..."
+06   INF + Val   ^                         ^     Contains "Source":"Verb-Noun"
+07   INF + Val   ^                         ^     Value is compact JSON
+08   INF + Nul   Info, "Server started",   DT    Value has no "Source" key
                  $null, path
-09   INF + WS    Info,                DT          Value has no "Source" key
-                 "Server started",
+09   INF + WS    Info, "Server started",   DT    Value has no "Source" key
                  "   ", path
-10   WRN + Non   Warn, "Disk low",    DT          Contains "Level":"Warn"
-                 path
-11   ERR + Non   Error, "Disk low",   DT          Contains "Level":"Error"
-                 path
-12   DBG + Non   Debug, "Disk low",   DT          Contains "Level":"Debug"
-                 path
+10   WRN + Non   Warn, "Disk low", path    DT    Contains "Level":"Warn"
+11   ERR + Non   Error, "Disk low", path   DT    Contains "Level":"Error"
+12   DBG + Non   Debug, "Disk low", path   DT    Contains "Level":"Debug"
 
 List of Abbreviations:
 '^' - Same input/technique as previous row
+TDT - Test Design Technique
 DT  - Decision Table
 INF - Info
 WRN - Warn

@@ -81,31 +81,26 @@ Note:
 
 Test map
 --------
-ID   Context     Input                Technique   Assert
---   -------     -----                ---------   ------
-01   INF + Val   Info,                DT          Add-Content called once
-                 "Server started",
+ID   Context     Input                     TDT   Assert
+--   -------     -----                     ---   ------
+01   INF + Val   Info, "Server started",   DT    Add-Content called once
                  "Verb-Noun", path
-02   INF + Val   ^                    ^           Path arg = test path
-03   INF + Val   ^                    ^           Entry ~ timestamp pattern
-04   INF + Val   ^                    ^           Entry contains "INFO"
-05   INF + Val   ^                    ^           Entry contains the message
-06   INF + Val   ^                    ^           Entry contains "Verb-Noun: "
-07   INF + Nul   Info,                DT          Entry has no source prefix
-                 "Server started",
+02   INF + Val   ^                         ^     Path arg = test path
+03   INF + Val   ^                         ^     Entry ~ timestamp pattern
+04   INF + Val   ^                         ^     Entry contains "INFO"
+05   INF + Val   ^                         ^     Entry contains the message
+06   INF + Val   ^                         ^     Entry contains "Verb-Noun: "
+07   INF + Nul   Info, "Server started",   DT    Entry has no source prefix
                  $null, path
-08   INF + WS    Info,                DT          Entry has no source prefix
-                 "Server started",
+08   INF + WS    Info, "Server started",   DT    Entry has no source prefix
                  "   ", path
-09   WRN + Non   Warn, "Disk low",    DT          Entry contains "WARN"
-                 path
-10   ERR + Non   Error, "Disk low",   DT          Entry contains "ERROR"
-                 path
-11   DBG + Non   Debug, "Disk low",   DT          Entry contains "DEBUG"
-                 path
+09   WRN + Non   Warn, "Disk low", path    DT    Entry contains "WARN"
+10   ERR + Non   Error, "Disk low", path   DT    Entry contains "ERROR"
+11   DBG + Non   Debug, "Disk low", path   DT    Entry contains "DEBUG"
 
 List of Abbreviations:
 '^' - Same input/technique as previous row
+TDT - Test Design Technique
 DT  - Decision Table
 INF - Info
 WRN - Warn

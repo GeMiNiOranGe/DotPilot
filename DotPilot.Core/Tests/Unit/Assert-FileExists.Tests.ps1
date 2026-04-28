@@ -55,20 +55,21 @@ Note:
 
 Test map
 --------
-ID   Context    Input                    Technique   Assert
---   -------    -----                    ---------   ------
-01   E + Abs    <temp file>, no reason   DT          No throw
-02   NF + Abs   "missing_file.txt",      DT          Exception type
+ID   Context    Input                    TDT   Assert
+--   -------    -----                    ---   ------
+01   E + Abs    <temp file>, no reason   DT    No throw
+02   NF + Abs   "missing_file.txt",      DT    Exception type
                 no reason
-03   NF + Abs   ^                        ^           Message contains full path
-04   NF + Abs   ^                        ^           Message contains file name
-05   NF + Abs   ^                        ^           Attribution = Invoke-Caller
-06   NF + Abs   ^                        ^           FullyQualifiedErrorId
-07   NF + Pre   "missing_file.txt",      DT          ErrorDetails contains
-                "Ensure that ..."                    $Reason
+03   NF + Abs   ^                        ^     Message contains full path
+04   NF + Abs   ^                        ^     Message contains file name
+05   NF + Abs   ^                        ^     Attribution = Invoke-Caller
+06   NF + Abs   ^                        ^     FullyQualifiedErrorId
+07   NF + Pre   "missing_file.txt",      DT    ErrorDetails contains $Reason
+                "Ensure that ..."
 
 List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
+TDT - Test Design Technique
 DT   - Decision Table
 E    - Exists
 NF   - Not Found

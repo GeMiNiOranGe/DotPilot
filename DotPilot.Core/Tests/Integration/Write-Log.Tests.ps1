@@ -110,38 +110,39 @@ Note:
 
 Test map
 --------
-ID   Context   Input                 Technique   Assert
---   -------   -----                 ---------   ------
-01   FL Off    Info, "msg",          DT          No file created
+ID   Context   Input                 TDT   Assert
+--   -------   -----                 ---   ------
+01   FL Off    Info, "msg",          DT    No file created
                FL=$false
-02   ^         ^                     ^           Write-Host called
-03   FL On,    Info, "msg",          DT          Throws ArgumentBlankException
+02   ^         ^                     ^     Write-Host called
+03   FL On,    Info, "msg",          DT    Throws ArgumentBlankException
      FN Abs    FL=$true, FN=""
-04   FL On,    Info, "Server         DT          run.log exists
+04   FL On,    Info, "Server         DT    run.log exists
      FN Pre,   started",
      OD Abs,   FL=$true, FN="run",
      Log       OD="", Fmt=Log
-05   ^         ^                     ^           no .jsonl file created
-06   FL On,    Info, "msg",          DT          run.log exists under OutputDir
+05   ^         ^                     ^     no .jsonl file created
+06   FL On,    Info, "msg",          DT    run.log exists under OutputDir
      FN Pre,   FL=$true, FN="run",
      OD Pre,   OD=$TestDrive,
      Log       Fmt=Log
-07   FL On,    Info, "msg",          DT          run.jsonl exists
+07   FL On,    Info, "msg",          DT    run.jsonl exists
      FN Pre,   FL=$true, FN="run",
      OD Abs,   OD="", Fmt=Json
      Json
-08   ^         ^                     ^           no .log file created
-09   FL On,    Info, "msg",          DT          ErrorId = LogFormatNotSet
+08   ^         ^                     ^     no .log file created
+09   FL On,    Info, "msg",          DT    ErrorId = LogFormatNotSet
      FN Pre,   FL=$true, FN="run",
      OD Abs,   OD="", Fmt=None
      None
-10   FL On,    Info, "msg",          DT          ErrorId = InvalidLogFormat
+10   FL On,    Info, "msg",          DT    ErrorId = InvalidLogFormat
      FN Pre,   FL=$true, FN="run",
      OD Abs,   OD="", Fmt="???"
      Bad
 
 List of Abbreviations:
 '^'  - Same context/input/technique as previous row
+TDT - Test Design Technique
 DT   - Decision Table
 FL   - FileLogging ($global:DotPilot.Log.FileLogging)
 FN   - FileName

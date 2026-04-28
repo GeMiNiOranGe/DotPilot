@@ -58,25 +58,24 @@ Note:
 
 Test map
 --------
-ID   Context    Input                         Technique   Assert
---   -------    -----                         ---------   ------
-01   NP + Abs   "<ignored>", no reason        DT          No throw
-02   E + Abs    "parent\<ignored>",           DT          No throw
+ID   Context    Input                         TDT   Assert
+--   -------    -----                         ---   ------
+01   NP + Abs   "<ignored>", no reason        DT    No throw
+02   E + Abs    "parent\<ignored>",           DT    No throw
                 no reason
-03   NF + Abs   "missing_parent\<ignored>",   DT          Exception type
+03   NF + Abs   "missing_parent\<ignored>",   DT    Exception type
                 no reason
-04   NF + Abs   ^                             ^           Message contains full
-                                                          path
-05   NF + Abs   ^                             ^           Message contains
-                                                          parent directory name
-06   NF + Abs   ^                             ^           Attribution =
-                                                          Invoke-Caller
-07   NF + Abs   ^                             ^           FullyQualifiedErrorId
-08   NF + Pre   "missing_parent\<ignored>",   DT          ErrorDetails contains
-                "Create the parent..."                    $Reason
+04   NF + Abs   ^                             ^     Message contains full path
+05   NF + Abs   ^                             ^     Message contains parent
+                                                    directory name
+06   NF + Abs   ^                             ^     Attribution = Invoke-Caller
+07   NF + Abs   ^                             ^     FullyQualifiedErrorId
+08   NF + Pre   "missing_parent\<ignored>",   DT    ErrorDetails contains
+                "Create the parent..."              $Reason
 
 List of Abbreviations:
 '^' - Same capture as previous assertion(s)
+TDT - Test Design Technique
 DT  - Decision Table
 NP  - No Parent
 E   - Exists

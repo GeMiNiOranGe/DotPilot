@@ -75,19 +75,20 @@ Note:
 
 Test map
 --------
-ID   Context    Input                  Technique   Assert
---   -------    -----                  ---------   ------
-01   FA + Any   "file.txt", no Force   DT          Assert-ParentDirectoryExists
-                                                   invoked
-02   ^          ^                      ^           Assert-FileNotExists invoked
-03   FP + NP    "file.txt", -Force     DT          No New-Item call
-04   FP + PE    "<existing>\f.txt",    DT          No New-Item call
+ID   Context    Input                  TDT   Assert
+--   -------    -----                  ---   ------
+01   FA + Any   "file.txt", no Force   DT    Assert-ParentDirectoryExists
+                                             invoked
+02   ^          ^                      ^     Assert-FileNotExists invoked
+03   FP + NP    "file.txt", -Force     DT    No New-Item call
+04   FP + PE    "<existing>\f.txt",    DT    No New-Item call
                 -Force
-05   FP + PM    "<missing>\f.txt",     DT          New-Item invoked with
-                -Force                             -ItemType Directory
+05   FP + PM    "<missing>\f.txt",     DT    New-Item invoked with
+                -Force                       -ItemType Directory
 
 List of Abbreviations:
 '^' - Same context/input/technique as previous row
+TDT - Test Design Technique
 DT  - Decision Table
 FA  - Force Absent
 FP  - Force Present

@@ -55,18 +55,19 @@ Note:
 
 Test map
 --------
-ID   Context    Input                    Technique   Assert
---   -------    -----                    ---------   ------
-01   NF + Abs   "file.txt", no reason    DT          No throw
-02   E + Abs    <temp file>, no reason   DT          Exception type
-03   E + Abs    ^                        ^           Message contains file path
-04   E + Abs    ^                        ^           Attribution = Invoke-Caller
-05   E + Abs    ^                        ^           FullyQualifiedErrorId
-06   E + Pre    <temp file>,             DT          ErrorDetails contains
-                "Remove the..."                      $Reason
+ID   Context    Input                    TDT   Assert
+--   -------    -----                    ---   ------
+01   NF + Abs   "file.txt", no reason    DT    No throw
+02   E + Abs    <temp file>, no reason   DT    Exception type
+03   E + Abs    ^                        ^     Message contains file path
+04   E + Abs    ^                        ^     Attribution = Invoke-Caller
+05   E + Abs    ^                        ^     FullyQualifiedErrorId
+06   E + Pre    <temp file>,             DT    ErrorDetails contains $Reason
+                "Remove the..."
 
 List of Abbreviations:
 '^' - Same capture as previous assertion(s)
+TDT - Test Design Technique
 DT  - Decision Table
 NF  - Not Found
 E   - Exists

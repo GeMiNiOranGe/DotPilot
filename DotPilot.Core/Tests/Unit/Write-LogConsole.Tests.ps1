@@ -55,22 +55,23 @@ Note:
 
 Test map
 --------
-ID   Context   Input                    Technique   Assert
---   -------   -----                    ---------   ------
-01   Info      Info, "Server started"   EP          Label BGC = Cyan
-02   Info      ^                        ^           Label FGC = Black
-03   Info      ^                        ^           Label Object = "info"
-04   Info      ^                        ^           Label NoNewline = true
-05   Info      ^                        ^           Message = " Server started"
-06   Warn      Warn, "Disk low"         EP          Label BGC = Yellow
-07   Warn      ^                        ^           Label Object = "warn"
-08   Error     Error, "Disk low"        EP          Label BGC = Red
-09   Error     ^                        ^           Label Object = "error"
-10   Debug     Debug, "Disk low"        EP          Label BGC = White
-11   Debug     ^                        ^           Label Object = "debug"
+ID   Context   Input                    TDT   Assert
+--   -------   -----                    ---   ------
+01   Info      Info, "Server started"   EP    Label BGC = Cyan
+02   Info      ^                        ^     Label FGC = Black
+03   Info      ^                        ^     Label Object = "info"
+04   Info      ^                        ^     Label NoNewline = true
+05   Info      ^                        ^     Message = " Server started"
+06   Warn      Warn, "Disk low"         EP    Label BGC = Yellow
+07   Warn      ^                        ^     Label Object = "warn"
+08   Error     Error, "Disk low"        EP    Label BGC = Red
+09   Error     ^                        ^     Label Object = "error"
+10   Debug     Debug, "Disk low"        EP    Label BGC = White
+11   Debug     ^                        ^     Label Object = "debug"
 
 List of Abbreviations:
 '^' - Same capture as previous assertion(s)
+TDT - Test Design Technique
 EP  - Equivalence Partitioning
 BGC - BackgroundColor
 FGC - ForegroundColor

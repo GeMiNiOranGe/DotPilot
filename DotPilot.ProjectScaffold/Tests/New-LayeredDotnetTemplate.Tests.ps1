@@ -98,42 +98,42 @@ Note:
 
 Test map
 --------
-ID   Context   Input                      Technique   Assert
---   -------   -----                      ---------   ------
-01   OP Abs,   no OutputPath,             DT          File exists at default
-     F Abs,    no Force,                              path
+ID   Context   Input                      TDT   Assert
+--   -------   -----                      ---   ------
+01   OP Abs,   no OutputPath,             DT    File exists at default path
+     F Abs,    no Force,
      P Def,    no Preset,
      SN Def    no SolutionName
-02   ^         ^                          ^           Content contains "Example"
-03   OP Pre,   OutputPath=".\Out.json",   DT          File exists at supplied
-     F Abs,    no Force, no Preset,                   path
+02   ^         ^                          ^     Content contains "Example"
+03   OP Pre,   OutputPath=".\Out.json",   DT    File exists at supplied path
+     F Abs,    no Force, no Preset,
      P Def,    SolutionName="MyProject"
      SN Sup
-04   ^         ^                          ^           Content contains
-                                                      "MyProject"
-05   OP Abs,   no OutputPath,             DT, TC      Content matches template
-     F Abs,    no Force,                              for each Preset value
+04   ^         ^                          ^     Content contains "MyProject"
+05   OP Abs,   no OutputPath,             DT,   Content matches template for
+     F Abs,    no Force,                  TC    each Preset value
      P <P>,    Preset=<AW|WF>,
      SN Def    no SolutionName
-06   OP Pre,   OutputPath=".\Out.json",   DT          File exists
+06   OP Pre,   OutputPath=".\Out.json",   DT    File exists
      F Pre,    -Force, no Preset,
      P Def,    no SolutionName
      SN Def
 
 List of Abbreviations:
-'^'  - Same context/input/technique as previous row
-DT   - Decision Table
-TC   - TestCases (parameterised It block)
-OP   - OutputPath
-F    - Force
-P    - Preset
-SN   - SolutionName
-Abs  - Absent (omitted / default)
-Pre  - Present (explicit value supplied)
-Def  - Default value used
-Sup  - Supplied (explicit non-default value)
-AW   - AspNetWebApiClean
-WF   - WinFormsThreeLayers
+'^' - Same context/input/technique as previous row
+TDT - Test Design Technique
+DT  - Decision Table
+TC  - TestCases (parameterised It block)
+OP  - OutputPath
+F   - Force
+P   - Preset
+SN  - SolutionName
+Abs - Absent (omitted / default)
+Pre - Present (explicit value supplied)
+Def - Default value used
+Sup - Supplied (explicit non-default value)
+AW  - AspNetWebApiClean
+WF  - WinFormsThreeLayers
 #>
 Describe "New-LayeredDotnetTemplate" -Tag @(
     "New-LayeredDotnetTemplate"

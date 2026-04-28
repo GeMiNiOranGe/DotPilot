@@ -55,22 +55,22 @@ Note:
 
 Test map
 --------
-ID   Context    Input                  Technique   Assert
---   -------    -----                  ---------   ------
-01   E + Abs    <temp directory>,      DT          No throw
+ID   Context    Input                  TDT   Assert
+--   -------    -----                  ---   ------
+01   E + Abs    <temp directory>,      DT    No throw
                 no reason
-02   NF + Abs   "missing_directory",   DT          Exception type
+02   NF + Abs   "missing_directory",   DT    Exception type
                 no reason
-03   NF + Abs   ^                      ^           Message contains full path
-04   NF + Abs   ^                      ^           Message contains directory
-                                                   name
-05   NF + Abs   ^                      ^           Attribution = Invoke-Caller
-06   NF + Abs   ^                      ^           FullyQualifiedErrorId
-07   NF + Pre   "missing_directory",   DT          ErrorDetails contains $Reason
+03   NF + Abs   ^                      ^     Message contains full path
+04   NF + Abs   ^                      ^     Message contains directory name
+05   NF + Abs   ^                      ^     Attribution = Invoke-Caller
+06   NF + Abs   ^                      ^     FullyQualifiedErrorId
+07   NF + Pre   "missing_directory",   DT    ErrorDetails contains $Reason
                 "Create..."
 
 List of Abbreviations:
 '^'  - Same capture as previous assertion(s)
+TDT - Test Design Technique
 DT   - Decision Table
 E    - Exists
 NF   - Not Found

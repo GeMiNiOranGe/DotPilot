@@ -47,11 +47,11 @@ Apply if the function has internal state that changes between calls (e.g., count
 Apply if there are special cases not covered by EP, DT, BVA, or STT (e.g., pairwise testing, use-case testing). If not applicable, skip this section and write "(not applicable)".
 
 ### 7. Test Map
-Columns: ID, Context, Input, Technique, Assert
+Columns: ID, Context, Input, TDT, Assert
 - Each `It` block is one row
 - No Guard rows - a Guard is an implementation detail of the test suite, not a test case for the function's behavior
 - Combinations that are not tested have no rows in the test map - the reason is already explained in the Decision Table's Note block.
-- `It` blocks within the same Context that share Input and Technique columns use `^` (ditto)
+- `It` blocks within the same Context that share Input and TDT (Test Design Technique) columns use `^` (ditto)
 - Limit 80 characters per line - abbreviate Assert names if needed
 
 ### 8. Test Structure

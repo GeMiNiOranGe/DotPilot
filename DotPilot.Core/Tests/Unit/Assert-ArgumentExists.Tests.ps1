@@ -60,22 +60,23 @@ Note:
 
 Test map
 --------
-ID   Context    Input                  Technique   Assert
---   -------    -----                  ---------   ------
-01   V + Abs    "staging", no reason   DT          No throw
-02   E + Abs    "", no reason          DT          Exception type
-03   E + Abs    ^                      ^           Message contains $Name
-04   E + Abs    ^                      ^           Attribution = Invoke-Caller
-05   E + Abs    ^                      ^           FullyQualifiedErrorId
-06   E + Pre    "", "Specify"          DT          ErrorDetails contains $Reason
-07   WS + Abs   "   ", no reason       DT          Exception type
-08   WS + Abs   ^                      ^           Message contains $Name
-09   WS + Abs   ^                      ^           Attribution = Invoke-Caller
-10   WS + Abs   ^                      ^           FullyQualifiedErrorId
-11   WS + Pre   "   ", "Specify"       DT          ErrorDetails contains $Reason
+ID   Context    Input                  TDT   Assert
+--   -------    -----                  ---   ------
+01   V + Abs    "staging", no reason   DT    No throw
+02   E + Abs    "", no reason          DT    Exception type
+03   E + Abs    ^                      ^     Message contains $Name
+04   E + Abs    ^                      ^     Attribution = Invoke-Caller
+05   E + Abs    ^                      ^     FullyQualifiedErrorId
+06   E + Pre    "", "Specify"          DT    ErrorDetails contains $Reason
+07   WS + Abs   "   ", no reason       DT    Exception type
+08   WS + Abs   ^                      ^     Message contains $Name
+09   WS + Abs   ^                      ^     Attribution = Invoke-Caller
+10   WS + Abs   ^                      ^     FullyQualifiedErrorId
+11   WS + Pre   "   ", "Specify"       DT    ErrorDetails contains $Reason
 
 List of Abbreviations:
 '^' - Same capture as previous assertion(s)
+TDT - Test Design Technique
 DT  - Decision Table
 V   - Valid
 E   - Empty
