@@ -3,7 +3,7 @@
     "$id": "schema:layered-dotnet",
     "type": "object",
     "properties": {
-        "solutionName": {
+        "workspaceName": {
             "type": "string"
         },
         "layers": {
@@ -45,7 +45,7 @@
         }
     },
     "required": [
-        "solutionName",
+        "workspaceName",
         "layers"
     ]
 }

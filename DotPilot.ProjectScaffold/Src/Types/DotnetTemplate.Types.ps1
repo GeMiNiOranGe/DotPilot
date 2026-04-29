@@ -18,7 +18,7 @@ public class DotnetLayer
 
 public class DotnetTemplate
 {
-    public string SolutionName { get; set; } = "";
+    public string WorkspaceName { get; set; } = "";
 
     public System.Collections.Generic.List<DotnetLayer> Layers
     {

@@ -16,7 +16,7 @@ info Template created successfully at '.\Template.json'
 Creates the default template in the current directory.
 
 .EXAMPLE
-New-LayeredDotnetTemplate -OutputPath '.\MyProject.template.json' -Preset Clean -SolutionName 'MyProject'
+New-LayeredDotnetTemplate -OutputPath '.\MyProject.template.json' -Preset Clean -WorkspaceName 'MyProject'
 
 Output
 ```
@@ -26,7 +26,7 @@ info Template created successfully at '.\MyProject.template.json'
 Creates a template with the Clean architecture in the current directory, with the file name "MyProject.template.json" and the solution name "MyProject".
 
 .PARAMETER OutputPath
-Specifies the output path for the generated JSON template file. If not provided, the file will be created in the current directory with the name "layers.template.json".
+Specifies the output path for the generated JSON template file. If not provided, the file will be created in the current directory with the name "Template.json".
 
 .PARAMETER Force
 If specified, the function will create any missing parent directories in the output path and overwrite the file if it already exists.
@@ -35,7 +35,7 @@ Without this switch, the function terminates with an error if the parent directo
 .PARAMETER Preset
 Specifies the preset of the layered project.
 
-.PARAMETER SolutionName
+.PARAMETER WorkspaceName
 Specifies the name of the solution for the layered project. The default value is "Example".
 
 .INPUTS
@@ -48,7 +48,7 @@ None. This function does not return any output, but it creates a JSON template f
 The generated JSON template file will have the following structure:
 ```json
 {
-    "solutionName": "Example",
+    "workspaceName": "Example",
     "layers": [
         {
             "name": "App",
@@ -86,7 +86,7 @@ function New-LayeredDotnetTemplate {
         [string]$Preset,
 
         [ValidateNotNullOrWhiteSpace()]
-        [string]$SolutionName = "Example"
+        [string]$WorkspaceName = "Example"
     )
     $targetOutputPath = $OutputPath ? $OutputPath : $DefaultTemplateOutputPath
 
@@ -111,7 +111,7 @@ function New-LayeredDotnetTemplate {
     }
     $templateDir = "$PSScriptRoot\..\Template\Dotnet"
     $template = Get-Content -Path "$templateDir\$rawTemplate" -Raw
-    $template = $template -replace "{{solutionName}}", $SolutionName
+    $template = $template -replace "{{workspaceName}}", $WorkspaceName
 
     try {
         $setContentSplat = @{
@@ -126,10 +126,11 @@ function New-LayeredDotnetTemplate {
         $PSCmdlet.ThrowTerminatingError($_)
     }
 
-    $logSplat = @{
+    $writeLogSplat = @{
         Source   = $MyInvocation.MyCommand.Name
-        FileName = $solutionName
+        FileName = $workspaceName
     }
 
-    Write-Log Info "Template created successfully at '$targetOutputPath'" @logSplat
+    Write-Log Info "Template created successfully at '$targetOutputPath'" `
+        @writeLogSplat
 }

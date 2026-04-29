@@ -88,11 +88,11 @@ function Initialize-LayeredDotnetProject {
     $template = [DotnetTemplate]($templateJsonRaw | ConvertFrom-Json)
 
     # Define variables
-    $solutionName = $template.SolutionName
+    $workspaceName = $template.WorkspaceName
     $layers = $template.Layers
     $logSplat = @{
         Source   = $MyInvocation.MyCommand.Name
-        FileName = $solutionName
+        FileName = $workspaceName
     }
 
     # Create `Directory.Build.props` file
@@ -112,12 +112,12 @@ function Initialize-LayeredDotnetProject {
     dotnet new gitignore
 
     # Create the Solution
-    Write-Log Info "Creating solution '$solutionName'" @logSplat
-    dotnet new sln --name $solutionName
+    Write-Log Info "Creating solution '$workspaceName'" @logSplat
+    dotnet new sln --name $workspaceName
 
     # Loop through each layer to create projects and add them to the solution
     foreach ($layer in $layers) {
-        $projectName = "$solutionName.$($layer.Name)"
+        $projectName = "$workspaceName.$($layer.Name)"
         $projectType = $layer.Type
         $extraArguments = $layer.ExtraArguments
 
@@ -129,8 +129,8 @@ function Initialize-LayeredDotnetProject {
         Write-Log Info "Creating '$projectName' project" @logSplat
         dotnet @arguments
 
-        Write-Log Info "Adding '$projectName' project to '$solutionName.sln'" @logSplat
-        dotnet sln "$solutionName.sln" add "$projectName/$projectName.csproj"
+        Write-Log Info "Adding '$projectName' project to '$workspaceName.sln'" @logSplat
+        dotnet sln "$workspaceName.sln" add "$projectName/$projectName.csproj"
 
         # Install NuGet packages if specified
         foreach ($package in $layer.Packages) {
@@ -141,14 +141,14 @@ function Initialize-LayeredDotnetProject {
 
     # Loop through each layer to reference projects
     foreach ($layer in $layers) {
-        $projectName = "$solutionName.$($layer.Name)"
+        $projectName = "$workspaceName.$($layer.Name)"
 
         foreach ($projectReference in $layer.ProjectReferences) {
-            $projRef = "$solutionName.$projectReference"
+            $projRef = "$workspaceName.$projectReference"
             Write-Log Info "Adding reference '$projectName' project to '$projRef'" @logSplat
             dotnet add $projectName reference "$projRef"
         }
     }
 
-    Write-Log Info "Layered .NET project '$solutionName' initialized successfully!" @logSplat
+    Write-Log Info "Layered .NET project '$workspaceName' initialized successfully!" @logSplat
 }

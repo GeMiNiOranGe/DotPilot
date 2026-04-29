@@ -18,9 +18,9 @@ Param `$Preset`:
     Three branches: "AspNetWebApiClean", "WinFormsThreeLayers", default
     (omitted or any other value accepted by the parameter).
 
-Param `$SolutionName`:
+Param `$WorkspaceName`:
     [ValidateNotNullOrWhiteSpace] string. Default "Example". Substituted into
-    the template content via -replace "{{solutionName}}". Does not affect
+    the template content via -replace "{{workspaceName}}". Does not affect
     control flow, only the written content.
 
 ################################################################################
@@ -46,7 +46,7 @@ Absent (default)      (omit)                  Default.template.json loaded
 AspNetWebApiClean     "AspNetWebApiClean"     AspNetWebApiClean.template.json
 WinFormsThreeLayers   "WinFormsThreeLayers"   WinFormsThreeLayers.template.json
 
-4. For `$SolutionName`
+4. For `$WorkspaceName`
 Partition   Representative   Expected
 ---------   --------------   --------
 Default     (omit)           "Example" substituted in output
@@ -56,23 +56,20 @@ Supplied    "MyProject"      "MyProject" substituted in output
 
 Decision table
 --------------
-OutputPath   Force    Preset          SolutionName   Expected
-----------   -----    ------          ------------   --------
-Absent       Absent   Absent          Default        File at default path;
-                                                     content has "Example"
-Present      Absent   Absent          Supplied       File at supplied path;
-                                                     content has supplied name
-Absent       Absent   AspNetWebApi    Default        AspNetWebApiClean template
-                      Clean                          loaded
-Absent       Absent   WinFormsThree   Default        WinFormsThreeLayers
-                      Layers                         template loaded
-Present      Present  Absent          Default        File written even when
-                                                     file already exists
+OutputPath   Force     Preset       WorkspaceName   Expected
+----------   -----     ------       ------------    --------
+Absent       Absent    Absent       Default         File at default path;
+                                                    content has "Example"
+Present      Absent    Absent       Supplied        File at supplied path;
+                                                    content has supplied name
+Absent       Absent    <template>   Default         <template> template loaded
+Present      Present   Absent       Default         File written even when
+                                                    file already exists
 
 Note:
-1.  $SolutionName only affects file content, not control flow. Full substitution
+1.  $WorkspaceName only affects file content, not control flow. Full substitution
     assertions are done on the first two representative combinations. Preset
-    rows assert only which template was written, not re-verify solutionName
+    rows assert only which template was written, not re-verify workspaceName
     substitution ('OutputPath Absent + Force Absent + AspNetWebApiClean' and
     'OutputPath Absent + Force Absent + WinFormsThreeLayers').
 
@@ -98,26 +95,26 @@ Note:
 
 Test map
 --------
-ID   Context   Input                      TDT   Assert
---   -------   -----                      ---   ------
-01   OP Abs,   no OutputPath,             DT    File exists at default path
+ID   Context   Input                       TDT   Assert
+--   -------   -----                       ---   ------
+01   OP Abs,   no OutputPath,              DT    File exists at default path
      F Abs,    no Force,
      P Def,    no Preset,
-     SN Def    no SolutionName
-02   ^         ^                          ^     Content contains "Example"
-03   OP Pre,   OutputPath=".\Out.json",   DT    File exists at supplied path
+     WN Def    no WorkspaceName
+02   ^         ^                           ^     Content contains "Example"
+03   OP Pre,   OutputPath=".\Out.json",    DT    File exists at supplied path
      F Abs,    no Force, no Preset,
-     P Def,    SolutionName="MyProject"
-     SN Sup
-04   ^         ^                          ^     Content contains "MyProject"
-05   OP Abs,   no OutputPath,             DT,   Content matches template for
-     F Abs,    no Force,                  TC    each Preset value
+     P Def,    WorkspaceName="MyProject"
+     WN Sup
+04   ^         ^                           ^     Content contains "MyProject"
+05   OP Abs,   no OutputPath,              DT,   Content matches template for
+     F Abs,    no Force,                   TC    each Preset value
      P <P>,    Preset=<AW|WF>,
-     SN Def    no SolutionName
-06   OP Pre,   OutputPath=".\Out.json",   DT    File exists
+     WN Def    no WorkspaceName
+06   OP Pre,   OutputPath=".\Out.json",    DT    File exists
      F Pre,    -Force, no Preset,
-     P Def,    no SolutionName
-     SN Def
+     P Def,    no WorkspaceName
+     WN Def
 
 List of Abbreviations:
 '^' - Same context/input/technique as previous row
@@ -127,7 +124,7 @@ TC  - TestCases (parameterised It block)
 OP  - OutputPath
 F   - Force
 P   - Preset
-SN  - SolutionName
+WN  - WorkspaceName
 Abs - Absent (omitted / default)
 Pre - Present (explicit value supplied)
 Def - Default value used
@@ -185,13 +182,13 @@ Describe "New-LayeredDotnetTemplate" -Tag @(
         }
     }
 
-    Context "When OutputPath is present and SolutionName is supplied" {
+    Context "When OutputPath is present and WorkspaceName is supplied" {
         BeforeAll {
             $script:outputFile = Join-Path $TestDrive "Out.json"
 
             New-LayeredDotnetTemplate `
                 -OutputPath $script:outputFile `
-                -SolutionName "MyProject"
+                -WorkspaceName "MyProject"
         }
 
         # 03
@@ -242,7 +239,7 @@ Describe "New-LayeredDotnetTemplate" -Tag @(
             $raw = Get-Content `
                 -Path (Join-Path $script:templateDir $TemplateFile) `
                 -Raw
-            $expected = $raw -replace "{{solutionName}}", "Example"
+            $expected = $raw -replace "{{workspaceName}}", "Example"
 
             $written | Should -Be $expected
         }

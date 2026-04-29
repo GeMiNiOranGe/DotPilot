@@ -23,7 +23,7 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
         It "Throws '<ExpectedErrorId>'" -TestCases @(
             @{
                 Template        = @(
-                    '"solutionName": "Example",'
+                    '"workspaceName": "Example",'
                     '"layers": ['
                     '    {'
                     '        "name": "Core",'
@@ -55,7 +55,7 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
             @{
                 Template        = @(
                     '{'
-                    '    "solutionName": "Example"'
+                    '    "workspaceName": "Example"'
                     '}'
                 )
                 ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed"
@@ -63,7 +63,7 @@ Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
             @{
                 Template        = @(
                     '{'
-                    '    "solutionName": "Example",'
+                    '    "workspaceName": "Example",'
                     '    "layers": ['
                     '        {'
                     '            "type": "classlib",'
