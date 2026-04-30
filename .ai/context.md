@@ -14,6 +14,9 @@ Core Idea:
 Tech Stack:
 PowerShell 7, modular PowerShell modules, Pester, platyPS
 
+Platform:
+Windows, Linux, macOS (cross-platform via PowerShell 7)
+
 Architecture:
 - Multi-module structure
 - Standard PowerShell module layout (Public/Private/Classes)
