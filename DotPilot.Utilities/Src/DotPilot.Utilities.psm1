@@ -3,7 +3,10 @@ $loadOrder = @('Public')
 
 $files = $loadOrder | ForEach-Object {
     $getChildItemSplat = @{
-        Path        = Join-Path -Path $PSScriptRoot -ChildPath "$_\*.ps1"
+        Path        = Join-Path `
+            -Path $PSScriptRoot `
+            -ChildPath $_ `
+            -AdditionalChildPath "*.ps1"
         Recurse     = $true
         ErrorAction = 'Stop'
     }

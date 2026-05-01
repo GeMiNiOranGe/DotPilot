@@ -89,9 +89,12 @@ Describe "Assert-ParentDirectoryExists" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\..\Src\Classes\DirectoryNotFoundException.ps1"
-        . "$PSScriptRoot\..\..\Src\Public\Assert-ParentDirectoryExists.ps1"
-        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+        $moduleTests = Join-Path $PSScriptRoot ".."
+
+        . (Join-Path $moduleSrc "Classes" "DirectoryNotFoundException.ps1")
+        . (Join-Path $moduleSrc "Public" "Assert-ParentDirectoryExists.ps1")
+        . (Join-Path $moduleTests "Helpers" "Assert-GuardThrew.ps1")
 
         function Invoke-Caller {
             [CmdletBinding()]

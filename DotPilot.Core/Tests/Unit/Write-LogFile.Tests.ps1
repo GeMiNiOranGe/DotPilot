@@ -117,8 +117,10 @@ Describe "Write-LogFile" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\..\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\..\Src\Private\Write-LogFile.ps1"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+
+        . (Join-Path $moduleSrc "Enums" "LogLevel.ps1")
+        . (Join-Path $moduleSrc "Private" "Write-LogFile.ps1")
 
         # Mock Add-Content to avoid actual file I/O and
         # enable verification of parameters.
@@ -129,7 +131,7 @@ Describe "Write-LogFile" -Tag @(
         BeforeAll {
             $script:message = "Server started"
             $script:source = "Verb-Noun"
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogFile `
                 -Level ([LogLevel]::Info) `
@@ -179,7 +181,7 @@ Describe "Write-LogFile" -Tag @(
     Context "When Level is Info and Source is null" {
         BeforeAll {
             $script:message = "Server started"
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogFile `
                 -Level ([LogLevel]::Info) `
@@ -200,7 +202,7 @@ Describe "Write-LogFile" -Tag @(
     Context "When Level is Info and Source is whitespace" {
         BeforeAll {
             $script:message = "Server started"
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogFile `
                 -Level ([LogLevel]::Info) `
@@ -220,7 +222,7 @@ Describe "Write-LogFile" -Tag @(
 
     Context "When Level is Warn" {
         BeforeAll {
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogFile `
                 -Level ([LogLevel]::Warn) `
@@ -237,7 +239,7 @@ Describe "Write-LogFile" -Tag @(
 
     Context "When Level is Error" {
         BeforeAll {
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogFile `
                 -Level ([LogLevel]::Error) `
@@ -254,7 +256,7 @@ Describe "Write-LogFile" -Tag @(
 
     Context "When Level is Debug" {
         BeforeAll {
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogFile `
                 -Level ([LogLevel]::Debug) `

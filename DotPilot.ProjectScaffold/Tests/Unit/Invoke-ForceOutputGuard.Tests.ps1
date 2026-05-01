@@ -102,11 +102,13 @@ Describe "Invoke-ForceOutputGuard" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        $coreModule = "$PSScriptRoot\..\..\..\DotPilot.Core"
+        $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+            "DotPilot.Core" "Src"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
 
-        . "$coreModule\Src\Public\Assert-ParentDirectoryExists.ps1"
-        . "$coreModule\Src\Public\Assert-FileNotExists.ps1"
-        . "$PSScriptRoot\..\..\Src\Private\Invoke-ForceOutputGuard.ps1"
+        . (Join-Path $coreModuleSrc "Public" "Assert-ParentDirectoryExists.ps1")
+        . (Join-Path $coreModuleSrc "Public" "Assert-FileNotExists.ps1")
+        . (Join-Path $moduleSrc "Private" "Invoke-ForceOutputGuard.ps1")
 
         Mock Assert-ParentDirectoryExists {}
         Mock Assert-FileNotExists {}

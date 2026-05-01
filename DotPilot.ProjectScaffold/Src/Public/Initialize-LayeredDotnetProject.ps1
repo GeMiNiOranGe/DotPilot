@@ -6,7 +6,7 @@ Initializes a layered .NET project based on a JSON template file.
 The `Initialize-LayeredDotnetProject` function creates a new .NET solution and projects based on the template defined in a JSON file. The function supports creating multiple layers (projects) with different project types and optional NuGet package references.
 
 .EXAMPLE
-Initialize-LayeredDotnetProject -TemplateJsonPath '.\MyProject.template.json'
+Initialize-LayeredDotnetProject -TemplateJsonPath 'MyProject.template.json'
 
 Output
 ```powershell
@@ -76,7 +76,11 @@ function Initialize-LayeredDotnetProject {
     try {
         $testJsonSplat = @{
             Json        = $templateJsonRaw
-            SchemaFile  = "$PSScriptRoot\..\Schemas\LayeredDotnet.schema.json"
+            SchemaFile  = Join-Path `
+                $PSScriptRoot `
+                ".." `
+                "Schemas" `
+                "LayeredDotnet.schema.json"
             ErrorAction = 'Stop'
         }
         [void](Test-Json @testJsonSplat)

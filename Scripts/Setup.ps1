@@ -7,9 +7,11 @@ if (-not (Test-Path $profilePath)) {
 
 $profileContent = Get-Content $profilePath
 
+$rootPath = Join-Path $PSScriptRoot ".."
 $modulePaths = @(
-    "$PSScriptRoot\..\DotPilot.ProjectScaffold\Src\DotPilot.ProjectScaffold.psd1",
-    "$PSScriptRoot\..\DotPilot.Utilities\Src\DotPilot.Utilities.psd1"
+    Join-Path $rootPath "DotPilot.ProjectScaffold" "Src" `
+        "DotPilot.ProjectScaffold.psd1",
+    Join-Path $rootPath "DotPilot.Utilities" "Src" "DotPilot.Utilities.psd1"
 )
 
 foreach ($modulePath in $modulePaths) {

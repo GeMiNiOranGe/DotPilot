@@ -10,17 +10,17 @@ New-LayeredDotnetTemplate
 
 Output
 ```
-info Template created successfully at '.\Template.json'
+info Template created successfully at 'Template.json'
 ```
 
 Creates the default template in the current directory.
 
 .EXAMPLE
-New-LayeredDotnetTemplate -OutputPath '.\MyProject.template.json' -Preset Clean -WorkspaceName 'MyProject'
+New-LayeredDotnetTemplate -OutputPath 'MyProject.template.json' -Preset Clean -WorkspaceName 'MyProject'
 
 Output
 ```
-info Template created successfully at '.\MyProject.template.json'
+info Template created successfully at 'MyProject.template.json'
 ```
 
 Creates a template with the Clean architecture in the current directory, with the file name "MyProject.template.json" and the solution name "MyProject".
@@ -95,7 +95,7 @@ function New-LayeredDotnetTemplate {
         -Cmdlet $PSCmdlet `
         -Force:$Force
 
-    $rawTemplate = switch ($Preset) {
+    $templateFile = switch ($Preset) {
         "AspNetWebApiClean" {
             "AspNetWebApiClean.template.json"
             break
@@ -109,9 +109,12 @@ function New-LayeredDotnetTemplate {
             break
         }
     }
-    $templateDir = "$PSScriptRoot\..\Template\Dotnet"
-    $template = Get-Content -Path "$templateDir\$rawTemplate" -Raw
-    $template = $template -replace "{{workspaceName}}", $WorkspaceName
+    $templatePath = Join-Path `
+        -Path $PSScriptRoot `
+        -ChildPath ".." `
+        -AdditionalChildPath "Template", "Dotnet", $templateFile
+    $templateContent = Get-Content -Path $templatePath -Raw
+    $template = $templateContent -replace "{{workspaceName}}", $WorkspaceName
 
     try {
         $setContentSplat = @{

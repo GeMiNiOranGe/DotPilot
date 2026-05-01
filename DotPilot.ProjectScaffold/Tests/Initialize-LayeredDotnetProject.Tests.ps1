@@ -2,11 +2,14 @@ $script:tempDir = "$PSScriptRoot\Temp"
 
 Describe "Initialize-LayeredDotnetProject" -Tag "Dotnet" {
     BeforeAll {
-        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-LogConsole.ps1"
-        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Write-LogFile.ps1"
-        . "$PSScriptRoot\..\..\DotPilot.Core\Src\Public\Assert-CommandExists.ps1"
-        . "$PSScriptRoot\..\Src\Public\Initialize-LayeredDotnetProject.ps1"
-        . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
+        $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." "DotPilot.Core" "Src"
+        $moduleSrc = Join-Path $PSScriptRoot ".." "Src"
+
+        . (Join-Path $coreModuleSrc "Public" "Write-LogConsole.ps1")
+        . (Join-Path $coreModuleSrc "Public" "Write-LogFile.ps1")
+        . (Join-Path $coreModuleSrc "Public" "Assert-CommandExists.ps1")
+        . (Join-Path $moduleSrc "Public" "Initialize-LayeredDotnetProject.ps1")
+        . (Join-Path $moduleSrc "Public" "New-LayeredDotnetTemplate.ps1")
     }
 
     BeforeEach {

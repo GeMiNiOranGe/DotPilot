@@ -82,9 +82,12 @@ Describe "Assert-FileExists" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\..\Src\Classes\FileNotFoundException.ps1"
-        . "$PSScriptRoot\..\..\Src\Public\Assert-FileExists.ps1"
-        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+        $moduleTests = Join-Path $PSScriptRoot ".."
+
+        . (Join-Path $moduleSrc "Classes" "FileNotFoundException.ps1")
+        . (Join-Path $moduleSrc "Public" "Assert-FileExists.ps1")
+        . (Join-Path $moduleTests "Helpers" "Assert-GuardThrew.ps1")
 
         function Invoke-Caller {
             [CmdletBinding()]

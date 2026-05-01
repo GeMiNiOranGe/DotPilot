@@ -3,7 +3,7 @@ Input space
 -----------
 Param `$OutputPath`:
     Any string. Optional. When absent, defaults to $DefaultTemplateOutputPath
-    (".\Template.json"). Drives whether a caller-supplied path or the default
+    ("Template.json"). Drives whether a caller-supplied path or the default
     path is used. Forwarded to Invoke-ForceOutputGuard and then Set-Content.
 
 Param `$Force`:
@@ -30,8 +30,8 @@ Equivalence Partitioning
 1. For `$OutputPath`
 Partition   Representative   Expected
 ---------   --------------   --------
-Absent      (omit)           Default path ".\Template.json" used
-Present     ".\Out.json"     Supplied path used
+Absent      (omit)           Default path "Template.json" used
+Present     "Out.json"       Supplied path used
 
 2. For `$Force`
 Partition   Representative   Expected
@@ -102,7 +102,7 @@ ID   Context   Input                       TDT   Assert
      P Def,    no Preset,
      WN Def    no WorkspaceName
 02   ^         ^                           ^     Content contains "Example"
-03   OP Pre,   OutputPath=".\Out.json",    DT    File exists at supplied path
+03   OP Pre,   OutputPath="Out.json",      DT    File exists at supplied path
      F Abs,    no Force, no Preset,
      P Def,    WorkspaceName="MyProject"
      WN Sup
@@ -111,7 +111,7 @@ ID   Context   Input                       TDT   Assert
      F Abs,    no Force,                   TC    each Preset value
      P <P>,    Preset=<AW|WF>,
      WN Def    no WorkspaceName
-06   OP Pre,   OutputPath=".\Out.json",    DT    File exists
+06   OP Pre,   OutputPath="Out.json",      DT    File exists
      F Pre,    -Force, no Preset,
      P Def,    no WorkspaceName
      WN Def
@@ -138,21 +138,22 @@ Describe "New-LayeredDotnetTemplate" -Tag @(
     "Integration"
 ) {
     BeforeAll {
-        $coreModule = "$PSScriptRoot\..\..\DotPilot.Core"
+        $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." "DotPilot.Core" "Src"
+        $moduleSrc = Join-Path $PSScriptRoot ".." "Src"
 
-        . "$coreModule\Src\Public\Assert-ParentDirectoryExists.ps1"
-        . "$coreModule\Src\Public\Assert-FileNotExists.ps1"
-        . "$coreModule\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\Src\Config\Defaults.ps1"
-        . "$PSScriptRoot\..\Src\Private\Invoke-ForceOutputGuard.ps1"
-        . "$PSScriptRoot\..\Src\Public\New-LayeredDotnetTemplate.ps1"
+        . (Join-Path $coreModuleSrc "Public" "Assert-ParentDirectoryExists.ps1")
+        . (Join-Path $coreModuleSrc "Public" "Assert-FileNotExists.ps1")
+        . (Join-Path $coreModuleSrc "Enums" "LogLevel.ps1")
+        . (Join-Path $moduleSrc "Config" "Defaults.ps1")
+        . (Join-Path $moduleSrc "Private" "Invoke-ForceOutputGuard.ps1")
+        . (Join-Path $moduleSrc "Public" "New-LayeredDotnetTemplate.ps1")
 
         # Suppress console output side-effect from Write-Log -> Write-Host.
         Mock Write-Host {}
         # Suppress Write-Log entirely to isolate file-creation behavior.
         Mock Write-Log {}
 
-        $script:templateDir = "$PSScriptRoot\..\Src\Template\Dotnet"
+        $script:templateDir = Join-Path $moduleSrc "Template" "Dotnet"
     }
 
     Context "When OutputPath is absent and Preset is default" {

@@ -1,4 +1,4 @@
-$docsPath = "$PSScriptRoot\..\Docs"
+$docsPath = Join-Path $PSScriptRoot ".." "Docs"
 
 if (-not (Get-Module -ListAvailable -Name platyPS)) {
     Install-Module -Name platyPS -Scope CurrentUser -RequiredVersion 0.14.2
@@ -6,14 +6,16 @@ if (-not (Get-Module -ListAvailable -Name platyPS)) {
 
 Import-Module platyPS
 
+$rootDir = Join-Path $PSScriptRoot ".."
 $modules = @(
     @{
         Name = "DotPilot.Core"
-        Path = "$PSScriptRoot\..\DotPilot.Core\Src\DotPilot.Core.psd1"
+        Path = Join-Path $rootDir "DotPilot.Core" "Src" "DotPilot.Core.psd1"
     }
     @{
         Name = "DotPilot.ProjectScaffold"
-        Path = "$PSScriptRoot\..\DotPilot.ProjectScaffold\Src\DotPilot.ProjectScaffold.psd1"
+        Path = Join-Path $rootDir "DotPilot.ProjectScaffold" "Src" `
+            "DotPilot.ProjectScaffold.psd1"
     }
 )
 

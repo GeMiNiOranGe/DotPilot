@@ -1,7 +1,8 @@
 # Load DotPilot.Core dependency via relative path
 $corePsd1 = Join-Path `
     -Path $PSScriptRoot `
-    -ChildPath "..\..\DotPilot.Core\Src\DotPilot.Core.psd1"
+    -ChildPath ".." `
+    -AdditionalChildPath "..", "DotPilot.Core", "Src", "DotPilot.Core.psd1"
 Import-Module -Name (Resolve-Path $corePsd1) -Force -Global
 
 # Directory entry order
@@ -9,7 +10,10 @@ $loadOrder = @('Types', 'Config', 'Private', 'Public')
 
 $files = $loadOrder | ForEach-Object {
     $getChildItemSplat = @{
-        Path        = Join-Path -Path $PSScriptRoot -ChildPath "$_\*.ps1"
+        Path        = Join-Path `
+            -Path $PSScriptRoot `
+            -ChildPath $_ `
+            -AdditionalChildPath "*.ps1"
         Recurse     = $true
         ErrorAction = 'Stop'
     }

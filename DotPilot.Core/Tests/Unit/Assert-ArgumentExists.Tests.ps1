@@ -90,9 +90,12 @@ Describe "Assert-ArgumentExists" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\..\Src\Classes\ArgumentBlankException.ps1"
-        . "$PSScriptRoot\..\..\Src\Public\Assert-ArgumentExists.ps1"
-        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+        $moduleTests = Join-Path $PSScriptRoot ".."
+
+        . (Join-Path $moduleSrc "Classes" "ArgumentBlankException.ps1")
+        . (Join-Path $moduleSrc "Public" "Assert-ArgumentExists.ps1")
+        . (Join-Path $moduleTests "Helpers" "Assert-GuardThrew.ps1")
 
         function Invoke-Caller {
             [CmdletBinding()]

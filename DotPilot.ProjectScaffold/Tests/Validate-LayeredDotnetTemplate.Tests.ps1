@@ -1,4 +1,4 @@
-$script:srcPath = "$PSScriptRoot\..\Src"
+$script:srcPath = Join-Path $PSScriptRoot ".." "Src"
 
 Describe "Template Validation" {
     Context "Layered Dotnet Template" -Tag "Dotnet" {
@@ -15,16 +15,19 @@ Describe "Template Validation" {
         ) {
             param($RawTemplate)
 
-            $architecturePath = "$srcPath\Template\Dotnet\$RawTemplate"
+            $architecturePath = Join-Path $srcPath "Template" "Dotnet" `
+                $RawTemplate
 
             $isValidPath = Test-Path -Path $architecturePath
             $isValidPath | Should -BeTrue -Because (
                 "template file '$RawTemplate' must exist"
             )
 
+            $schemaFilePath = Join-Path $srcPath "Schemas" `
+                "LayeredDotnet.schema.json"
             $isValidSchema = Test-Json `
                 -Path $architecturePath `
-                -SchemaFile "$srcPath\Schemas\LayeredDotnet.schema.json"
+                -SchemaFile $schemaFilePath
             $isValidSchema | Should -BeTrue -Because (
                 "template '$RawTemplate' must conform to LayeredDotnet schema"
             )

@@ -82,8 +82,10 @@ Describe "Write-LogConsole" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\..\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\..\Src\Private\Write-LogConsole.ps1"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+
+        . (Join-Path $moduleSrc "Enums" "LogLevel.ps1")
+        . (Join-Path $moduleSrc "Private" "Write-LogConsole.ps1")
 
         Mock Write-Host {}
     }

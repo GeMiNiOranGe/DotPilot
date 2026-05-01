@@ -121,8 +121,10 @@ Describe "Write-LogJson" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\..\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\..\Src\Private\Write-LogJson.ps1"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+
+        . (Join-Path $moduleSrc "Enums" "LogLevel.ps1")
+        . (Join-Path $moduleSrc "Private" "Write-LogJson.ps1")
 
         # Mock Add-Content to avoid actual file I/O and
         # enable verification of parameters.
@@ -133,7 +135,7 @@ Describe "Write-LogJson" -Tag @(
         BeforeAll {
             $script:message = "Server started"
             $script:source = "Verb-Noun"
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogJson `
                 -Level ([LogLevel]::Info) `
@@ -193,7 +195,7 @@ Describe "Write-LogJson" -Tag @(
     Context "When Level is Info and Source is null" {
         BeforeAll {
             $script:message = "Server started"
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogJson `
                 -Level ([LogLevel]::Info) `
@@ -212,7 +214,7 @@ Describe "Write-LogJson" -Tag @(
     Context "When Level is Info and Source is whitespace" {
         BeforeAll {
             $script:message = "Server started"
-            $script:path = "C:\Logs\log-file.log"
+            $script:path = Join-Path "C:" "Logs" "log-file.log"
 
             Write-LogJson `
                 -Level ([LogLevel]::Info) `
@@ -233,7 +235,7 @@ Describe "Write-LogJson" -Tag @(
             Write-LogJson `
                 -Level ([LogLevel]::Warn) `
                 -Message "Disk low" `
-                -Path "C:\Logs\log-file.log"
+                -Path (Join-Path "C:" "Logs" "log-file.log")
         }
 
         # 10
@@ -248,7 +250,7 @@ Describe "Write-LogJson" -Tag @(
             Write-LogJson `
                 -Level ([LogLevel]::Error) `
                 -Message "Disk low" `
-                -Path "C:\Logs\log-file.log"
+                -Path (Join-Path "C:" "Logs" "log-file.log")
         }
 
         # 11
@@ -263,7 +265,7 @@ Describe "Write-LogJson" -Tag @(
             Write-LogJson `
                 -Level ([LogLevel]::Debug) `
                 -Message "Disk low" `
-                -Path "C:\Logs\log-file.log"
+                -Path (Join-Path "C:" "Logs" "log-file.log")
         }
 
         # 12

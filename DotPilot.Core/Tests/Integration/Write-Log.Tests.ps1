@@ -160,17 +160,20 @@ Describe "Write-Log" -Tag @(
     "Integration"
 ) {
     BeforeAll {
-        . "$PSScriptRoot\..\..\Src\Classes\ArgumentBlankException.ps1"
-        . "$PSScriptRoot\..\..\Src\Enums\LogFormat.ps1"
-        . "$PSScriptRoot\..\..\Src\Enums\LogLevel.ps1"
-        . "$PSScriptRoot\..\..\Src\Config\Global.ps1"
-        . "$PSScriptRoot\..\..\Src\Private\Write-LogConsole.ps1"
-        . "$PSScriptRoot\..\..\Src\Private\Write-LogFile.ps1"
-        . "$PSScriptRoot\..\..\Src\Private\Write-LogJson.ps1"
-        . "$PSScriptRoot\..\..\Src\Public\Assert-ArgumentExists.ps1"
-        . "$PSScriptRoot\..\..\Src\Public\Assert-DirectoryExists.ps1"
-        . "$PSScriptRoot\..\..\Src\Public\Write-Log.ps1"
-        . "$PSScriptRoot\..\Helpers\Assert-GuardThrew.ps1"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+        $moduleTests = Join-Path $PSScriptRoot ".."
+
+        . (Join-Path $moduleSrc "Classes" "ArgumentBlankException.ps1")
+        . (Join-Path $moduleSrc "Enums" "LogFormat.ps1")
+        . (Join-Path $moduleSrc "Enums" "LogLevel.ps1")
+        . (Join-Path $moduleSrc "Config" "Global.ps1")
+        . (Join-Path $moduleSrc "Private" "Write-LogConsole.ps1")
+        . (Join-Path $moduleSrc "Private" "Write-LogFile.ps1")
+        . (Join-Path $moduleSrc "Private" "Write-LogJson.ps1")
+        . (Join-Path $moduleSrc "Public" "Assert-ArgumentExists.ps1")
+        . (Join-Path $moduleSrc "Public" "Assert-DirectoryExists.ps1")
+        . (Join-Path $moduleSrc "Public" "Write-Log.ps1")
+        . (Join-Path $moduleTests "Helpers" "Assert-GuardThrew.ps1")
 
         # Suppress console output across all contexts.
         # Write-Host call count is still verifiable via Should -Invoke.
