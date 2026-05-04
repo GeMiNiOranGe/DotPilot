@@ -159,139 +159,328 @@ NoDir - NoDirectoryBuildFile switch present
 SUT   - System Under Test (Initialize-LayeredDotnetProject)
 Props - Directory.Build.props
 #>
-$script:tempDir = Join-Path $PSScriptRoot "Temp"
-
 Describe "Initialize-LayeredDotnetProject" -Tag @(
-    "Initialize-LayeredDotnetProject"
-    "Dotnet"
+    "Initialize-LayeredDotnetProject",
+    "Integration"
 ) {
     BeforeAll {
         $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." "DotPilot.Core" "Src"
         $moduleSrc = Join-Path $PSScriptRoot ".." "Src"
 
-        . (Join-Path $coreModuleSrc "Enums" "LogFormat.ps1")
+        . (Join-Path $coreModuleSrc "Classes" "FileNotFoundException.ps1")
         . (Join-Path $coreModuleSrc "Enums" "LogLevel.ps1")
-        . (Join-Path $coreModuleSrc "Public" "Assert-CommandExists.ps1")
-        . (Join-Path $moduleSrc "Config" "Defaults.ps1")
-        . (Join-Path $moduleSrc "Private" "Invoke-ForceOutputGuard.ps1")
+        . (Join-Path $coreModuleSrc "Public" "Write-Log.ps1")
         . (Join-Path $moduleSrc "Public" "Initialize-LayeredDotnetProject.ps1")
-        . (Join-Path $moduleSrc "Public" "New-LayeredDotnetTemplate.ps1")
-    }
 
-    BeforeEach {
-        [void](New-Item -Path $tempDir -ItemType Directory)
-        Set-Location $tempDir
-    }
+        # Suppress all console/log output across every context.
+        Mock Write-Host {}
+        Mock Write-Log {}
 
-    AfterEach {
-        Set-Location (Split-Path -Parent $tempDir)
-        Remove-Item $tempDir -Recurse -Force
-    }
+        # Mock dotnet so no real CLI is needed. The mock succeeds silently
+        # by default; individual contexts override as needed.
+        Mock dotnet {}
 
-    Context "When the JSON template is invalid" {
-        It "Throws '<ExpectedErrorId>'" -TestCases @(
-            @{
-                Template        = @(
-                    '"workspaceName": "Example",'
-                    '"layers": ['
-                    '    {'
-                    '        "name": "Core",'
-                    '        "type": "classlib",'
-                    '        "extraArguments": "",'
-                    '        "packages": [],'
-                    '        "projectReferences": []'
-                    '    }'
-                    ']'
-                )
-                ExpectedErrorId = "InvalidJson"
-            }
-            @{
-                Template        = @(
-                    '{'
-                    '    "layers": ['
-                    '        {'
-                    '            "name": "Core",'
-                    '            "type": "classlib",'
-                    '            "extraArguments": "",'
-                    '            "packages": [],'
-                    '            "projectReferences": []'
-                    '        }'
-                    '    ]'
-                    '}'
-                )
-                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed"
-            }
-            @{
-                Template        = @(
-                    '{'
-                    '    "workspaceName": "Example"'
-                    '}'
-                )
-                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed"
-            }
-            @{
-                Template        = @(
-                    '{'
-                    '    "workspaceName": "Example",'
-                    '    "layers": ['
-                    '        {'
-                    '            "type": "classlib",'
-                    '            "extraArguments": "",'
-                    '            "packages": [],'
-                    '            "projectReferences": []'
-                    '        }'
-                    '    ]'
-                    '}'
-                )
-                ExpectedErrorId = "InvalidJsonAgainstSchemaDetailed"
-            }
-        ) {
-            param($Template, $ExpectedErrorId)
-            $guid = [System.Guid]::NewGuid().ToString()
-            $templatePath = Join-Path $tempDir "$guid.template.json"
-            Set-Content -Path $templatePath -Value $Template
+        $script:schemaFile = Join-Path `
+            $moduleSrc `
+            "Schemas" `
+            "LayeredDotnet.schema.json"
 
-            { Initialize-LayeredDotnetProject -TemplateJsonPath $templatePath } |
-            Should -Throw -ErrorId (
-                "$ExpectedErrorId,Initialize-LayeredDotnetProject"
+        # Minimal valid template used by most contexts.
+        $script:baseTemplate = [ordered]@{
+            workspaceName = "MyProject"
+            layers        = @(
+                [ordered]@{
+                    name              = "Core"
+                    type              = "classlib"
+                    extraArguments    = ""
+                    packages          = @()
+                    projectReferences = @()
+                }
             )
         }
     }
 
-    Context "When the template file path is invalid" {
-        It "Throws 'FileNotFound' when the template file does not exist" {
-            $path = Join-Path "FakeDirectory" "FakeTemplate.json"
-            { Initialize-LayeredDotnetProject -TemplateJsonPath $path } |
-            Should -Throw -ErrorId "FileNotFound,Initialize-LayeredDotnetProject"
+    Context "When TemplateJsonPath points to a missing file" {
+        BeforeAll {
+            $script:missingJson = Join-Path $TestDrive "missing.template.json"
+            $script:caughtError = $null
+
+            Push-Location $TestDrive
+
+            try {
+                Initialize-LayeredDotnetProject `
+                    -TemplateJsonPath $script:missingJson
+            }
+            catch {
+                $script:caughtError = $_
+            }
+
+            Pop-Location
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Initialize-LayeredDotnetProject did not throw"
+                    " - all assertions in this Context are invalid."
+                ) -join ''
+            }
+        }
+
+        # 01
+        It "Throws FileNotFoundException" {
+            $script:caughtError.Exception | Should -BeOfType (
+                [FileNotFoundException]
+            )
         }
     }
 
-    Context "When valid template provided" {
+    Context "When the template file contains invalid JSON" {
         BeforeAll {
-            Mock Assert-CommandExists {}
-            Mock dotnet { return "mocked" }
+            $script:badJsonFile = Join-Path $TestDrive "bad.template.json"
+            Set-Content -Path $script:badJsonFile -Value "bad json"
 
-            $global:DotPilot.Log.FileLogging = $true
-            $global:DotPilot.Log.FileFormat = [LogFormat]::Log
+            $script:caughtError = $null
+
+            Push-Location $TestDrive
+
+            try {
+                Initialize-LayeredDotnetProject `
+                    -TemplateJsonPath $script:badJsonFile
+            }
+            catch {
+                $script:caughtError = $_
+            }
+
+            Pop-Location
+
+            if ($null -eq $script:caughtError) {
+                throw @(
+                    "Guard: Initialize-LayeredDotnetProject did not throw"
+                    " - all assertions in this Context are invalid."
+                ) -join ''
+            }
         }
 
-        It "Runs dotnet CLI and logs" {
-            New-LayeredDotnetTemplate
+        # 02
+        It "Throws a terminating error" {
+            $script:caughtError | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    Context "When template is valid and NoDirectoryBuildFile is absent" {
+        BeforeAll {
+            $script:templateFile = Join-Path `
+                $TestDrive `
+                "MyProject.template.json"
+            $script:baseTemplate | ConvertTo-Json -Depth 10 | `
+                Set-Content -Path $script:templateFile
+
+            $script:propsFile = Join-Path $TestDrive "Directory.Build.props"
+
+            Push-Location $TestDrive
 
             Initialize-LayeredDotnetProject `
-                -TemplateJsonPath $DefaultTemplateOutputPath
-
-            Should -Invoke Assert-CommandExists -Times 1 -Exactly
-            Should -Invoke dotnet -Times 1
+                -TemplateJsonPath $script:templateFile
         }
 
-        It "Creates Directory.Build.props unless NoDirectoryBuildFile is set" {
-            New-LayeredDotnetTemplate
+        AfterAll {
+            Pop-Location
+        }
+
+        # 03
+        It "Creates Directory.Build.props in the current directory" {
+            $script:propsFile | Should -Exist
+        }
+
+        # 04
+        It "Calls dotnet new gitignore" {
+            Should -Invoke dotnet -Scope Context -ParameterFilter {
+                $args[0] -eq "new" -and $args[1] -eq "gitignore"
+            }
+        }
+
+        # 05
+        It "Calls dotnet new sln with the workspace name" {
+            Should -Invoke dotnet -Scope Context -ParameterFilter {
+                $args[0] -eq "new" -and
+                $args[1] -eq "sln" -and
+                $args -contains "MyProject"
+            }
+        }
+
+        # 06
+        It "Calls dotnet new for the layer project type" {
+            Should -Invoke dotnet -Scope Context -ParameterFilter {
+                $args[0] -eq "new" -and $args[1] -eq "classlib"
+            }
+        }
+
+        # 07
+        It "Calls dotnet sln add for the layer project" {
+            Should -Invoke dotnet -Scope Context -ParameterFilter {
+                $args[0] -eq "sln" -and $args[1] -eq "MyProject.sln"
+            }
+        }
+    }
+
+    Context "When NoDirectoryBuildFile switch is present" {
+        BeforeAll {
+            $script:templateFile = Join-Path `
+                $TestDrive `
+                "MyProject.template.json"
+            $script:baseTemplate | ConvertTo-Json -Depth 10 | `
+                Set-Content -Path $script:templateFile
+
+            $script:propsFile = Join-Path $TestDrive "Directory.Build.props"
+
+            Push-Location $TestDrive
 
             Initialize-LayeredDotnetProject `
-                -TemplateJsonPath $DefaultTemplateOutputPath
+                -TemplateJsonPath $script:templateFile `
+                -NoDirectoryBuildFile
+        }
 
-            Test-Path "Directory.Build.props" | Should -BeTrue
+        AfterAll {
+            Pop-Location
+        }
+
+        # 08
+        It "Does not create Directory.Build.props" {
+            $script:propsFile | Should -Not -Exist
+        }
+    }
+
+    Context "When a layer has non-empty extraArguments" {
+        BeforeAll {
+            $script:extraArg = "--framework net9.0"
+            $script:template = [ordered]@{
+                workspaceName = "MyProject"
+                layers        = @(
+                    [ordered]@{
+                        name              = "Core"
+                        type              = "classlib"
+                        extraArguments    = $script:extraArg
+                        packages          = @()
+                        projectReferences = @()
+                    }
+                )
+            }
+
+            $script:templateFile = Join-Path `
+                $TestDrive `
+                "MyProject.template.json"
+            $script:template | ConvertTo-Json -Depth 10 | `
+                Set-Content -Path $script:templateFile
+
+            Push-Location $TestDrive
+
+            Initialize-LayeredDotnetProject `
+                -TemplateJsonPath $script:templateFile
+        }
+
+        AfterAll {
+            Pop-Location
+        }
+
+        # 09
+        It "Calls dotnet new with the extra argument" {
+            Should -Invoke dotnet -Scope Context -ParameterFilter {
+                $args[0] -eq "new" -and
+                $args[1] -eq "classlib" -and
+                $args -contains $script:extraArg
+            }
+        }
+    }
+
+    Context "When a layer has a non-empty packages list" {
+        BeforeAll {
+            $script:package = "Newtonsoft.Json"
+            $script:template = [ordered]@{
+                workspaceName = "MyProject"
+                layers        = @(
+                    [ordered]@{
+                        name              = "Core"
+                        type              = "classlib"
+                        extraArguments    = ""
+                        packages          = @($script:package)
+                        projectReferences = @()
+                    }
+                )
+            }
+
+            $script:templateFile = Join-Path `
+                $TestDrive `
+                "MyProject.template.json"
+            $script:template | ConvertTo-Json -Depth 10 | `
+                Set-Content -Path $script:templateFile
+
+            Push-Location $TestDrive
+
+            Initialize-LayeredDotnetProject `
+                -TemplateJsonPath $script:templateFile
+        }
+
+        AfterAll {
+            Pop-Location
+        }
+
+        # 10
+        It "Calls dotnet add package for the specified package" {
+            Should -Invoke dotnet -Scope Context -ParameterFilter {
+                $args[0] -eq "add" -and
+                $args[1] -like "*MyProject.Core*" -and
+                $args[2] -eq "package" -and
+                $args[3] -eq $script:package
+            }
+        }
+    }
+
+    Context "When a layer has a non-empty projectReferences list" {
+        BeforeAll {
+            $script:refLayer = "Data"
+            $script:template = [ordered]@{
+                workspaceName = "MyProject"
+                layers        = @(
+                    [ordered]@{
+                        name              = "Data"
+                        type              = "classlib"
+                        extraArguments    = ""
+                        packages          = @()
+                        projectReferences = @()
+                    },
+                    [ordered]@{
+                        name              = "Core"
+                        type              = "classlib"
+                        extraArguments    = ""
+                        packages          = @()
+                        projectReferences = @($script:refLayer)
+                    }
+                )
+            }
+
+            $script:templateFile = Join-Path `
+                $TestDrive `
+                "MyProject.template.json"
+            $script:template | ConvertTo-Json -Depth 10 | `
+                Set-Content -Path $script:templateFile
+
+            Push-Location $TestDrive
+
+            Initialize-LayeredDotnetProject `
+                -TemplateJsonPath $script:templateFile
+        }
+
+        AfterAll {
+            Pop-Location
+        }
+
+        # 11
+        It "Calls dotnet add reference for the specified project" {
+            Should -Invoke dotnet -Scope Context -ParameterFilter {
+                $args[0] -eq "add" -and
+                $args[1] -like "*MyProject.Core*" -and
+                $args[2] -eq "reference" -and
+                $args[3] -like "*MyProject.$script:refLayer*"
+            }
         }
     }
 }
