@@ -134,12 +134,13 @@ WF  - WinFormsThreeLayers
 #>
 Describe "New-LayeredDotnetTemplate" -Tag @(
     "New-LayeredDotnetTemplate"
-    "New-*"
+    "New-Layered*Template"
     "Integration"
 ) {
     BeforeAll {
-        $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." "DotPilot.Core" "Src"
-        $moduleSrc = Join-Path $PSScriptRoot ".." "Src"
+        $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+            "DotPilot.Core" "Src"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
 
         . (Join-Path $coreModuleSrc "Public" "Assert-ParentDirectoryExists.ps1")
         . (Join-Path $coreModuleSrc "Public" "Assert-FileNotExists.ps1")
