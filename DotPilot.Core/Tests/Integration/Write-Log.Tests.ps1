@@ -180,6 +180,12 @@ Describe "Write-Log" -Tag @(
         Mock Write-Host {}
     }
 
+    AfterAll {
+        # Reset global state to avoid side effects on other tests.
+        $global:DotPilot.Log.FileLogging = $false
+        $global:DotPilot.Log.FileFormat = [LogFormat]::Log
+    }
+
     Context "When file logging is disabled" {
         BeforeAll {
             $global:DotPilot.Log.FileLogging = $false
