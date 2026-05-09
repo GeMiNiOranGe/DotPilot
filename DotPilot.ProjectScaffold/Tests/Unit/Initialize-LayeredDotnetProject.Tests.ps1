@@ -90,6 +90,7 @@ Describe "Initialize-LayeredDotnetProject" -Tag @(
             "DotPilot.Core" "Src"
 
         . (Join-Path $coreModuleSrc "Classes" "FileNotFoundException.ps1")
+        . (Join-Path $coreModuleSrc "Enums" "LogLevel.ps1")
         . (Join-Path $coreModuleSrc "Public" "Assert-CommandExists.ps1")
         . (Join-Path $coreModuleSrc "Public" "Assert-FileExists.ps1")
         . (Join-Path $moduleSrc "Public" "Initialize-LayeredDotnetProject.ps1")
@@ -184,7 +185,9 @@ Describe "Initialize-LayeredDotnetProject" -Tag @(
 
             Mock Assert-FileExists {}
             Mock Assert-CommandExists {}
-            Mock Get-Content { return "{}" }
+            Mock Get-Content { return "{}" } -ParameterFilter {
+                $Path -eq $script:templateFile
+            }
             Mock Test-Json { return $true }
             Mock ConvertFrom-Json { return $script:minimalTemplate }
 
