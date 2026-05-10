@@ -85,9 +85,10 @@ Describe "Initialize-LayeredDotnetProject" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
         $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.Core" "Src"
+            "DotPilot.Core"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+            "DotPilot.ProjectScaffold"
 
         . (Join-Path $coreModuleSrc "Classes" "FileNotFoundException.ps1")
         . (Join-Path $coreModuleSrc "Enums" "LogLevel.ps1")

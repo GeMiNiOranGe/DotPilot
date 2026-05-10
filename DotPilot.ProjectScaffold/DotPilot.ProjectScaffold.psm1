@@ -2,7 +2,7 @@
 $corePsd1 = Join-Path `
     -Path $PSScriptRoot `
     -ChildPath ".." `
-    -AdditionalChildPath "..", "DotPilot.Core", "Src", "DotPilot.Core.psd1"
+    -AdditionalChildPath "DotPilot.Core", "DotPilot.Core.psd1"
 Import-Module -Name (Resolve-Path $corePsd1) -Force -Global
 
 # Directory entry order

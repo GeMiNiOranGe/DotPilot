@@ -82,7 +82,7 @@ Describe "Write-LogConsole" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
 
         . (Join-Path $moduleSrc "Enums" "LogLevel.ps1")
         . (Join-Path $moduleSrc "Private" "Write-LogConsole.ps1")

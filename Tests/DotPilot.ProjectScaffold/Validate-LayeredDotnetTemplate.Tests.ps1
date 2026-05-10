@@ -1,4 +1,4 @@
-$script:srcPath = Join-Path $PSScriptRoot ".." "Src"
+$script:srcPath = Join-Path $PSScriptRoot ".." ".." "DotPilot.ProjectScaffold"
 
 Describe "Template Validation" {
     Context "Layered Dotnet Template" -Tag "Dotnet" {

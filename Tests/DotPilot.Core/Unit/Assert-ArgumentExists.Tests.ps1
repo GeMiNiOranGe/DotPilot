@@ -90,7 +90,7 @@ Describe "Assert-ArgumentExists" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
         $moduleTests = Join-Path $PSScriptRoot ".."
 
         . (Join-Path $moduleSrc "Classes" "ArgumentBlankException.ps1")

@@ -80,7 +80,7 @@ Describe "Assert-FileNotExists" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
         $moduleTests = Join-Path $PSScriptRoot ".."
 
         . (Join-Path $moduleSrc "Classes" "FileAlreadyExistsException.ps1")

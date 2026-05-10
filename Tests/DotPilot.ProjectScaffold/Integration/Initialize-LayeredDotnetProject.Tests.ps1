@@ -95,9 +95,10 @@ Describe "Initialize-LayeredDotnetProject" -Tag @(
     "Integration"
 ) {
     BeforeAll {
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
         $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.Core" "Src"
+            "DotPilot.Core"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+            "DotPilot.ProjectScaffold"
 
         . (Join-Path $coreModuleSrc "Private" "Write-LogConsole.ps1")
         . (Join-Path $coreModuleSrc "Public" "Write-Log.ps1")

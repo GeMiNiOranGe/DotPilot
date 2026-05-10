@@ -139,8 +139,9 @@ Describe "New-LayeredDotnetTemplate" -Tag @(
 ) {
     BeforeAll {
         $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.Core" "Src"
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." "Src"
+            "DotPilot.Core"
+        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+            "DotPilot.ProjectScaffold"
 
         . (Join-Path $coreModuleSrc "Public" "Assert-ParentDirectoryExists.ps1")
         . (Join-Path $coreModuleSrc "Public" "Assert-FileNotExists.ps1")
