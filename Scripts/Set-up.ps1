@@ -1,31 +1,32 @@
 $profilePath = $PROFILE
 
 if (-not (Test-Path $profilePath)) {
-    New-Item -Path $profilePath -ItemType File -Force | Out-Null
+    [void](New-Item -Path $profilePath -ItemType File -Force)
     Write-Host "Created a new file profile: $profilePath"
 }
 
-$profileContent = Get-Content $profilePath
+Write-Host "Using profile: $profilePath"
 
-$rootPath = Join-Path $PSScriptRoot ".."
-$modulePaths = @(
-    Join-Path $rootPath "DotPilot.ProjectScaffold" "Src" `
-        "DotPilot.ProjectScaffold.psd1",
-    Join-Path $rootPath "DotPilot.Utilities" "Src" "DotPilot.Utilities.psd1"
+$rootDir = Join-Path $PSScriptRoot ".."
+$moduleNames = @(
+    "DotPilot.ProjectScaffold"
+    "DotPilot.Utilities"
 )
 
-foreach ($modulePath in $modulePaths) {
-    $pattern = "Import-Module\s+$($modulePath.Replace('\', '\\'))"
-    $aliasExists = $profileContent | Select-String -Pattern $pattern
-    $moduleName = [System.IO.Path]::GetFileNameWithoutExtension($modulePath)
+foreach ($moduleName in $moduleNames) {
+    $profileContent = Get-Content $profilePath -Raw
 
-    if ($aliasExists) {
-        Write-Host "Module '$moduleName' existed in profile."
+    $modulePathRaw = Join-Path $rootDir $moduleName "$moduleName.psd1"
+    $modulePath = (Resolve-Path $modulePathRaw).Path
+
+    $importPattern = "Import-Module\s+$([regex]::Escape($modulePath))"
+    $importExists = $profileContent | Select-String -Pattern $importPattern
+
+    if ($importExists) {
+        Write-Host "Module '$moduleName' already exists in profile."
     }
     else {
-        Add-Content `
-            -Path $profilePath `
-            -Value "Import-Module $modulePath"
-        Write-Host "Imported '$moduleName' into profile."
+        Add-Content -Path $profilePath -Value "Import-Module $modulePath"
+        Write-Host "Imported '$moduleName' into profile (as '$modulePath')."
     }
 }

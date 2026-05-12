@@ -2,33 +2,35 @@
 
 [CmdletBinding()]
 param (
-    [Parameter()]
-    [string[]]$Tags
+    [string[]]$Tags,
+
+    [string[]]$Path
 )
 
-$rootPath = Resolve-Path "$PSScriptRoot\.."
-$corePath = Join-Path $rootPath "DotPilot.Core" "Src" "DotPilot.Core.psd1"
-$scaffoldPath = Join-Path $rootPath "DotPilot.ProjectScaffold" "Src" `
-    "DotPilot.ProjectScaffold.psd1"
+$rootDir = Resolve-Path "$PSScriptRoot\.."
+$moduleNames = @(
+    "DotPilot.Core"
+    "DotPilot.ProjectScaffold"
+)
 
-Import-Module $corePath -Force -ErrorAction Stop
-Import-Module $scaffoldPath -Force -ErrorAction Stop
+foreach ($moduleName in $moduleNames) {
+    $modulePath = Join-Path $rootDir $moduleName "$moduleName.psd1"
+    Import-Module $modulePath -Force -ErrorAction Stop
+}
 
 if (-not (Get-Module -ListAvailable -Name Pester)) {
-    throw (
-        "Pester is not installed. Install by: " +
+    throw @(
+        "Pester is not installed. Install by: "
         "Install-Module -Name Pester -Force -RequiredVersion 5.7.1"
-    )
+    ) -join ""
 }
 Import-Module Pester
 
 $config = [PesterConfiguration]::new()
 $config.Output.Verbosity = "Detailed"
 $config.Filter.Tag = $Tags
-$config.Run.Path = @(
-    Join-Path $rootPath "DotPilot.Core" "Tests"
-    Join-Path $rootPath "DotPilot.ProjectScaffold" "Tests"
-    Join-Path $rootPath "DotPilot.Utilities" "Tests"
-)
+$config.Run.Path = $Path ?? @(foreach ($moduleName in $moduleNames) {
+    Join-Path $rootDir "Tests" $moduleName
+})
 
 Invoke-Pester -Configuration $config

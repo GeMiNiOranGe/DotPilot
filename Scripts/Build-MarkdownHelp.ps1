@@ -1,5 +1,3 @@
-$docsPath = Join-Path $PSScriptRoot ".." "Docs"
-
 if (-not (Get-Module -ListAvailable -Name platyPS)) {
     Install-Module -Name platyPS -Scope CurrentUser -RequiredVersion 0.14.2
 }
@@ -7,31 +5,24 @@ if (-not (Get-Module -ListAvailable -Name platyPS)) {
 Import-Module platyPS
 
 $rootDir = Join-Path $PSScriptRoot ".."
-$modules = @(
-    @{
-        Name = "DotPilot.Core"
-        Path = Join-Path $rootDir "DotPilot.Core" "Src" "DotPilot.Core.psd1"
-    }
-    @{
-        Name = "DotPilot.ProjectScaffold"
-        Path = Join-Path $rootDir "DotPilot.ProjectScaffold" "Src" `
-            "DotPilot.ProjectScaffold.psd1"
-    }
+$docsDir = Join-Path $rootDir "Docs"
+$moduleNames = @(
+    "DotPilot.Core"
+    "DotPilot.ProjectScaffold"
 )
 
-foreach ($module in $modules) {
-    $modulePath = $module.Path
-    $moduleName = $module.Name
+foreach ($moduleName in $moduleNames) {
+    $modulePath = Join-Path $rootDir $moduleName "$moduleName.psd1"
 
     $remoteDocsUrl = (
         Import-PowerShellDataFile -Path $modulePath
     ).PrivateData.PSData.ProjectUri + "/blob/main/Docs"
 
     Import-Module $modulePath -Force
-    New-MarkdownHelp -Module $moduleName -OutputFolder $docsPath -Force
+    New-MarkdownHelp -Module $moduleName -OutputFolder $docsDir -Force
 
     # Remove escaped backticks from all '*.md' files
-    Get-ChildItem $docsPath -Filter *.md -Recurse | ForEach-Object {
+    Get-ChildItem $docsDir -Filter *.md -Recurse | ForEach-Object {
         $content = Get-Content $_.FullName -Raw
         $content = $content -replace '\\`', '`'
         $content = $content -replace '\\\[', '['
