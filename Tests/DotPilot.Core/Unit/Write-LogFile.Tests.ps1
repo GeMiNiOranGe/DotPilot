@@ -117,10 +117,10 @@ Describe "Write-LogFile" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
+        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
 
-        . (Join-Path $moduleSrc "Enums" "LogLevel.ps1")
-        . (Join-Path $moduleSrc "Private" "Write-LogFile.ps1")
+        . (Join-Path $moduleRoot "Enums" "LogLevel.ps1")
+        . (Join-Path $moduleRoot "Private" "Write-LogFile.ps1")
 
         # Mock Add-Content to avoid actual file I/O and
         # enable verification of parameters.

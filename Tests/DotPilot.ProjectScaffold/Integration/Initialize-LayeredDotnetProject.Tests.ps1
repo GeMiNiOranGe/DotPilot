@@ -95,14 +95,14 @@ Describe "Initialize-LayeredDotnetProject" -Tag @(
     "Integration"
 ) {
     BeforeAll {
-        $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+        $coreModuleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
             "DotPilot.Core"
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
             "DotPilot.ProjectScaffold"
 
-        . (Join-Path $coreModuleSrc "Private" "Write-LogConsole.ps1")
-        . (Join-Path $coreModuleSrc "Public" "Write-Log.ps1")
-        . (Join-Path $moduleSrc "Public" "Initialize-LayeredDotnetProject.ps1")
+        . (Join-Path $coreModuleRoot "Private" "Write-LogConsole.ps1")
+        . (Join-Path $coreModuleRoot "Public" "Write-Log.ps1")
+        . (Join-Path $moduleRoot "Public" "Initialize-LayeredDotnetProject.ps1")
 
         Mock Write-Host {}
     }

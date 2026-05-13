@@ -138,24 +138,24 @@ Describe "New-LayeredDotnetTemplate" -Tag @(
     "Integration"
 ) {
     BeforeAll {
-        $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+        $coreModuleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
             "DotPilot.Core"
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
             "DotPilot.ProjectScaffold"
 
-        . (Join-Path $coreModuleSrc "Public" "Assert-ParentDirectoryExists.ps1")
-        . (Join-Path $coreModuleSrc "Public" "Assert-FileNotExists.ps1")
-        . (Join-Path $coreModuleSrc "Enums" "LogLevel.ps1")
-        . (Join-Path $moduleSrc "Config" "Defaults.ps1")
-        . (Join-Path $moduleSrc "Private" "Invoke-ForceOutputGuard.ps1")
-        . (Join-Path $moduleSrc "Public" "New-LayeredDotnetTemplate.ps1")
+        . (Join-Path $coreModuleRoot "Public" "Assert-ParentDirectoryExists.ps1")
+        . (Join-Path $coreModuleRoot "Public" "Assert-FileNotExists.ps1")
+        . (Join-Path $coreModuleRoot "Enums" "LogLevel.ps1")
+        . (Join-Path $moduleRoot "Config" "Defaults.ps1")
+        . (Join-Path $moduleRoot "Private" "Invoke-ForceOutputGuard.ps1")
+        . (Join-Path $moduleRoot "Public" "New-LayeredDotnetTemplate.ps1")
 
         # Suppress console output side-effect from Write-Log -> Write-Host.
         Mock Write-Host {}
         # Suppress Write-Log entirely to isolate file-creation behavior.
         Mock Write-Log {}
 
-        $script:templateDir = Join-Path $moduleSrc "Template" "Dotnet"
+        $script:templateDir = Join-Path $moduleRoot "Template" "Dotnet"
     }
 
     Context "When OutputPath is absent and Preset is default" {

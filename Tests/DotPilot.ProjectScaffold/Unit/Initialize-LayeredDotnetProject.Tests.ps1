@@ -85,17 +85,19 @@ Describe "Initialize-LayeredDotnetProject" -Tag @(
     "Unit"
 ) {
     BeforeAll {
-        $coreModuleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+        $coreModuleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
             "DotPilot.Core"
-        $moduleSrc = Join-Path $PSScriptRoot ".." ".." ".." `
+        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
             "DotPilot.ProjectScaffold"
+        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $coreModuleSrc "Classes" "FileNotFoundException.ps1")
-        . (Join-Path $coreModuleSrc "Enums" "LogLevel.ps1")
-        . (Join-Path $coreModuleSrc "Public" "Assert-CommandExists.ps1")
-        . (Join-Path $coreModuleSrc "Public" "Assert-FileExists.ps1")
-        . (Join-Path $moduleSrc "Public" "Initialize-LayeredDotnetProject.ps1")
-        . (Join-Path $moduleSrc "Types" "DotnetTemplate.Types.ps1")
+        . (Join-Path $coreModuleRoot "Classes" "FileNotFoundException.ps1")
+        . (Join-Path $coreModuleRoot "Enums" "LogLevel.ps1")
+        . (Join-Path $coreModuleRoot "Public" "Assert-CommandExists.ps1")
+        . (Join-Path $coreModuleRoot "Public" "Assert-FileExists.ps1")
+        . (Join-Path $moduleRoot "Public" "Initialize-LayeredDotnetProject.ps1")
+        . (Join-Path $moduleRoot "Types" "DotnetTemplate.Types.ps1")
+        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
 
         Mock Write-Host {}
         Mock Write-Log {}
@@ -130,12 +132,10 @@ Describe "Initialize-LayeredDotnetProject" -Tag @(
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Initialize-LayeredDotnetProject did not throw"
-                    " - all assertions in this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew `
+                -Caller "Initialize-LayeredDotnetProject" `
+                -CaughtError $script:caughtError `
+                -Context "TemplateJsonPath='<missing file>'"
         }
 
         # 01
@@ -164,12 +164,10 @@ Describe "Initialize-LayeredDotnetProject" -Tag @(
                 $script:caughtError = $_
             }
 
-            if ($null -eq $script:caughtError) {
-                throw @(
-                    "Guard: Initialize-LayeredDotnetProject did not throw"
-                    " - all assertions in this Context are invalid."
-                ) -join ''
-            }
+            Assert-GuardThrew `
+                -Caller "Initialize-LayeredDotnetProject" `
+                -CaughtError $script:caughtError `
+                -Context "TemplateJsonPath='<bad json file>'"
         }
 
         # 02
