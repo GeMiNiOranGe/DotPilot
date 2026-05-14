@@ -1,32 +1,62 @@
+param(
+    [Alias("Dev")]
+    [switch]$Development
+)
+
+function Add-ProfileRegion {
+    param(
+        [string]$ProfilePath,
+        [string]$RegionName,
+        [string]$Content
+    )
+
+    $profileContent = Get-Content $ProfilePath -Raw
+    $regionStart = "#region $RegionName"
+    $regionEnd = "#endregion $RegionName"
+    $exists = $profileContent | `
+        Select-String -Pattern ([regex]::Escape($regionStart))
+
+    if ($exists) {
+        Write-Host "$RegionName block already in profile. Skipping."
+        return
+    }
+
+    $block = "$regionStart`n$Content`n$regionEnd"
+
+    Add-Content -Path $ProfilePath -Value $block
+    Write-Host "Added $RegionName block to profile."
+}
+
 $profilePath = $PROFILE
 
+# Ensure profile exists
 if (-not (Test-Path $profilePath)) {
     [void](New-Item -Path $profilePath -ItemType File -Force)
-    Write-Host "Created a new file profile: $profilePath"
+    Write-Host "Created profile: $profilePath"
 }
 
 Write-Host "Using profile: $profilePath"
 
 $rootDir = Join-Path $PSScriptRoot ".."
-$moduleNames = @(
-    "DotPilot.ProjectScaffold"
-    "DotPilot.Utilities"
-)
+$modulePath = (Resolve-Path $rootDir).Path
 
-foreach ($moduleName in $moduleNames) {
-    $profileContent = Get-Content $profilePath -Raw
+# Insider: add module path to PSModulePath
+Add-ProfileRegion `
+    -ProfilePath $profilePath `
+    -RegionName "DotPilot Insider" `
+    -Content @"
+`$env:PSModulePath += "$([IO.Path]::PathSeparator)$modulePath"
+"@
 
-    $modulePathRaw = Join-Path $rootDir $moduleName "$moduleName.psd1"
-    $modulePath = (Resolve-Path $modulePathRaw).Path
-
-    $importPattern = "Import-Module\s+$([regex]::Escape($modulePath))"
-    $importExists = $profileContent | Select-String -Pattern $importPattern
-
-    if ($importExists) {
-        Write-Host "Module '$moduleName' already exists in profile."
-    }
-    else {
-        Add-Content -Path $profilePath -Value "Import-Module $modulePath"
-        Write-Host "Imported '$moduleName' into profile (as '$modulePath')."
-    }
+# Development only: auto-import modules when inside project directory
+if ($Development) {
+    Add-ProfileRegion `
+        -ProfilePath $profilePath `
+        -RegionName "DotPilot Development" `
+        -Content @"
+if (`$PWD.Path -like '$modulePath*') {
+    Import-Module DotPilot.ProjectScaffold
+    Import-Module DotPilot.Utilities
+}
+"@
 }
