@@ -1,10 +1,3 @@
-# Load DotPilot.Core dependency via relative path
-$corePsd1 = Join-Path `
-    -Path $PSScriptRoot `
-    -ChildPath ".." `
-    -AdditionalChildPath "DotPilot.Core", "DotPilot.Core.psd1"
-Import-Module -Name (Resolve-Path $corePsd1) -Force -Global
-
 # Directory entry order
 $loadOrder = @('Types', 'Config', 'Private', 'Public')
 
