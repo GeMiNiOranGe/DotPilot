@@ -76,119 +76,122 @@ EP  - Equivalence Partitioning
 BGC - BackgroundColor
 FGC - ForegroundColor
 #>
-Describe "Write-LogConsole" -Tag @(
-    "Write-LogConsole"
-    "Write-Log*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
 
-        . (Join-Path $moduleRoot "Enums" "LogLevel.ps1")
-        . (Join-Path $moduleRoot "Private" "Write-LogConsole.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        Mock Write-Host {}
-    }
-
-    Context "When Level is Info" {
+InModuleScope "DotPilot.Core" {
+    Describe "Write-LogConsole" -Tag @(
+        "Write-LogConsole"
+        "Write-Log*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:message = "Server started"
-
-            Write-LogConsole -Level ([LogLevel]::Info) -Message $script:message
+            Mock Write-Host {}
         }
 
-        # 01
-        It "Writes the label with Cyan background" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $BackgroundColor -eq [ConsoleColor]::Cyan
+        Context "When Level is Info" {
+            BeforeAll {
+                $script:message = "Server started"
+
+                Write-LogConsole `
+                    -Level ([LogLevel]::Info) `
+                    -Message $script:message
+            }
+
+            # 01
+            It "Writes the label with Cyan background" {
+                $color = [ConsoleColor]::Cyan
+
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $BackgroundColor -eq $color }
+            }
+
+            # 02
+            It "Writes the label with Black foreground" {
+                $color = [ConsoleColor]::Black
+
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $ForegroundColor -eq $color }
+            }
+
+            # 03
+            It "Writes 'info' as the label text" {
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $Object -eq "info" }
+            }
+
+            # 04
+            It "Writes the label without a trailing newline" {
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $NoNewline -eq $true }
+            }
+
+            # 05
+            It "Writes the message with a leading space" {
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $Object -eq " $script:message" }
             }
         }
 
-        # 02
-        It "Writes the label with Black foreground" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $ForegroundColor -eq [ConsoleColor]::Black
+        Context "When Level is Warn" {
+            BeforeAll {
+                Write-LogConsole -Level ([LogLevel]::Warn) -Message "Disk low"
+            }
+
+            # 06
+            It "Writes the label with Yellow background" {
+                $color = [ConsoleColor]::Yellow
+
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $BackgroundColor -eq $color }
+            }
+
+            # 07
+            It "Writes 'warn' as the label text" {
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $Object -eq "warn" }
             }
         }
 
-        # 03
-        It "Writes 'info' as the label text" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $Object -eq "info"
+        Context "When Level is Error" {
+            BeforeAll {
+                Write-LogConsole -Level ([LogLevel]::Error) -Message "Disk low"
+            }
+
+            # 08
+            It "Writes the label with Red background" {
+                $color = [ConsoleColor]::Red
+
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $BackgroundColor -eq $color }
+            }
+
+            # 09
+            It "Writes 'error' as the label text" {
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $Object -eq "error" }
             }
         }
 
-        # 04
-        It "Writes the label without a trailing newline" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $NoNewline -eq $true
+        Context "When Level is Debug" {
+            BeforeAll {
+                Write-LogConsole -Level ([LogLevel]::Debug) -Message "Disk low"
             }
-        }
 
-        # 05
-        It "Writes the message with a leading space" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $Object -eq " $script:message"
+            # 10
+            It "Writes the label with White background" {
+                $color = [ConsoleColor]::White
+
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $BackgroundColor -eq $color }
             }
-        }
-    }
 
-    Context "When Level is Warn" {
-        BeforeAll {
-            Write-LogConsole -Level ([LogLevel]::Warn) -Message "Disk low"
-        }
-
-        # 06
-        It "Writes the label with Yellow background" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $BackgroundColor -eq [ConsoleColor]::Yellow
-            }
-        }
-
-        # 07
-        It "Writes 'warn' as the label text" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $Object -eq "warn"
-            }
-        }
-    }
-
-    Context "When Level is Error" {
-        BeforeAll {
-            Write-LogConsole -Level ([LogLevel]::Error) -Message "Disk low"
-        }
-
-        # 08
-        It "Writes the label with Red background" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $BackgroundColor -eq [ConsoleColor]::Red
-            }
-        }
-
-        # 09
-        It "Writes 'error' as the label text" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $Object -eq "error"
-            }
-        }
-    }
-
-    Context "When Level is Debug" {
-        BeforeAll {
-            Write-LogConsole -Level ([LogLevel]::Debug) -Message "Disk low"
-        }
-
-        # 10
-        It "Writes the label with White background" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $BackgroundColor -eq [ConsoleColor]::White
-            }
-        }
-
-        # 11
-        It "Writes 'debug' as the label text" {
-            Should -Invoke Write-Host -Times 1 -Scope Context -ParameterFilter {
-                $Object -eq "debug"
+            # 11
+            It "Writes 'debug' as the label text" {
+                Should -Invoke Write-Host -Times 1 -Scope Context `
+                    -ParameterFilter { $Object -eq "debug" }
             }
         }
     }

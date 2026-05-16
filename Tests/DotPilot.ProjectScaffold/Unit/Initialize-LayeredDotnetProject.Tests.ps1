@@ -77,169 +77,169 @@ FNF   - File Not Found
 NoDir - NoDirectoryBuildFile switch present
 Props - Directory.Build.props
 #>
-Describe "Initialize-LayeredDotnetProject" -Tag @(
-    "Initialize-LayeredDotnetProject"
-    "Initialize-LayeredDotnetProject.Unit"
-    "Initialize-Layered*Project"
-    "Initialize-Layered*Project.Unit"
-    "Unit"
-) {
-    BeforeAll {
-        $coreModuleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.Core"
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.ProjectScaffold"
-        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $coreModuleRoot "Classes" "FileNotFoundException.ps1")
-        . (Join-Path $coreModuleRoot "Enums" "LogLevel.ps1")
-        . (Join-Path $coreModuleRoot "Public" "Assert-CommandExists.ps1")
-        . (Join-Path $coreModuleRoot "Public" "Assert-FileExists.ps1")
-        . (Join-Path $moduleRoot "Public" "Initialize-LayeredDotnetProject.ps1")
-        . (Join-Path $moduleRoot "Types" "DotnetTemplate.Types.ps1")
-        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+BeforeAll {
+    Import-Module DotPilot.ProjectScaffold -Force
+}
 
-        Mock Write-Host {}
-        Mock Write-Log {}
-        Mock dotnet {}
+InModuleScope "DotPilot.ProjectScaffold" {
+    Describe "Initialize-LayeredDotnetProject" -Tag @(
+        "Initialize-LayeredDotnetProject"
+        "Initialize-LayeredDotnetProject.Unit"
+        "Initialize-Layered*Project"
+        "Initialize-Layered*Project.Unit"
+        "Unit"
+    ) {
+        BeforeAll {
+            $coreModuleRoot = (Get-Module DotPilot.Core).ModuleBase
+            $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        # Minimal valid template object returned by mocked ConvertFrom-Json.
-        $script:emptyStrList = [System.Collections.Generic.List[string]]@()
-        $script:minimalTemplate = [DotnetTemplate]@{
-            WorkspaceName = "MyProject"
-            Layers        = @(
-                [DotnetLayer]@{
-                    Name              = "Core"
-                    Type              = "classlib"
-                    ExtraArguments    = ""
-                    Packages          = $script:emptyStrList
-                    ProjectReferences = $script:emptyStrList
+            . (Join-Path $coreModuleRoot "Classes" "FileNotFoundException.ps1")
+            . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+
+            Mock Write-Host {}
+            Mock Write-Log {}
+            Mock dotnet {}
+
+            # Minimal valid template object returned by mocked ConvertFrom-Json.
+            $script:emptyStrList = [System.Collections.Generic.List[string]]@()
+            $script:minimalTemplate = [DotnetTemplate]@{
+                WorkspaceName = "MyProject"
+                Layers        = @(
+                    [DotnetLayer]@{
+                        Name              = "Core"
+                        Type              = "classlib"
+                        ExtraArguments    = ""
+                        Packages          = $script:emptyStrList
+                        ProjectReferences = $script:emptyStrList
+                    }
+                )
+            }
+        }
+
+        Context "When TemplateJsonPath points to a missing file" {
+            BeforeAll {
+                $script:missingJson = Join-Path $TestDrive `
+                    "missing.template.json"
+                $script:caughtError = $null
+
+                try {
+                    Initialize-LayeredDotnetProject `
+                        -TemplateJsonPath $script:missingJson
                 }
-            )
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Initialize-LayeredDotnetProject" `
+                    -CaughtError $script:caughtError `
+                    -Context "TemplateJsonPath='<missing file>'"
+            }
+
+            # 01
+            It "Throws FileNotFoundException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [FileNotFoundException]
+                )
+            }
         }
-    }
 
-    Context "When TemplateJsonPath points to a missing file" {
-        BeforeAll {
-            $script:missingJson = Join-Path $TestDrive "missing.template.json"
-            $script:caughtError = $null
+        Context "When the template file contains invalid JSON" {
+            BeforeAll {
+                $script:badJsonFile = Join-Path $TestDrive "bad.template.json"
+                Set-Content -Path $script:badJsonFile -Value "{bad json}"
 
-            try {
+                # Assert-FileExists must pass so Test-Json is actually reached.
+                Mock Assert-FileExists {}
+
+                $script:caughtError = $null
+
+                try {
+                    Initialize-LayeredDotnetProject `
+                        -TemplateJsonPath $script:badJsonFile
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Initialize-LayeredDotnetProject" `
+                    -CaughtError $script:caughtError `
+                    -Context "TemplateJsonPath='<bad json file>'"
+            }
+
+            # 02
+            It "Throws a terminating error" {
+                $script:caughtError | Should -Not -BeNullOrEmpty
+            }
+        }
+
+        Context "When template is valid and NoDirectoryBuildFile is absent" {
+            BeforeAll {
+                $script:templateFile = Join-Path `
+                    $TestDrive "MyProject.template.json"
+                Set-Content -Path $script:templateFile -Value "{}"
+
+                Mock Assert-FileExists {}
+                Mock Assert-CommandExists {}
+                Mock Get-Content { return "{}" } -ParameterFilter {
+                    $Path -eq $script:templateFile
+                }
+                Mock Test-Json { return $true }
+                Mock ConvertFrom-Json { return $script:minimalTemplate }
+
+                $script:propsFile = Join-Path $TestDrive "Directory.Build.props"
+
+                Push-Location $TestDrive
+
                 Initialize-LayeredDotnetProject `
-                    -TemplateJsonPath $script:missingJson
-            }
-            catch {
-                $script:caughtError = $_
+                    -TemplateJsonPath $script:templateFile
             }
 
-            Assert-GuardThrew `
-                -Caller "Initialize-LayeredDotnetProject" `
-                -CaughtError $script:caughtError `
-                -Context "TemplateJsonPath='<missing file>'"
+            AfterAll {
+                Pop-Location
+            }
+
+            # 03
+            It "Creates Directory.Build.props in the current directory" {
+                $script:propsFile | Should -Exist
+
+                # Sanity check - ensure the file created by Set-Content has
+                # expected content.
+                Get-Content $script:propsFile | Should -Contain '<Project>'
+            }
         }
 
-        # 01
-        It "Throws FileNotFoundException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [FileNotFoundException]
-            )
-        }
-    }
+        Context "When NoDirectoryBuildFile switch is present" {
+            BeforeAll {
+                $script:templateFile = Join-Path `
+                    $TestDrive "MyProject.template.json"
+                Set-Content -Path $script:templateFile -Value "{}"
 
-    Context "When the template file contains invalid JSON" {
-        BeforeAll {
-            $script:badJsonFile = Join-Path $TestDrive "bad.template.json"
-            Set-Content -Path $script:badJsonFile -Value "{bad json}"
+                Mock Assert-FileExists {}
+                Mock Assert-CommandExists {}
+                Mock Get-Content { return "{}" }
+                Mock Test-Json { return $true }
+                Mock ConvertFrom-Json { return $script:minimalTemplate }
 
-            # Assert-FileExists must pass so Test-Json is actually reached.
-            Mock Assert-FileExists {}
+                $script:propsFile = Join-Path $TestDrive "Directory.Build.props"
 
-            $script:caughtError = $null
+                Push-Location $TestDrive
 
-            try {
                 Initialize-LayeredDotnetProject `
-                    -TemplateJsonPath $script:badJsonFile
-            }
-            catch {
-                $script:caughtError = $_
+                    -TemplateJsonPath $script:templateFile `
+                    -NoDirectoryBuildFile
             }
 
-            Assert-GuardThrew `
-                -Caller "Initialize-LayeredDotnetProject" `
-                -CaughtError $script:caughtError `
-                -Context "TemplateJsonPath='<bad json file>'"
-        }
-
-        # 02
-        It "Throws a terminating error" {
-            $script:caughtError | Should -Not -BeNullOrEmpty
-        }
-    }
-
-    Context "When template is valid and NoDirectoryBuildFile is absent" {
-        BeforeAll {
-            $script:templateFile = Join-Path `
-                $TestDrive "MyProject.template.json"
-            Set-Content -Path $script:templateFile -Value "{}"
-
-            Mock Assert-FileExists {}
-            Mock Assert-CommandExists {}
-            Mock Get-Content { return "{}" } -ParameterFilter {
-                $Path -eq $script:templateFile
+            AfterAll {
+                Pop-Location
             }
-            Mock Test-Json { return $true }
-            Mock ConvertFrom-Json { return $script:minimalTemplate }
 
-            $script:propsFile = Join-Path $TestDrive "Directory.Build.props"
-
-            Push-Location $TestDrive
-
-            Initialize-LayeredDotnetProject `
-                -TemplateJsonPath $script:templateFile
-        }
-
-        AfterAll {
-            Pop-Location
-        }
-
-        # 03
-        It "Creates Directory.Build.props in the current directory" {
-            $script:propsFile | Should -Exist
-
-            # Sanity check - ensure the file created by Set-Content has expected
-            # content.
-            Get-Content $script:propsFile | Should -Contain '<Project>'
-        }
-    }
-
-    Context "When NoDirectoryBuildFile switch is present" {
-        BeforeAll {
-            $script:templateFile = Join-Path `
-                $TestDrive "MyProject.template.json"
-            Set-Content -Path $script:templateFile -Value "{}"
-
-            Mock Assert-FileExists {}
-            Mock Assert-CommandExists {}
-            Mock Get-Content { return "{}" }
-            Mock Test-Json { return $true }
-            Mock ConvertFrom-Json { return $script:minimalTemplate }
-
-            $script:propsFile = Join-Path $TestDrive "Directory.Build.props"
-
-            Push-Location $TestDrive
-
-            Initialize-LayeredDotnetProject `
-                -TemplateJsonPath $script:templateFile `
-                -NoDirectoryBuildFile
-        }
-
-        AfterAll {
-            Pop-Location
-        }
-
-        # 04
-        It "Does not create Directory.Build.props" {
-            $script:propsFile | Should -Not -Exist
+            # 04
+            It "Does not create Directory.Build.props" {
+                $script:propsFile | Should -Not -Exist
+            }
         }
     }
 }

@@ -77,125 +77,131 @@ NF   - Not Found
 Abs  - Absent
 Pre  - Present
 #>
-Describe "Assert-DirectoryExists" -Tag @(
-    "Assert-DirectoryExists"
-    "Assert-*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
-        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $moduleRoot "Classes" "DirectoryNotFoundException.ps1")
-        . (Join-Path $moduleRoot "Public" "Assert-DirectoryExists.ps1")
-        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        function Invoke-Caller {
-            [CmdletBinding()]
-            param (
-                [string]$Path,
-                [string]$Reason
-            )
-            Assert-DirectoryExists `
-                -Path $Path `
-                -Cmdlet $PSCmdlet `
-                -Reason $Reason
-        }
-
-        $script:missingDirContext = "Path='<missing_directory>'"
-    }
-
-    Context "When directory exists and Reason is absent" {
+InModuleScope "DotPilot.Core" {
+    Describe "Assert-DirectoryExists" -Tag @(
+        "Assert-DirectoryExists"
+        "Assert-*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:tempDir = Join-Path $TestDrive "temp_directory"
-            [void](New-Item -Path $script:tempDir -ItemType Directory)
-        }
+            $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        # 01
-        It "Does not throw" {
-            { Invoke-Caller -Path $script:tempDir } | Should -Not -Throw
-        }
-    }
+            . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
 
-    Context "When directory does not exist and Reason is absent" {
-        BeforeAll {
-            $script:missingDir = Join-Path $TestDrive "missing_directory"
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller -Path $script:missingDir
-            }
-            catch {
-                $script:caughtError = $_
+            function Invoke-Caller {
+                [CmdletBinding()]
+                param (
+                    [string]$Path,
+                    [string]$Reason
+                )
+                Assert-DirectoryExists `
+                    -Path $Path `
+                    -Cmdlet $PSCmdlet `
+                    -Reason $Reason
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context $script:missingDirContext
+            $script:missingDirContext = "Path='<missing_directory>'"
         }
 
-        # 02
-        It "Throws DirectoryNotFoundException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [DirectoryNotFoundException]
-            )
-        }
-
-        # 03
-        It "Exception message contains the full path" {
-            $fullPath = [System.IO.Path]::GetFullPath($script:missingDir)
-
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$fullPath'*"
-        }
-
-        # 04
-        It "Exception message contains the directory name" {
-            $directoryName = [System.IO.Path]::GetFileName($script:missingDir)
-
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$directoryName'*"
-        }
-
-        # 05
-        It "Error is attributed to the caller" {
-            $script:caughtError.InvocationInfo.MyCommand.Name | `
-                Should -Be "Invoke-Caller"
-        }
-
-        # 06
-        It "FullyQualifiedErrorId is 'DirectoryNotFound,Invoke-Caller'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "DirectoryNotFound,Invoke-Caller"
-        }
-    }
-
-    Context "When directory does not exist and Reason is present" {
-        BeforeAll {
-            $script:missingDir = Join-Path $TestDrive "missing_directory"
-            $script:reason = "Create the directory first."
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller `
-                    -Path $script:missingDir `
-                    -Reason $script:reason
-            }
-            catch {
-                $script:caughtError = $_
+        Context "When directory exists and Reason is absent" {
+            BeforeAll {
+                $script:tempDir = Join-Path $TestDrive "temp_directory"
+                [void](New-Item -Path $script:tempDir -ItemType Directory)
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context "$script:missingDirContext, with Reason"
+            # 01
+            It "Does not throw" {
+                { Invoke-Caller -Path $script:tempDir } | Should -Not -Throw
+            }
         }
 
-        # 07
-        It "ErrorDetails contains Reason" {
-            $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:reason)"
+        Context "When directory does not exist and Reason is absent" {
+            BeforeAll {
+                $script:missingDir = Join-Path $TestDrive "missing_directory"
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller -Path $script:missingDir
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context $script:missingDirContext
+            }
+
+            # 02
+            It "Throws DirectoryNotFoundException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [DirectoryNotFoundException]
+                )
+            }
+
+            # 03
+            It "Exception message contains the full path" {
+                $fullPath = [System.IO.Path]::GetFullPath($script:missingDir)
+
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'$fullPath'*"
+            }
+
+            # 04
+            It "Exception message contains the directory name" {
+                $directoryName = [System.IO.Path]::GetFileName(
+                    $script:missingDir
+                )
+
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'$directoryName'*"
+            }
+
+            # 05
+            It "Error is attributed to the caller" {
+                $script:caughtError.InvocationInfo.MyCommand.Name | `
+                    Should -Be "Invoke-Caller"
+            }
+
+            # 06
+            It "FullyQualifiedErrorId is 'DirectoryNotFound,Invoke-Caller'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -Be "DirectoryNotFound,Invoke-Caller"
+            }
+        }
+
+        Context "When directory does not exist and Reason is present" {
+            BeforeAll {
+                $script:missingDir = Join-Path $TestDrive "missing_directory"
+                $script:reason = "Create the directory first."
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller `
+                        -Path $script:missingDir `
+                        -Reason $script:reason
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context "$script:missingDirContext, with Reason"
+            }
+
+            # 07
+            It "ErrorDetails contains Reason" {
+                $script:caughtError.ErrorDetails.Message | `
+                    Should -BeLike "*$($script:reason)"
+            }
         }
     }
 }

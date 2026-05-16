@@ -154,232 +154,228 @@ Log  - [LogFormat]::Log
 Json - [LogFormat]::Json
 Bad  - Unparseable format string
 #>
-Describe "Write-Log" -Tag @(
-    "Write-Log"
-    "Write-Log*"
-    "Integration"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
-        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $moduleRoot "Classes" "ArgumentBlankException.ps1")
-        . (Join-Path $moduleRoot "Enums" "LogFormat.ps1")
-        . (Join-Path $moduleRoot "Enums" "LogLevel.ps1")
-        . (Join-Path $moduleRoot "Config" "Global.ps1")
-        . (Join-Path $moduleRoot "Private" "Write-LogConsole.ps1")
-        . (Join-Path $moduleRoot "Private" "Write-LogFile.ps1")
-        . (Join-Path $moduleRoot "Private" "Write-LogJson.ps1")
-        . (Join-Path $moduleRoot "Public" "Assert-ArgumentExists.ps1")
-        . (Join-Path $moduleRoot "Public" "Assert-DirectoryExists.ps1")
-        . (Join-Path $moduleRoot "Public" "Write-Log.ps1")
-        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        # Suppress console output across all contexts.
-        # Write-Host call count is still verifiable via Should -Invoke.
-        Mock Write-Host {}
-    }
-
-    AfterAll {
-        # Reset global state to avoid side effects on other tests.
-        $global:DotPilot.Log.FileLogging = $false
-        $global:DotPilot.Log.FileFormat = [LogFormat]::Log
-    }
-
-    Context "When file logging is disabled" {
+InModuleScope "DotPilot.Core" {
+    Describe "Write-Log" -Tag @(
+        "Write-Log"
+        "Write-Log*"
+        "Integration"
+    ) {
         BeforeAll {
+            $testsDir = Join-Path $PSScriptRoot ".." ".."
+
+            . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+
+            # Suppress console output across all contexts.
+            # Write-Host call count is still verifiable via Should -Invoke.
+            Mock Write-Host {}
+        }
+
+        AfterAll {
+            # Reset global state to avoid side effects on other tests.
             $global:DotPilot.Log.FileLogging = $false
-
-            $script:dir = $TestDrive
-            Push-Location $script:dir
-
-            Write-Log -Level ([LogLevel]::Info) -Message "msg"
-        }
-
-        AfterAll {
-            Pop-Location
-        }
-
-        # 01
-        It "Creates no file in the current directory" {
-            (Get-ChildItem -Path $script:dir).Count | Should -Be 0
-        }
-
-        # 02
-        It "Calls Write-Host to produce console output" {
-            Should -Invoke Write-Host -Scope Context
-        }
-    }
-
-    Context "When file logging is enabled and FileName is absent" {
-        BeforeAll {
-            $global:DotPilot.Log.FileLogging = $true
             $global:DotPilot.Log.FileFormat = [LogFormat]::Log
+        }
 
-            try {
+        Context "When file logging is disabled" {
+            BeforeAll {
+                $global:DotPilot.Log.FileLogging = $false
+
+                $script:dir = $TestDrive
+                Push-Location $script:dir
+
+                Write-Log -Level ([LogLevel]::Info) -Message "msg"
+            }
+
+            AfterAll {
+                Pop-Location
+            }
+
+            # 01
+            It "Creates no file in the current directory" {
+                (Get-ChildItem -Path $script:dir).Count | Should -Be 0
+            }
+
+            # 02
+            It "Calls Write-Host to produce console output" {
+                Should -Invoke Write-Host -Scope Context
+            }
+        }
+
+        Context "When file logging is enabled and FileName is absent" {
+            BeforeAll {
+                $global:DotPilot.Log.FileLogging = $true
+                $global:DotPilot.Log.FileFormat = [LogFormat]::Log
+
+                try {
+                    Write-Log `
+                        -Level ([LogLevel]::Info) `
+                        -Message "msg" `
+                        -FileName ""
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Write-Log" `
+                    -CaughtError $script:caughtError `
+                    -Context "FileName='<empty>' with file logging enabled"
+            }
+
+            # 03
+            It "Throws an ArgumentBlankException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [ArgumentBlankException]
+                )
+            }
+        }
+
+        Context "When file logging is on, Log format, no OutputDirectory" {
+            BeforeAll {
+                $global:DotPilot.Log.FileLogging = $true
+                $global:DotPilot.Log.FileFormat = [LogFormat]::Log
+
+                $script:fileName = "run"
+                $script:message = "Server started"
+                $script:logFile = Join-Path $TestDrive "$script:fileName.log"
+
+                Push-Location $TestDrive
+
+                Write-Log `
+                    -Level ([LogLevel]::Info) `
+                    -Message $script:message `
+                    -FileName $script:fileName
+            }
+
+            AfterAll {
+                Pop-Location
+            }
+
+            # 04
+            It "Creates the .log file" {
+                $script:logFile | Should -Exist
+            }
+
+            # 05
+            It "Does not create a .jsonl file" {
+                $jsonFile = Join-Path $TestDrive "$script:fileName.jsonl"
+                $jsonFile | Should -Not -Exist
+            }
+        }
+
+        Context "When file logging is on, Log format, OutputDirectory present" {
+            BeforeAll {
+                $global:DotPilot.Log.FileLogging = $true
+                $global:DotPilot.Log.FileFormat = [LogFormat]::Log
+
+                $script:fileName = "run"
+                $script:logFile = Join-Path $TestDrive "$script:fileName.log"
+
                 Write-Log `
                     -Level ([LogLevel]::Info) `
                     -Message "msg" `
-                    -FileName ""
-            }
-            catch {
-                $script:caughtError = $_
+                    -FileName $script:fileName `
+                    -OutputDirectory $TestDrive
             }
 
-            Assert-GuardThrew `
-                -Caller "Write-Log" `
-                -CaughtError $script:caughtError `
-                -Context "FileName='<empty>' with file logging enabled"
+            # 06
+            It "Creates the .log file under the specified OutputDirectory" {
+                $script:logFile | Should -Exist
+            }
         }
 
-        # 03
-        It "Throws an ArgumentBlankException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [ArgumentBlankException]
-            )
-        }
-    }
+        Context "When file logging is on and format is Json" {
+            BeforeAll {
+                $global:DotPilot.Log.FileLogging = $true
+                $global:DotPilot.Log.FileFormat = [LogFormat]::Json
 
-    Context "When file logging is on, Log format, no OutputDirectory" {
-        BeforeAll {
-            $global:DotPilot.Log.FileLogging = $true
-            $global:DotPilot.Log.FileFormat = [LogFormat]::Log
+                $script:fileName = "run"
+                $script:message = "msg"
+                $script:jsonFile = Join-Path $TestDrive "$script:fileName.jsonl"
 
-            $script:fileName = "run"
-            $script:message = "Server started"
-            $script:logFile = Join-Path $TestDrive "$script:fileName.log"
+                Push-Location $TestDrive
 
-            Push-Location $TestDrive
-
-            Write-Log `
-                -Level ([LogLevel]::Info) `
-                -Message $script:message `
-                -FileName $script:fileName
-        }
-
-        AfterAll {
-            Pop-Location
-        }
-
-        # 04
-        It "Creates the .log file" {
-            $script:logFile | Should -Exist
-        }
-
-        # 05
-        It "Does not create a .jsonl file" {
-            $jsonFile = Join-Path $TestDrive "$script:fileName.jsonl"
-            $jsonFile | Should -Not -Exist
-        }
-    }
-
-    Context "When file logging is on, Log format, OutputDirectory present" {
-        BeforeAll {
-            $global:DotPilot.Log.FileLogging = $true
-            $global:DotPilot.Log.FileFormat = [LogFormat]::Log
-
-            $script:fileName = "run"
-            $script:logFile = Join-Path $TestDrive "$script:fileName.log"
-
-            Write-Log `
-                -Level ([LogLevel]::Info) `
-                -Message "msg" `
-                -FileName $script:fileName `
-                -OutputDirectory $TestDrive
-        }
-
-        # 06
-        It "Creates the .log file under the specified OutputDirectory" {
-            $script:logFile | Should -Exist
-        }
-    }
-
-    Context "When file logging is on and format is Json" {
-        BeforeAll {
-            $global:DotPilot.Log.FileLogging = $true
-            $global:DotPilot.Log.FileFormat = [LogFormat]::Json
-
-            $script:fileName = "run"
-            $script:message = "msg"
-            $script:jsonFile = Join-Path $TestDrive "$script:fileName.jsonl"
-
-            Push-Location $TestDrive
-
-            Write-Log `
-                -Level ([LogLevel]::Info) `
-                -Message $script:message `
-                -FileName $script:fileName
-        }
-
-        AfterAll {
-            Pop-Location
-        }
-
-        # 07
-        It "Creates the .jsonl file" {
-            $script:jsonFile | Should -Exist
-        }
-
-        # 08
-        It "Does not create a .log file" {
-            $logFile = Join-Path $TestDrive "$script:fileName.log"
-            $logFile | Should -Not -Exist
-        }
-    }
-
-    Context "When file logging is on and FileFormat is None" {
-        BeforeAll {
-            $global:DotPilot.Log.FileLogging = $true
-            $global:DotPilot.Log.FileFormat = [LogFormat]::None
-
-            try {
                 Write-Log `
                     -Level ([LogLevel]::Info) `
-                    -Message "msg" `
-                    -FileName "run"
-            }
-            catch {
-                $script:caughtError = $_
+                    -Message $script:message `
+                    -FileName $script:fileName
             }
 
-            Assert-GuardThrew `
-                -Caller "Write-Log" `
-                -CaughtError $script:caughtError `
-                -Context "FileFormat='None' with file logging enabled"
+            AfterAll {
+                Pop-Location
+            }
+
+            # 07
+            It "Creates the .jsonl file" {
+                $script:jsonFile | Should -Exist
+            }
+
+            # 08
+            It "Does not create a .log file" {
+                $logFile = Join-Path $TestDrive "$script:fileName.log"
+                $logFile | Should -Not -Exist
+            }
         }
 
-        # 09
-        It "Throws with ErrorId 'LogFormatNotSet'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -BeLike "*LogFormatNotSet*"
-        }
-    }
+        Context "When file logging is on and FileFormat is None" {
+            BeforeAll {
+                $global:DotPilot.Log.FileLogging = $true
+                $global:DotPilot.Log.FileFormat = [LogFormat]::None
 
-    Context "When file logging is on and FileFormat is unparseable" {
-        BeforeAll {
-            $global:DotPilot.Log.FileLogging = $true
-            $global:DotPilot.Log.FileFormat = "???"
+                try {
+                    Write-Log `
+                        -Level ([LogLevel]::Info) `
+                        -Message "msg" `
+                        -FileName "run"
+                }
+                catch {
+                    $script:caughtError = $_
+                }
 
-            try {
-                Write-Log `
-                    -Level ([LogLevel]::Info) `
-                    -Message "msg" `
-                    -FileName "run"
+                Assert-GuardThrew `
+                    -Caller "Write-Log" `
+                    -CaughtError $script:caughtError `
+                    -Context "FileFormat='None' with file logging enabled"
             }
-            catch {
-                $script:caughtError = $_
-            }
 
-            Assert-GuardThrew `
-                -Caller "Write-Log" `
-                -CaughtError $script:caughtError `
-                -Context "FileFormat='???' with file logging enabled"
+            # 09
+            It "Throws with ErrorId 'LogFormatNotSet'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -BeLike "*LogFormatNotSet*"
+            }
         }
 
-        # 10
-        It "Throws with ErrorId 'InvalidLogFormat'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -BeLike "*InvalidLogFormat*"
+        Context "When file logging is on and FileFormat is unparseable" {
+            BeforeAll {
+                $global:DotPilot.Log.FileLogging = $true
+                $global:DotPilot.Log.FileFormat = "???"
+
+                try {
+                    Write-Log `
+                        -Level ([LogLevel]::Info) `
+                        -Message "msg" `
+                        -FileName "run"
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Write-Log" `
+                    -CaughtError $script:caughtError `
+                    -Context "FileFormat='???' with file logging enabled"
+            }
+
+            # 10
+            It "Throws with ErrorId 'InvalidLogFormat'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -BeLike "*InvalidLogFormat*"
+            }
         }
     }
 }

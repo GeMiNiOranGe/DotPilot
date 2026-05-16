@@ -3,20 +3,8 @@
 [CmdletBinding()]
 param (
     [string[]]$Tags,
-
     [string[]]$Path
 )
-
-$rootDir = Resolve-Path "$PSScriptRoot\.."
-$moduleNames = @(
-    "DotPilot.Core"
-    "DotPilot.ProjectScaffold"
-)
-
-foreach ($moduleName in $moduleNames) {
-    $modulePath = Join-Path $rootDir $moduleName "$moduleName.psd1"
-    Import-Module $modulePath -Force -ErrorAction Stop
-}
 
 if (-not (Get-Module -ListAvailable -Name Pester)) {
     throw @(
@@ -24,7 +12,14 @@ if (-not (Get-Module -ListAvailable -Name Pester)) {
         "Install-Module -Name Pester -Force -RequiredVersion 5.7.1"
     ) -join ""
 }
+
 Import-Module Pester
+
+$rootDir = Resolve-Path "$PSScriptRoot\.."
+$moduleNames = @(
+    "DotPilot.Core"
+    "DotPilot.ProjectScaffold"
+)
 
 $config = [PesterConfiguration]::new()
 $config.Output.Verbosity = "Detailed"

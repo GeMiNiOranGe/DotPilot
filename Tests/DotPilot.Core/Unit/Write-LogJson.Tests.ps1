@@ -115,163 +115,165 @@ Val - Valid
 WS  - Whitespace
 Non - Non-Valid
 #>
-Describe "Write-LogJson" -Tag @(
-    "Write-LogJson"
-    "Write-Log*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
 
-        . (Join-Path $moduleRoot "Enums" "LogLevel.ps1")
-        . (Join-Path $moduleRoot "Private" "Write-LogJson.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        # Mock Add-Content to avoid actual file I/O and
-        # enable verification of parameters.
-        Mock Add-Content {}
-    }
-
-    Context "When Level is Info and Source is valid" {
+InModuleScope "DotPilot.Core" {
+    Describe "Write-LogJson" -Tag @(
+        "Write-LogJson"
+        "Write-Log*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:message = "Server started"
-            $script:source = "Verb-Noun"
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
-
-            Write-LogJson `
-                -Level ([LogLevel]::Info) `
-                -Message $script:message `
-                -Source $script:source `
-                -Path $script:path
+            # Mock Add-Content to avoid actual file I/O and
+            # enable verification of parameters.
+            Mock Add-Content {}
         }
 
-        # 01
-        It "Calls Add-Content exactly once" {
-            Should -Invoke Add-Content -Times 1 -Scope Context
-        }
+        Context "When Level is Info and Source is valid" {
+            BeforeAll {
+                $script:message = "Server started"
+                $script:source = "Verb-Noun"
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
 
-        # 02
-        It "Passes the correct path to Add-Content" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Path -eq $script:path }
-        }
+                Write-LogJson `
+                    -Level ([LogLevel]::Info) `
+                    -Message $script:message `
+                    -Source $script:source `
+                    -Path $script:path
+            }
 
-        # 03
-        It "Writes an entry whose Timestamp matches the ISO-8601 pattern" {
-            $format = '"Timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"'
+            # 01
+            It "Calls Add-Content exactly once" {
+                Should -Invoke Add-Content -Times 1 -Scope Context
+            }
 
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -match $format }
-        }
+            # 02
+            It "Passes the correct path to Add-Content" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Path -eq $script:path }
+            }
 
-        # 04
-        It "Writes an entry with Level 'Info'" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -like '*"Level":"Info"*' }
-        }
+            # 03
+            It "Writes an entry whose Timestamp matches the ISO-8601 pattern" {
+                $format = '"Timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"'
 
-        # 05
-        It "Writes an entry with the correct Message value" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -match $format }
+            }
+
+            # 04
+            It "Writes an entry with Level 'Info'" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -like '*"Level":"Info"*' }
+            }
+
+            # 05
+            It "Writes an entry with the correct Message value" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter {
                     $Value -like "*`"Message`":*`"$script:message`"*"
                 }
+            }
+
+            # 06
+            It "Writes an entry that contains the Source value" {
+                $format = "*`"Source`":*`"$script:source`"*"
+
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -like $format }
+            }
+
+            # 07
+            It "Writes a compact JSON entry with no spaces between tokens" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -notmatch ':\s|,\s' }
+            }
         }
 
-        # 06
-        It "Writes an entry that contains the Source value" {
-            $format = "*`"Source`":*`"$script:source`"*"
+        Context "When Level is Info and Source is null" {
+            BeforeAll {
+                $script:message = "Server started"
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
 
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -like $format }
+                Write-LogJson `
+                    -Level ([LogLevel]::Info) `
+                    -Message $script:message `
+                    -Source $null `
+                    -Path $script:path
+            }
+
+            # 08
+            It "Writes an entry that contains no Source key" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -notlike '*"Source":*' }
+            }
         }
 
-        # 07
-        It "Writes a compact JSON entry with no spaces between tokens" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -notmatch ':\s|,\s' }
-        }
-    }
+        Context "When Level is Info and Source is whitespace" {
+            BeforeAll {
+                $script:message = "Server started"
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
 
-    Context "When Level is Info and Source is null" {
-        BeforeAll {
-            $script:message = "Server started"
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
+                Write-LogJson `
+                    -Level ([LogLevel]::Info) `
+                    -Message $script:message `
+                    -Source "   " `
+                    -Path $script:path
+            }
 
-            Write-LogJson `
-                -Level ([LogLevel]::Info) `
-                -Message $script:message `
-                -Source $null `
-                -Path $script:path
-        }
-
-        # 08
-        It "Writes an entry that contains no Source key" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -notlike '*"Source":*' }
-        }
-    }
-
-    Context "When Level is Info and Source is whitespace" {
-        BeforeAll {
-            $script:message = "Server started"
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
-
-            Write-LogJson `
-                -Level ([LogLevel]::Info) `
-                -Message $script:message `
-                -Source "   " `
-                -Path $script:path
+            # 09
+            It "Writes an entry that contains no Source key" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -notlike '*"Source":*' }
+            }
         }
 
-        # 09
-        It "Writes an entry that contains no Source key" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -notlike '*"Source":*' }
-        }
-    }
+        Context "When Level is Warn" {
+            BeforeAll {
+                Write-LogJson `
+                    -Level ([LogLevel]::Warn) `
+                    -Message "Disk low" `
+                    -Path (Join-Path "C:" "Logs" "log-file.log")
+            }
 
-    Context "When Level is Warn" {
-        BeforeAll {
-            Write-LogJson `
-                -Level ([LogLevel]::Warn) `
-                -Message "Disk low" `
-                -Path (Join-Path "C:" "Logs" "log-file.log")
-        }
-
-        # 10
-        It "Writes an entry with Level 'Warn'" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -like '*"Level":"Warn"*' }
-        }
-    }
-
-    Context "When Level is Error" {
-        BeforeAll {
-            Write-LogJson `
-                -Level ([LogLevel]::Error) `
-                -Message "Disk low" `
-                -Path (Join-Path "C:" "Logs" "log-file.log")
+            # 10
+            It "Writes an entry with Level 'Warn'" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -like '*"Level":"Warn"*' }
+            }
         }
 
-        # 11
-        It "Writes an entry with Level 'Error'" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -like '*"Level":"Error"*' }
-        }
-    }
+        Context "When Level is Error" {
+            BeforeAll {
+                Write-LogJson `
+                    -Level ([LogLevel]::Error) `
+                    -Message "Disk low" `
+                    -Path (Join-Path "C:" "Logs" "log-file.log")
+            }
 
-    Context "When Level is Debug" {
-        BeforeAll {
-            Write-LogJson `
-                -Level ([LogLevel]::Debug) `
-                -Message "Disk low" `
-                -Path (Join-Path "C:" "Logs" "log-file.log")
+            # 11
+            It "Writes an entry with Level 'Error'" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -like '*"Level":"Error"*' }
+            }
         }
 
-        # 12
-        It "Writes an entry with Level 'Debug'" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -like '*"Level":"Debug"*' }
+        Context "When Level is Debug" {
+            BeforeAll {
+                Write-LogJson `
+                    -Level ([LogLevel]::Debug) `
+                    -Message "Disk low" `
+                    -Path (Join-Path "C:" "Logs" "log-file.log")
+            }
+
+            # 12
+            It "Writes an entry with Level 'Debug'" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -like '*"Level":"Debug"*' }
+            }
         }
     }
 }

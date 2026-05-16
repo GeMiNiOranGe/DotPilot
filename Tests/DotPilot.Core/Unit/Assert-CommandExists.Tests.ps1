@@ -74,107 +74,111 @@ NF   - Not Found
 Abs  - Absent
 Pre  - Present
 #>
-Describe "Assert-CommandExists" -Tag @(
-    "Assert-CommandExists",
-    "Assert-*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
-        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $moduleRoot "Classes" "CommandNotFoundException.ps1")
-        . (Join-Path $moduleRoot "Public" "Assert-CommandExists.ps1")
-        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        function Invoke-Caller {
-            [CmdletBinding()]
-            param (
-                [string]$Name,
-                [string]$Reason
-            )
-            Assert-CommandExists `
-                -Name $Name `
-                -Cmdlet $PSCmdlet `
-                -Reason $Reason
-        }
-
-        $script:notFound = "__nonexistent_cli__"
-        $script:notFoundContext = "CommandName='$script:notFound'"
-    }
-
-    Context "When command exists and Reason is absent" {
-        # 01
-        It "Does not throw" {
-            { Invoke-Caller -Name "pwsh" } | Should -Not -Throw
-        }
-    }
-
-    Context "When command is not found and Reason is absent" {
+InModuleScope "DotPilot.Core" {
+    Describe "Assert-CommandExists" -Tag @(
+        "Assert-CommandExists",
+        "Assert-*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:caughtError = $null
+            $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-            try {
-                Invoke-Caller -Name $script:notFound
-            }
-            catch {
-                $script:caughtError = $_
-            }
+            . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context $script:notFoundContext
-        }
-
-        # 02
-        It "Throws CommandNotFoundException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [CommandNotFoundException]
-            )
-        }
-
-        # 03
-        It "Exception message contains the command name" {
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$($script:notFound)'*"
-        }
-
-        # 04
-        It "Error is attributed to the caller" {
-            $script:caughtError.InvocationInfo.MyCommand.Name | `
-                Should -Be "Invoke-Caller"
-        }
-
-        # 05
-        It "FullyQualifiedErrorId is 'CommandNotFound,Invoke-Caller'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "CommandNotFound,Invoke-Caller"
-        }
-    }
-
-    Context "When command is not found and Reason is present" {
-        BeforeAll {
-            $script:reason = "Install via ..."
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller -Name $script:notFound -Reason $script:reason
-            }
-            catch {
-                $script:caughtError = $_
+            function Invoke-Caller {
+                [CmdletBinding()]
+                param (
+                    [string]$Name,
+                    [string]$Reason
+                )
+                Assert-CommandExists `
+                    -Name $Name `
+                    -Cmdlet $PSCmdlet `
+                    -Reason $Reason
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context "$script:notFoundContext, with Reason"
+            $script:notFound = "__nonexistent_cli__"
+            $script:notFoundContext = "CommandName='$script:notFound'"
         }
 
-        # 06
-        It "ErrorDetails contains Reason" {
-            $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:reason)"
+        Context "When command exists and Reason is absent" {
+            # 01
+            It "Does not throw" {
+                { Invoke-Caller -Name "pwsh" } | Should -Not -Throw
+            }
+        }
+
+        Context "When command is not found and Reason is absent" {
+            BeforeAll {
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller -Name $script:notFound
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context $script:notFoundContext
+            }
+
+            # 02
+            It "Throws CommandNotFoundException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [CommandNotFoundException]
+                )
+            }
+
+            # 03
+            It "Exception message contains the command name" {
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'$($script:notFound)'*"
+            }
+
+            # 04
+            It "Error is attributed to the caller" {
+                $script:caughtError.InvocationInfo.MyCommand.Name | `
+                    Should -Be "Invoke-Caller"
+            }
+
+            # 05
+            It "FullyQualifiedErrorId is 'CommandNotFound,Invoke-Caller'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -Be "CommandNotFound,Invoke-Caller"
+            }
+        }
+
+        Context "When command is not found and Reason is present" {
+            BeforeAll {
+                $script:reason = "Install via ..."
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller -Name $script:notFound -Reason $script:reason
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context "$script:notFoundContext, with Reason"
+            }
+
+            # 06
+            It "ErrorDetails contains Reason" {
+                $script:caughtError.ErrorDetails.Message | `
+                    Should -BeLike "*$($script:reason)"
+            }
         }
     }
 }

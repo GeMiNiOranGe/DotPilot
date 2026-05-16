@@ -74,121 +74,125 @@ E   - Exists
 Abs - Absent
 Pre - Present
 #>
-Describe "Assert-FileNotExists" -Tag @(
-    "Assert-FileNotExists"
-    "Assert-*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
-        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $moduleRoot "Classes" "FileAlreadyExistsException.ps1")
-        . (Join-Path $moduleRoot "Public" "Assert-FileNotExists.ps1")
-        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        function Invoke-Caller {
-            [CmdletBinding()]
-            param (
-                [string]$Path,
-                [string]$Reason
-            )
-            Assert-FileNotExists `
-                -Path $Path `
-                -Cmdlet $PSCmdlet `
-                -Reason $Reason
-        }
-
-        $script:fileContext = "Path='<temp.txt>'"
-    }
-
-    Context "When file is not found and Reason is absent" {
+InModuleScope "DotPilot.Core" {
+    Describe "Assert-FileNotExists" -Tag @(
+        "Assert-FileNotExists"
+        "Assert-*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:file = Join-Path $TestDrive "file.txt"
-        }
+            $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        # 01
-        It "Does not throw" {
-            { Invoke-Caller -Path $script:file } | Should -Not -Throw
-        }
-    }
+            . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
 
-    Context "When file exists and Reason is absent" {
-        BeforeAll {
-            $script:tempFile = Join-Path $TestDrive "temp.txt"
-            [void](New-Item -Path $script:tempFile -ItemType File)
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller -Path $script:tempFile
-            }
-            catch {
-                $script:caughtError = $_
+            function Invoke-Caller {
+                [CmdletBinding()]
+                param (
+                    [string]$Path,
+                    [string]$Reason
+                )
+                Assert-FileNotExists `
+                    -Path $Path `
+                    -Cmdlet $PSCmdlet `
+                    -Reason $Reason
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context $script:fileContext
+            $script:fileContext = "Path='<temp.txt>'"
         }
 
-        # 02
-        It "Throws FileAlreadyExistsException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [FileAlreadyExistsException]
-            )
-        }
-
-        # 03
-        It "Exception message contains the file path" {
-            $filePath = [System.IO.Path]::GetFullPath($script:tempFile)
-
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$filePath'*"
-        }
-
-        # 04
-        It "Error is attributed to the caller" {
-            $script:caughtError.InvocationInfo.MyCommand.Name | `
-                Should -Be "Invoke-Caller"
-        }
-
-        # 05
-        It "FullyQualifiedErrorId is 'FileAlreadyExists,Invoke-Caller'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "FileAlreadyExists,Invoke-Caller"
-        }
-    }
-
-    Context "When file exists and Reason is present" {
-        BeforeAll {
-            $script:tempFile = Join-Path $TestDrive "temp.txt"
-            [void](New-Item -Path $script:tempFile -ItemType File)
-            $script:reason = @(
-                "Remove the existing file or choose a different path before"
-                " running this command."
-            ) -join ''
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller `
-                    -Path $script:tempFile `
-                    -Reason $script:reason
-            }
-            catch {
-                $script:caughtError = $_
+        Context "When file is not found and Reason is absent" {
+            BeforeAll {
+                $script:file = Join-Path $TestDrive "file.txt"
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context "$script:fileContext, with Reason"
+            # 01
+            It "Does not throw" {
+                { Invoke-Caller -Path $script:file } | Should -Not -Throw
+            }
         }
 
-        # 06
-        It "ErrorDetails contains Reason" {
-            $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:reason)"
+        Context "When file exists and Reason is absent" {
+            BeforeAll {
+                $script:tempFile = Join-Path $TestDrive "temp.txt"
+                [void](New-Item -Path $script:tempFile -ItemType File)
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller -Path $script:tempFile
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context $script:fileContext
+            }
+
+            # 02
+            It "Throws FileAlreadyExistsException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [FileAlreadyExistsException]
+                )
+            }
+
+            # 03
+            It "Exception message contains the file path" {
+                $filePath = [System.IO.Path]::GetFullPath($script:tempFile)
+
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'$filePath'*"
+            }
+
+            # 04
+            It "Error is attributed to the caller" {
+                $script:caughtError.InvocationInfo.MyCommand.Name | `
+                    Should -Be "Invoke-Caller"
+            }
+
+            # 05
+            It "FullyQualifiedErrorId is 'FileAlreadyExists,Invoke-Caller'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -Be "FileAlreadyExists,Invoke-Caller"
+            }
+        }
+
+        Context "When file exists and Reason is present" {
+            BeforeAll {
+                $script:tempFile = Join-Path $TestDrive "temp.txt"
+                [void](New-Item -Path $script:tempFile -ItemType File)
+                $script:reason = @(
+                    "Remove the existing file or choose a different path before"
+                    " running this command."
+                ) -join ''
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller `
+                        -Path $script:tempFile `
+                        -Reason $script:reason
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context "$script:fileContext, with Reason"
+            }
+
+            # 06
+            It "ErrorDetails contains Reason" {
+                $script:caughtError.ErrorDetails.Message | `
+                    Should -BeLike "*$($script:reason)"
+            }
         }
     }
 }

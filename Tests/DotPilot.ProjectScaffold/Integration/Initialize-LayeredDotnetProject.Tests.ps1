@@ -87,237 +87,237 @@ DT  - Decision Table
 Pkg - NuGet package reference
 Ref - ProjectReference
 #>
-Describe "Initialize-LayeredDotnetProject" -Tag @(
-    "Initialize-LayeredDotnetProject"
-    "Initialize-LayeredDotnetProject.Integration"
-    "Initialize-Layered*Project"
-    "Initialize-Layered*Project.Integration"
-    "Integration"
-) {
-    BeforeAll {
-        $coreModuleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.Core"
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.ProjectScaffold"
 
-        . (Join-Path $coreModuleRoot "Private" "Write-LogConsole.ps1")
-        . (Join-Path $coreModuleRoot "Public" "Write-Log.ps1")
-        . (Join-Path $moduleRoot "Public" "Initialize-LayeredDotnetProject.ps1")
+BeforeAll {
+    Import-Module DotPilot.ProjectScaffold -Force
+}
 
-        Mock Write-Host {}
-    }
-
-    Context "When template has one layer with no extras, packages, or refs" {
+InModuleScope "DotPilot.ProjectScaffold" {
+    Describe "Initialize-LayeredDotnetProject" -Tag @(
+        "Initialize-LayeredDotnetProject"
+        "Initialize-LayeredDotnetProject.Integration"
+        "Initialize-Layered*Project"
+        "Initialize-Layered*Project.Integration"
+        "Integration"
+    ) {
         BeforeAll {
-            $script:wsName = "MyProject"
-            $script:layerName = "Core"
-            $script:projectName = "$script:wsName.$script:layerName"
+            # Suppress  Write-Log entirely to isolate file-creation behavior
+            # and console output side-effect.
+            Mock Write-Log {}
+        }
 
-            $script:template = [ordered]@{
-                workspaceName = $script:wsName
-                layers        = @(
-                    [ordered]@{
-                        name              = $script:layerName
-                        type              = "classlib"
-                        extraArguments    = ""
-                        packages          = @()
-                        projectReferences = @()
-                    }
-                )
+        Context "When template has one layer with no extras, packages, refs" {
+            BeforeAll {
+                $script:wsName = "MyProject"
+                $script:layerName = "Core"
+                $script:projectName = "$script:wsName.$script:layerName"
+
+                $script:template = [ordered]@{
+                    workspaceName = $script:wsName
+                    layers        = @(
+                        [ordered]@{
+                            name              = $script:layerName
+                            type              = "classlib"
+                            extraArguments    = ""
+                            packages          = @()
+                            projectReferences = @()
+                        }
+                    )
+                }
+
+                $script:templateFile = Join-Path `
+                    $TestDrive "$script:wsName.template.json"
+                $script:template | ConvertTo-Json -Depth 10 | `
+                    Set-Content -Path $script:templateFile
+
+                Push-Location $TestDrive
+
+                Initialize-LayeredDotnetProject `
+                    -TemplateJsonPath $script:templateFile
             }
 
-            $script:templateFile = Join-Path `
-                $TestDrive "$script:wsName.template.json"
-            $script:template | ConvertTo-Json -Depth 10 | `
-                Set-Content -Path $script:templateFile
-
-            Push-Location $TestDrive
-
-            Initialize-LayeredDotnetProject `
-                -TemplateJsonPath $script:templateFile
-        }
-
-        AfterAll {
-            Pop-Location
-        }
-
-        # 01
-        It "Creates .gitignore" {
-            Join-Path $TestDrive ".gitignore" | Should -Exist
-        }
-
-        # 02
-        It "Creates the solution file" {
-            Join-Path $TestDrive "$script:wsName.sln" | Should -Exist
-        }
-
-        # 03
-        It "Creates the project directory" {
-            Join-Path $TestDrive $script:projectName | Should -Exist
-        }
-
-        # 04
-        It "Creates the .csproj file" {
-            $csproj = Join-Path `
-                $TestDrive `
-                $script:projectName `
-                "$script:projectName.csproj"
-            $csproj | Should -Exist
-        }
-
-        # 05
-        It "Adds the project to the solution" {
-            $slnContent = Get-Content `
-                -Path (Join-Path $TestDrive "$script:wsName.sln") `
-                -Raw
-            $slnContent | Should -BeLike "*$script:projectName*"
-        }
-    }
-
-    Context "When a layer has non-empty extraArguments" {
-        BeforeAll {
-            $script:wsName = "ExtraArgsProject"
-            $script:layerName = "Core"
-            $script:projectName = "$script:wsName.$script:layerName"
-
-            $script:template = [ordered]@{
-                workspaceName = $script:wsName
-                layers        = @(
-                    [ordered]@{
-                        name              = $script:layerName
-                        type              = "classlib"
-                        extraArguments    = "--no-restore"
-                        packages          = @()
-                        projectReferences = @()
-                    }
-                )
+            AfterAll {
+                Pop-Location
             }
 
-            $script:templateFile = Join-Path `
-                $TestDrive "$script:wsName.template.json"
-            $script:template | ConvertTo-Json -Depth 10 | `
-                Set-Content -Path $script:templateFile
-
-            Push-Location $TestDrive
-
-            Initialize-LayeredDotnetProject `
-                -TemplateJsonPath $script:templateFile
-        }
-
-        AfterAll {
-            Pop-Location
-        }
-
-        # 06
-        It "Creates the project directory with the extra argument applied" {
-            Join-Path $TestDrive $script:projectName | Should -Exist
-        }
-    }
-
-    Context "When a layer has a non-empty packages list" {
-        BeforeAll {
-            $script:wsName = "PackageProject"
-            $script:layerName = "Core"
-            $script:projectName = "$script:wsName.$script:layerName"
-            $script:package = "Newtonsoft.Json"
-
-            $script:template = [ordered]@{
-                workspaceName = $script:wsName
-                layers        = @(
-                    [ordered]@{
-                        name              = $script:layerName
-                        type              = "classlib"
-                        extraArguments    = ""
-                        packages          = @($script:package)
-                        projectReferences = @()
-                    }
-                )
+            # 01
+            It "Creates .gitignore" {
+                Join-Path $TestDrive ".gitignore" | Should -Exist
             }
 
-            $script:templateFile = Join-Path `
-                $TestDrive "$script:wsName.template.json"
-            $script:template | ConvertTo-Json -Depth 10 | `
-                Set-Content -Path $script:templateFile
-
-            Push-Location $TestDrive
-
-            Initialize-LayeredDotnetProject `
-                -TemplateJsonPath $script:templateFile
-
-            $script:csprojPath = Join-Path `
-                $TestDrive `
-                $script:projectName `
-                "$script:projectName.csproj"
-            $script:csprojContent = Get-Content `
-                -Path $script:csprojPath `
-                -Raw
-        }
-
-        AfterAll {
-            Pop-Location
-        }
-
-        # 07
-        It "Adds the package reference to the .csproj" {
-            $script:csprojContent | `
-                Should -BeLike "*$script:package*"
-        }
-    }
-
-    Context "When a layer has a non-empty projectReferences list" {
-        BeforeAll {
-            $script:wsName = "RefProject"
-            $script:refLayer = "Core"
-            $script:consumerLayer = "App"
-            $script:consumerProject = "$script:wsName.$script:consumerLayer"
-
-            $script:template = [ordered]@{
-                workspaceName = $script:wsName
-                layers        = @(
-                    [ordered]@{
-                        name              = $script:refLayer
-                        type              = "classlib"
-                        extraArguments    = ""
-                        packages          = @()
-                        projectReferences = @()
-                    },
-                    [ordered]@{
-                        name              = $script:consumerLayer
-                        type              = "classlib"
-                        extraArguments    = ""
-                        packages          = @()
-                        projectReferences = @($script:refLayer)
-                    }
-                )
+            # 02
+            It "Creates the solution file" {
+                Join-Path $TestDrive "$script:wsName.sln" | Should -Exist
             }
 
-            $script:templateFile = Join-Path `
-                $TestDrive "$script:wsName.template.json"
-            $script:template | ConvertTo-Json -Depth 10 | `
-                Set-Content -Path $script:templateFile
+            # 03
+            It "Creates the project directory" {
+                Join-Path $TestDrive $script:projectName | Should -Exist
+            }
 
-            Push-Location $TestDrive
+            # 04
+            It "Creates the .csproj file" {
+                $csproj = Join-Path `
+                    $TestDrive `
+                    $script:projectName `
+                    "$script:projectName.csproj"
+                $csproj | Should -Exist
+            }
 
-            Initialize-LayeredDotnetProject `
-                -TemplateJsonPath $script:templateFile
-
-            $script:csprojPath = Join-Path `
-                $TestDrive `
-                $script:consumerProject `
-                "$script:consumerProject.csproj"
-            $script:csprojContent = Get-Content `
-                -Path $script:csprojPath `
-                -Raw
+            # 05
+            It "Adds the project to the solution" {
+                $slnContent = Get-Content `
+                    -Path (Join-Path $TestDrive "$script:wsName.sln") `
+                    -Raw
+                $slnContent | Should -BeLike "*$script:projectName*"
+            }
         }
 
-        AfterAll {
-            Pop-Location
+        Context "When a layer has non-empty extraArguments" {
+            BeforeAll {
+                $script:wsName = "ExtraArgsProject"
+                $script:layerName = "Core"
+                $script:projectName = "$script:wsName.$script:layerName"
+
+                $script:template = [ordered]@{
+                    workspaceName = $script:wsName
+                    layers        = @(
+                        [ordered]@{
+                            name              = $script:layerName
+                            type              = "classlib"
+                            extraArguments    = "--no-restore"
+                            packages          = @()
+                            projectReferences = @()
+                        }
+                    )
+                }
+
+                $script:templateFile = Join-Path `
+                    $TestDrive "$script:wsName.template.json"
+                $script:template | ConvertTo-Json -Depth 10 | `
+                    Set-Content -Path $script:templateFile
+
+                Push-Location $TestDrive
+
+                Initialize-LayeredDotnetProject `
+                    -TemplateJsonPath $script:templateFile
+            }
+
+            AfterAll {
+                Pop-Location
+            }
+
+            # 06
+            It "Creates the project directory with the extra argument applied" {
+                Join-Path $TestDrive $script:projectName | Should -Exist
+            }
         }
 
-        # 08
-        It "Adds the project reference to the .csproj" {
-            $script:csprojContent | `
-                Should -BeLike "*$script:wsName.$script:refLayer*"
+        Context "When a layer has a non-empty packages list" {
+            BeforeAll {
+                $script:wsName = "PackageProject"
+                $script:layerName = "Core"
+                $script:projectName = "$script:wsName.$script:layerName"
+                $script:package = "Newtonsoft.Json"
+
+                $script:template = [ordered]@{
+                    workspaceName = $script:wsName
+                    layers        = @(
+                        [ordered]@{
+                            name              = $script:layerName
+                            type              = "classlib"
+                            extraArguments    = ""
+                            packages          = @($script:package)
+                            projectReferences = @()
+                        }
+                    )
+                }
+
+                $script:templateFile = Join-Path `
+                    $TestDrive "$script:wsName.template.json"
+                $script:template | ConvertTo-Json -Depth 10 | `
+                    Set-Content -Path $script:templateFile
+
+                Push-Location $TestDrive
+
+                Initialize-LayeredDotnetProject `
+                    -TemplateJsonPath $script:templateFile
+
+                $script:csprojPath = Join-Path `
+                    $TestDrive `
+                    $script:projectName `
+                    "$script:projectName.csproj"
+                $script:csprojContent = Get-Content `
+                    -Path $script:csprojPath `
+                    -Raw
+            }
+
+            AfterAll {
+                Pop-Location
+            }
+
+            # 07
+            It "Adds the package reference to the .csproj" {
+                $script:csprojContent | `
+                    Should -BeLike "*$script:package*"
+            }
+        }
+
+        Context "When a layer has a non-empty projectReferences list" {
+            BeforeAll {
+                $script:wsName = "RefProject"
+                $script:refLayer = "Core"
+                $script:consumerLayer = "App"
+                $script:consumerProject = "$script:wsName.$script:consumerLayer"
+
+                $script:template = [ordered]@{
+                    workspaceName = $script:wsName
+                    layers        = @(
+                        [ordered]@{
+                            name              = $script:refLayer
+                            type              = "classlib"
+                            extraArguments    = ""
+                            packages          = @()
+                            projectReferences = @()
+                        },
+                        [ordered]@{
+                            name              = $script:consumerLayer
+                            type              = "classlib"
+                            extraArguments    = ""
+                            packages          = @()
+                            projectReferences = @($script:refLayer)
+                        }
+                    )
+                }
+
+                $script:templateFile = Join-Path `
+                    $TestDrive "$script:wsName.template.json"
+                $script:template | ConvertTo-Json -Depth 10 | `
+                    Set-Content -Path $script:templateFile
+
+                Push-Location $TestDrive
+
+                Initialize-LayeredDotnetProject `
+                    -TemplateJsonPath $script:templateFile
+
+                $script:csprojPath = Join-Path `
+                    $TestDrive `
+                    $script:consumerProject `
+                    "$script:consumerProject.csproj"
+                $script:csprojContent = Get-Content `
+                    -Path $script:csprojPath `
+                    -Raw
+            }
+
+            AfterAll {
+                Pop-Location
+            }
+
+            # 08
+            It "Adds the project reference to the .csproj" {
+                $script:csprojContent | `
+                    Should -BeLike "*$script:wsName.$script:refLayer*"
+            }
         }
     }
 }

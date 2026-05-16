@@ -111,163 +111,165 @@ Val - Valid
 WS  - Whitespace
 Non - Non-Valid
 #>
-Describe "Write-LogFile" -Tag @(
-    "Write-LogFile"
-    "Write-Log*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
 
-        . (Join-Path $moduleRoot "Enums" "LogLevel.ps1")
-        . (Join-Path $moduleRoot "Private" "Write-LogFile.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        # Mock Add-Content to avoid actual file I/O and
-        # enable verification of parameters.
-        Mock Add-Content {}
-    }
-
-    Context "When Level is Info and Source is valid" {
+InModuleScope "DotPilot.Core" {
+    Describe "Write-LogFile" -Tag @(
+        "Write-LogFile"
+        "Write-Log*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:message = "Server started"
-            $script:source = "Verb-Noun"
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
-
-            Write-LogFile `
-                -Level ([LogLevel]::Info) `
-                -Message $script:message `
-                -Source $script:source `
-                -Path $script:path
+            # Mock Add-Content to avoid actual file I/O and
+            # enable verification of parameters.
+            Mock Add-Content {}
         }
 
-        # 01
-        It "Calls Add-Content exactly once" {
-            Should -Invoke Add-Content -Times 1 -Scope Context
+        Context "When Level is Info and Source is valid" {
+            BeforeAll {
+                $script:message = "Server started"
+                $script:source = "Verb-Noun"
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
+
+                Write-LogFile `
+                    -Level ([LogLevel]::Info) `
+                    -Message $script:message `
+                    -Source $script:source `
+                    -Path $script:path
+            }
+
+            # 01
+            It "Calls Add-Content exactly once" {
+                Should -Invoke Add-Content -Times 1 -Scope Context
+            }
+
+            # 02
+            It "Passes the correct path to Add-Content" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Path -eq $script:path }
+            }
+
+            # 03
+            It "Writes an entry that begins with a formatted timestamp" {
+                $format = '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2} '
+
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -match $format }
+            }
+
+            # 04
+            It "Writes an entry that contains the INFO label" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -match ' INFO\t' }
+            }
+
+            # 05
+            It "Writes an entry that contains the message" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -like "*$script:message" }
+            }
+
+            # 06
+            It "Writes an entry that contains the source prefix" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -like "*$script:source`: *" }
+            }
         }
 
-        # 02
-        It "Passes the correct path to Add-Content" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Path -eq $script:path }
+        Context "When Level is Info and Source is null" {
+            BeforeAll {
+                $script:message = "Server started"
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
+
+                Write-LogFile `
+                    -Level ([LogLevel]::Info) `
+                    -Message $script:message `
+                    -Source $null `
+                    -Path $script:path
+            }
+
+            # 07
+            It "Writes an entry with no source prefix before the message" {
+                $format = 'INFO\t' + [regex]::Escape($script:message) + '$'
+
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -match $format }
+            }
         }
 
-        # 03
-        It "Writes an entry that begins with a formatted timestamp" {
-            $format = '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2} '
+        Context "When Level is Info and Source is whitespace" {
+            BeforeAll {
+                $script:message = "Server started"
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
 
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -match $format }
+                Write-LogFile `
+                    -Level ([LogLevel]::Info) `
+                    -Message $script:message `
+                    -Source "   " `
+                    -Path $script:path
+            }
+
+            # 08
+            It "Writes an entry with no source prefix before the message" {
+                $format = 'INFO\t' + [regex]::Escape($script:message) + '$'
+
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -match $format }
+            }
         }
 
-        # 04
-        It "Writes an entry that contains the INFO label" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -match ' INFO\t' }
+        Context "When Level is Warn" {
+            BeforeAll {
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
+
+                Write-LogFile `
+                    -Level ([LogLevel]::Warn) `
+                    -Message "Disk low" `
+                    -Path $script:path
+            }
+
+            # 09
+            It "Writes an entry that contains the WARN label" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -match ' WARN\t' }
+            }
         }
 
-        # 05
-        It "Writes an entry that contains the message" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -like "*$script:message" }
+        Context "When Level is Error" {
+            BeforeAll {
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
+
+                Write-LogFile `
+                    -Level ([LogLevel]::Error) `
+                    -Message "Disk low" `
+                    -Path $script:path
+            }
+
+            # 10
+            It "Writes an entry that contains the ERROR label" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -match ' ERROR\t' }
+            }
         }
 
-        # 06
-        It "Writes an entry that contains the source prefix" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -like "*$script:source`: *" }
-        }
-    }
+        Context "When Level is Debug" {
+            BeforeAll {
+                $script:path = Join-Path "C:" "Logs" "log-file.log"
 
-    Context "When Level is Info and Source is null" {
-        BeforeAll {
-            $script:message = "Server started"
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
+                Write-LogFile `
+                    -Level ([LogLevel]::Debug) `
+                    -Message "Disk low" `
+                    -Path $script:path
+            }
 
-            Write-LogFile `
-                -Level ([LogLevel]::Info) `
-                -Message $script:message `
-                -Source $null `
-                -Path $script:path
-        }
-
-        # 07
-        It "Writes an entry with no source prefix before the message" {
-            $format = 'INFO\t' + [regex]::Escape($script:message) + '$'
-
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -match $format }
-        }
-    }
-
-    Context "When Level is Info and Source is whitespace" {
-        BeforeAll {
-            $script:message = "Server started"
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
-
-            Write-LogFile `
-                -Level ([LogLevel]::Info) `
-                -Message $script:message `
-                -Source "   " `
-                -Path $script:path
-        }
-
-        # 08
-        It "Writes an entry with no source prefix before the message" {
-            $format = 'INFO\t' + [regex]::Escape($script:message) + '$'
-
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -match $format }
-        }
-    }
-
-    Context "When Level is Warn" {
-        BeforeAll {
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
-
-            Write-LogFile `
-                -Level ([LogLevel]::Warn) `
-                -Message "Disk low" `
-                -Path $script:path
-        }
-
-        # 09
-        It "Writes an entry that contains the WARN label" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -match ' WARN\t' }
-        }
-    }
-
-    Context "When Level is Error" {
-        BeforeAll {
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
-
-            Write-LogFile `
-                -Level ([LogLevel]::Error) `
-                -Message "Disk low" `
-                -Path $script:path
-        }
-
-        # 10
-        It "Writes an entry that contains the ERROR label" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -match ' ERROR\t' }
-        }
-    }
-
-    Context "When Level is Debug" {
-        BeforeAll {
-            $script:path = Join-Path "C:" "Logs" "log-file.log"
-
-            Write-LogFile `
-                -Level ([LogLevel]::Debug) `
-                -Message "Disk low" `
-                -Path $script:path
-        }
-
-        # 11
-        It "Writes an entry that contains the DEBUG label" {
-            Should -Invoke Add-Content -Times 1 -Scope Context `
-                -ParameterFilter { $Value -match ' DEBUG\t' }
+            # 11
+            It "Writes an entry that contains the DEBUG label" {
+                Should -Invoke Add-Content -Times 1 -Scope Context `
+                    -ParameterFilter { $Value -match ' DEBUG\t' }
+            }
         }
     }
 }

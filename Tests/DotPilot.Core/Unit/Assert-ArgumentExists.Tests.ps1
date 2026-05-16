@@ -84,191 +84,195 @@ WS  - Whitespace
 Abs - Absent
 Pre - Present
 #>
-Describe "Assert-ArgumentExists" -Tag @(
-    "Assert-ArgumentExists"
-    "Assert-*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
-        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $moduleRoot "Classes" "ArgumentBlankException.ps1")
-        . (Join-Path $moduleRoot "Public" "Assert-ArgumentExists.ps1")
-        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        function Invoke-Caller {
-            [CmdletBinding()]
-            param (
-                [string]$Name,
-                [AllowEmptyString()]
-                [string]$Value,
-                [string]$Reason
-            )
-            Assert-ArgumentExists `
-                -Name $Name `
-                -Value $Value `
-                -Cmdlet $PSCmdlet `
-                -Reason $Reason
-        }
-
-        $script:emptyContext = "Value='<empty>'"
-        $script:whiteSpaceContext = "Value='<whitespace: '   '>'"
-    }
-
-    Context "When value is valid and Reason is absent" {
-        # 01
-        It "Does not throw" {
-            { Invoke-Caller -Name "Environment" -Value "staging" } | `
-                Should -Not -Throw
-        }
-    }
-
-    Context "When value is empty and Reason is absent" {
+InModuleScope "DotPilot.Core" {
+    Describe "Assert-ArgumentExists" -Tag @(
+        "Assert-ArgumentExists"
+        "Assert-*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:caughtError = $null
+            $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-            try {
-                Invoke-Caller -Name "Environment" -Value ""
-            }
-            catch {
-                $script:caughtError = $_
-            }
+            . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context $script:emptyContext
-        }
-
-        # 02
-        It "Throws ArgumentBlankException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [ArgumentBlankException]
-            )
-        }
-
-        # 03
-        It "Exception message contains the parameter name" {
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'-Environment'*"
-        }
-
-        # 04
-        It "Error is attributed to the caller" {
-            $script:caughtError.InvocationInfo.MyCommand.Name | `
-                Should -Be "Invoke-Caller"
-        }
-
-        # 05
-        It "FullyQualifiedErrorId is 'ArgumentBlank,Invoke-Caller'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "ArgumentBlank,Invoke-Caller"
-        }
-    }
-
-    Context "When value is empty and Reason is present" {
-        BeforeAll {
-            $script:reason = @(
-                "Specify a target environment such as 'development', 'testing',"
-                " 'staging' or 'production'."
-            ) -join ''
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller `
-                    -Name "Environment" `
-                    -Value "" `
-                    -Reason $script:reason
-            }
-            catch {
-                $script:caughtError = $_
+            function Invoke-Caller {
+                [CmdletBinding()]
+                param (
+                    [string]$Name,
+                    [AllowEmptyString()]
+                    [string]$Value,
+                    [string]$Reason
+                )
+                Assert-ArgumentExists `
+                    -Name $Name `
+                    -Value $Value `
+                    -Cmdlet $PSCmdlet `
+                    -Reason $Reason
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context "$script:emptyContext, with Reason" `
+            $script:emptyContext = "Value='<empty>'"
+            $script:whiteSpaceContext = "Value='<whitespace: '   '>'"
         }
 
-        # 06
-        It "ErrorDetails contains Reason" {
-            $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:reason)"
-        }
-    }
-
-    Context "When value is whitespace-only and Reason is absent" {
-        BeforeAll {
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller -Name "Environment" -Value "   "
+        Context "When value is valid and Reason is absent" {
+            # 01
+            It "Does not throw" {
+                { Invoke-Caller -Name "Environment" -Value "staging" } | `
+                    Should -Not -Throw
             }
-            catch {
-                $script:caughtError = $_
-            }
-
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context $script:whiteSpaceContext
         }
 
-        # 07
-        It "Throws ArgumentBlankException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [ArgumentBlankException]
-            )
-        }
+        Context "When value is empty and Reason is absent" {
+            BeforeAll {
+                $script:caughtError = $null
 
-        # 08
-        It "Exception message contains the parameter name" {
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'-Environment'*"
-        }
+                try {
+                    Invoke-Caller -Name "Environment" -Value ""
+                }
+                catch {
+                    $script:caughtError = $_
+                }
 
-        # 09
-        It "Error is attributed to the caller" {
-            $script:caughtError.InvocationInfo.MyCommand.Name | `
-                Should -Be "Invoke-Caller"
-        }
-
-        # 10
-        It "FullyQualifiedErrorId is 'ArgumentBlank,Invoke-Caller'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "ArgumentBlank,Invoke-Caller"
-        }
-    }
-
-    Context "When value is whitespace-only and Reason is present" {
-        BeforeAll {
-            $script:reason = @(
-                "Specify a target environment such as 'development', 'testing',"
-                " 'staging' or 'production'."
-            ) -join ''
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller `
-                    -Name "Environment" `
-                    -Value "   " `
-                    -Reason $script:reason
-            }
-            catch {
-                $script:caughtError = $_
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context $script:emptyContext
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context "$script:whiteSpaceContext, with Reason"
+            # 02
+            It "Throws ArgumentBlankException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [ArgumentBlankException]
+                )
+            }
+
+            # 03
+            It "Exception message contains the parameter name" {
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'-Environment'*"
+            }
+
+            # 04
+            It "Error is attributed to the caller" {
+                $script:caughtError.InvocationInfo.MyCommand.Name | `
+                    Should -Be "Invoke-Caller"
+            }
+
+            # 05
+            It "FullyQualifiedErrorId is 'ArgumentBlank,Invoke-Caller'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -Be "ArgumentBlank,Invoke-Caller"
+            }
         }
 
-        # 11
-        It "ErrorDetails contains Reason" {
-            $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:reason)"
+        Context "When value is empty and Reason is present" {
+            BeforeAll {
+                $script:reason = @(
+                    "Specify a target environment such as 'development', "
+                    "'testing', 'staging' or 'production'."
+                ) -join ''
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller `
+                        -Name "Environment" `
+                        -Value "" `
+                        -Reason $script:reason
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context "$script:emptyContext, with Reason" `
+            }
+
+            # 06
+            It "ErrorDetails contains Reason" {
+                $script:caughtError.ErrorDetails.Message | `
+                    Should -BeLike "*$($script:reason)"
+            }
+        }
+
+        Context "When value is whitespace-only and Reason is absent" {
+            BeforeAll {
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller -Name "Environment" -Value "   "
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context $script:whiteSpaceContext
+            }
+
+            # 07
+            It "Throws ArgumentBlankException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [ArgumentBlankException]
+                )
+            }
+
+            # 08
+            It "Exception message contains the parameter name" {
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'-Environment'*"
+            }
+
+            # 09
+            It "Error is attributed to the caller" {
+                $script:caughtError.InvocationInfo.MyCommand.Name | `
+                    Should -Be "Invoke-Caller"
+            }
+
+            # 10
+            It "FullyQualifiedErrorId is 'ArgumentBlank,Invoke-Caller'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -Be "ArgumentBlank,Invoke-Caller"
+            }
+        }
+
+        Context "When value is whitespace-only and Reason is present" {
+            BeforeAll {
+                $script:reason = @(
+                    "Specify a target environment such as 'development', "
+                    "'testing', 'staging' or 'production'."
+                ) -join ''
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller `
+                        -Name "Environment" `
+                        -Value "   " `
+                        -Reason $script:reason
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context "$script:whiteSpaceContext, with Reason"
+            }
+
+            # 11
+            It "ErrorDetails contains Reason" {
+                $script:caughtError.ErrorDetails.Message | `
+                    Should -BeLike "*$($script:reason)"
+            }
         }
     }
 }

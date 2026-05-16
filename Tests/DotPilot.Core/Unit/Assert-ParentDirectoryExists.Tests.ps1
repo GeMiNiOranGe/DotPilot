@@ -83,144 +83,148 @@ NF  - Not Found
 Abs - Absent
 Pre - Present
 #>
-Describe "Assert-ParentDirectoryExists" -Tag @(
-    "Assert-ParentDirectoryExists"
-    "Assert-*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
-        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $moduleRoot "Classes" "DirectoryNotFoundException.ps1")
-        . (Join-Path $moduleRoot "Public" "Assert-ParentDirectoryExists.ps1")
-        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        function Invoke-Caller {
-            [CmdletBinding()]
-            param (
-                [string]$Path,
-                [string]$Reason
-            )
-            Assert-ParentDirectoryExists `
-                -Path $Path `
-                -Cmdlet $PSCmdlet `
-                -Reason $Reason
-        }
-
-        $script:missingParentDirContext = "Path='<missing_parent>'"
-    }
-
-    Context "When path contains no parent and Reason is absent" {
-        # 01
-        It "Does not throw" {
-            # "<ignored>" is a bare name with no directory separator.
-            # GetDirectoryName("ignored") returns "" -> early return,
-            # no filesystem access occurs.
-            { Invoke-Caller -Path "<ignored>" } | Should -Not -Throw
-        }
-    }
-
-    Context "When parent directory exists and Reason is absent" {
+InModuleScope "DotPilot.Core" {
+    Describe "Assert-ParentDirectoryExists" -Tag @(
+        "Assert-ParentDirectoryExists"
+        "Assert-*"
+        "Unit"
+    ) {
         BeforeAll {
-            # Create a 'parent' directory existing on disk
-            $parent = Join-Path $TestDrive "parent"
-            [void](New-Item -Path $parent -ItemType Directory)
+            $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-            # Join a child filename to the parent path,
-            # the file itself does not need to exist
-            $script:tempPath = Join-Path $parent "<ignored>"
-        }
+            . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
 
-        # 02
-        It "Does not throw" {
-            { Invoke-Caller -Path $script:tempPath } | Should -Not -Throw
-        }
-    }
-
-    Context "When parent directory is not found and Reason is absent" {
-        BeforeAll {
-            $missingParent = Join-Path $TestDrive "missing_parent"
-            $script:missingPath = Join-Path $missingParent "<ignored>"
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller -Path $script:missingPath
-            }
-            catch {
-                $script:caughtError = $_
+            function Invoke-Caller {
+                [CmdletBinding()]
+                param (
+                    [string]$Path,
+                    [string]$Reason
+                )
+                Assert-ParentDirectoryExists `
+                    -Path $Path `
+                    -Cmdlet $PSCmdlet `
+                    -Reason $Reason
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context $script:missingParentDirContext
+            $script:missingParentDirContext = "Path='<missing_parent>'"
         }
 
-        # 03
-        It "Throws DirectoryNotFoundException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [DirectoryNotFoundException]
-            )
-        }
-
-        # 04
-        It "Exception message contains the full path" {
-            $fullPath = [System.IO.Path]::GetFullPath($script:missingPath)
-
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$fullPath'*"
-        }
-
-        # 05
-        It "Exception message contains the parent directory name" {
-            $parentDir = [System.IO.Path]::GetDirectoryName(
-                $script:missingPath
-            )
-
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$parentDir'*"
-        }
-
-        # 06
-        It "Error is attributed to the caller" {
-            $script:caughtError.InvocationInfo.MyCommand.Name | `
-                Should -Be "Invoke-Caller"
-        }
-
-        # 07
-        It "FullyQualifiedErrorId is 'DirectoryNotFound,Invoke-Caller'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "DirectoryNotFound,Invoke-Caller"
-        }
-    }
-
-    Context "When parent directory is not found and Reason is present" {
-        BeforeAll {
-            $missingParent = Join-Path $TestDrive "missing_parent"
-            $script:missingPath = Join-Path $missingParent "<ignored>"
-            $script:reason = "Create the parent directory first."
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller `
-                    -Path $script:missingPath `
-                    -Reason $script:reason
+        Context "When path contains no parent and Reason is absent" {
+            # 01
+            It "Does not throw" {
+                # "<ignored>" is a bare name with no directory separator.
+                # GetDirectoryName("ignored") returns "" -> early return,
+                # no filesystem access occurs.
+                { Invoke-Caller -Path "<ignored>" } | Should -Not -Throw
             }
-            catch {
-                $script:caughtError = $_
+        }
+
+        Context "When parent directory exists and Reason is absent" {
+            BeforeAll {
+                # Create a 'parent' directory existing on disk
+                $parent = Join-Path $TestDrive "parent"
+                [void](New-Item -Path $parent -ItemType Directory)
+
+                # Join a child filename to the parent path,
+                # the file itself does not need to exist
+                $script:tempPath = Join-Path $parent "<ignored>"
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context "$script:missingParentDirContext, with Reason"
+            # 02
+            It "Does not throw" {
+                { Invoke-Caller -Path $script:tempPath } | Should -Not -Throw
+            }
         }
 
-        # 08
-        It "ErrorDetails contains Reason" {
-            $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:reason)"
+        Context "When parent directory is not found and Reason is absent" {
+            BeforeAll {
+                $missingParent = Join-Path $TestDrive "missing_parent"
+                $script:missingPath = Join-Path $missingParent "<ignored>"
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller -Path $script:missingPath
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context $script:missingParentDirContext
+            }
+
+            # 03
+            It "Throws DirectoryNotFoundException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [DirectoryNotFoundException]
+                )
+            }
+
+            # 04
+            It "Exception message contains the full path" {
+                $fullPath = [System.IO.Path]::GetFullPath($script:missingPath)
+
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'$fullPath'*"
+            }
+
+            # 05
+            It "Exception message contains the parent directory name" {
+                $parentDir = [System.IO.Path]::GetDirectoryName(
+                    $script:missingPath
+                )
+
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'$parentDir'*"
+            }
+
+            # 06
+            It "Error is attributed to the caller" {
+                $script:caughtError.InvocationInfo.MyCommand.Name | `
+                    Should -Be "Invoke-Caller"
+            }
+
+            # 07
+            It "FullyQualifiedErrorId is 'DirectoryNotFound,Invoke-Caller'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -Be "DirectoryNotFound,Invoke-Caller"
+            }
+        }
+
+        Context "When parent directory is not found and Reason is present" {
+            BeforeAll {
+                $missingParent = Join-Path $TestDrive "missing_parent"
+                $script:missingPath = Join-Path $missingParent "<ignored>"
+                $script:reason = "Create the parent directory first."
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller `
+                        -Path $script:missingPath `
+                        -Reason $script:reason
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context "$script:missingParentDirContext, with Reason"
+            }
+
+            # 08
+            It "ErrorDetails contains Reason" {
+                $script:caughtError.ErrorDetails.Message | `
+                    Should -BeLike "*$($script:reason)"
+            }
         }
     }
 }

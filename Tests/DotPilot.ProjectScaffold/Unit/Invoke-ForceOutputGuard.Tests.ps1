@@ -96,107 +96,102 @@ NP  - No Parent in path
 PE  - Parent Exists on disk
 PM  - Parent Missing from disk
 #>
-Describe "Invoke-ForceOutputGuard" -Tag @(
-    "Invoke-ForceOutputGuard"
-    "Invoke-*"
-    "Unit"
-) {
-    BeforeAll {
-        $coreModuleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.Core"
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." `
-            "DotPilot.ProjectScaffold"
 
-        . (
-            Join-Path $coreModuleRoot "Public" `
-                "Assert-ParentDirectoryExists.ps1"
-        )
-        . (Join-Path $coreModuleRoot "Public" "Assert-FileNotExists.ps1")
-        . (Join-Path $moduleRoot "Private" "Invoke-ForceOutputGuard.ps1")
+BeforeAll {
+    Import-Module DotPilot.ProjectScaffold -Force
+}
 
-        Mock Assert-ParentDirectoryExists {}
-        Mock Assert-FileNotExists {}
-        Mock New-Item {}
-
-        function Invoke-Caller {
-            [CmdletBinding()]
-            param (
-                [string]$Path,
-                [switch]$Force
-            )
-            Invoke-ForceOutputGuard `
-                -Path $Path `
-                -Cmdlet $PSCmdlet `
-                -Force:$Force
-        }
-    }
-
-    Context "When Force is absent" {
+InModuleScope "DotPilot.ProjectScaffold" {
+    Describe "Invoke-ForceOutputGuard" -Tag @(
+        "Invoke-ForceOutputGuard"
+        "Invoke-*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:path = "file.txt"
+            Mock Assert-ParentDirectoryExists {}
+            Mock Assert-FileNotExists {}
+            Mock New-Item {}
 
-            Invoke-Caller -Path $script:path
+            function Invoke-Caller {
+                [CmdletBinding()]
+                param (
+                    [string]$Path,
+                    [switch]$Force
+                )
+                Invoke-ForceOutputGuard `
+                    -Path $Path `
+                    -Cmdlet $PSCmdlet `
+                    -Force:$Force
+            }
         }
 
-        # 01
-        It "Invokes Assert-ParentDirectoryExists" {
-            Should -Invoke Assert-ParentDirectoryExists `
-                -Scope Context `
-                -Times 1 `
-                -ParameterFilter { $Path -eq $script:path }
+        Context "When Force is absent" {
+            BeforeAll {
+                $script:path = "file.txt"
+
+                Invoke-Caller -Path $script:path
+            }
+
+            # 01
+            It "Invokes Assert-ParentDirectoryExists" {
+                Should -Invoke Assert-ParentDirectoryExists `
+                    -Scope Context `
+                    -Times 1 `
+                    -ParameterFilter { $Path -eq $script:path }
+            }
+
+            # 02
+            It "Invokes Assert-FileNotExists" {
+                Should -Invoke Assert-FileNotExists `
+                    -Scope Context `
+                    -Times 1 `
+                    -ParameterFilter { $Path -eq $script:path }
+            }
         }
 
-        # 02
-        It "Invokes Assert-FileNotExists" {
-            Should -Invoke Assert-FileNotExists `
-                -Scope Context `
-                -Times 1 `
-                -ParameterFilter { $Path -eq $script:path }
-        }
-    }
+        Context "When Force is present and path has no parent" {
+            BeforeAll {
+                # A bare filename has no directory component. GetDirectoryName
+                # returns "" -> condition is false -> no New-Item call.
+                Invoke-Caller -Path "file.txt" -Force
+            }
 
-    Context "When Force is present and path has no parent" {
-        BeforeAll {
-            # A bare filename has no directory component. GetDirectoryName
-            # returns "" -> condition is false -> no New-Item call.
-            Invoke-Caller -Path "file.txt" -Force
+            # 03
+            It "Does not call New-Item" {
+                Should -Not -Invoke New-Item -Scope Context
+            }
         }
 
-        # 03
-        It "Does not call New-Item" {
-            Should -Not -Invoke New-Item -Scope Context
-        }
-    }
+        Context "When Force is present and parent directory exists" {
+            BeforeAll {
+                $parent = Join-Path $TestDrive "existing_parent"
+                [void][System.IO.Directory]::CreateDirectory($parent)
+                $script:filePath = Join-Path $parent "file.txt"
 
-    Context "When Force is present and parent directory exists" {
-        BeforeAll {
-            $parent = Join-Path $TestDrive "existing_parent"
-            [void][System.IO.Directory]::CreateDirectory($parent)
-            $script:filePath = Join-Path $parent "file.txt"
+                Invoke-Caller -Path $script:filePath -Force
+            }
 
-            Invoke-Caller -Path $script:filePath -Force
-        }
-
-        # 04
-        It "Does not call New-Item" {
-            Should -Not -Invoke New-Item -Scope Context
-        }
-    }
-
-    Context "When Force is present and parent directory is missing" {
-        BeforeAll {
-            $missingParent = Join-Path $TestDrive "missing_parent"
-            $script:filePath = Join-Path $missingParent "file.txt"
-
-            Invoke-Caller -Path $script:filePath -Force
+            # 04
+            It "Does not call New-Item" {
+                Should -Not -Invoke New-Item -Scope Context
+            }
         }
 
-        # 05
-        It "Calls New-Item with -ItemType Directory" {
-            Should -Invoke New-Item `
-                -Scope Context `
-                -Times 1 `
-                -ParameterFilter { $ItemType -eq "Directory" }
+        Context "When Force is present and parent directory is missing" {
+            BeforeAll {
+                $missingParent = Join-Path $TestDrive "missing_parent"
+                $script:filePath = Join-Path $missingParent "file.txt"
+
+                Invoke-Caller -Path $script:filePath -Force
+            }
+
+            # 05
+            It "Calls New-Item with -ItemType Directory" {
+                Should -Invoke New-Item `
+                    -Scope Context `
+                    -Times 1 `
+                    -ParameterFilter { $ItemType -eq "Directory" }
+            }
         }
     }
 }

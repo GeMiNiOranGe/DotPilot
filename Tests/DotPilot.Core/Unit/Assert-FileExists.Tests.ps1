@@ -76,125 +76,129 @@ NF   - Not Found
 Abs  - Absent
 Pre  - Present
 #>
-Describe "Assert-FileExists" -Tag @(
-    "Assert-FileExists"
-    "Assert-*"
-    "Unit"
-) {
-    BeforeAll {
-        $moduleRoot = Join-Path $PSScriptRoot ".." ".." ".." "DotPilot.Core"
-        $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        . (Join-Path $moduleRoot "Classes" "FileNotFoundException.ps1")
-        . (Join-Path $moduleRoot "Public" "Assert-FileExists.ps1")
-        . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
+BeforeAll {
+    Import-Module DotPilot.Core -Force
+}
 
-        function Invoke-Caller {
-            [CmdletBinding()]
-            param (
-                [string]$Path,
-                [string]$Reason
-            )
-            Assert-FileExists `
-                -Path $Path `
-                -Cmdlet $PSCmdlet `
-                -Reason $Reason
-        }
-
-        $script:missingFileContext = "Path='<missing_file.txt>'"
-    }
-
-    Context "When file exists and Reason is absent" {
+InModuleScope "DotPilot.Core" {
+    Describe "Assert-FileExists" -Tag @(
+        "Assert-FileExists"
+        "Assert-*"
+        "Unit"
+    ) {
         BeforeAll {
-            $script:tempFile = Join-Path $TestDrive "temp.txt"
-            [void](New-Item -Path $script:tempFile -ItemType File)
-        }
+            $testsDir = Join-Path $PSScriptRoot ".." ".."
 
-        # 01
-        It "Does not throw" {
-            { Invoke-Caller -Path $script:tempFile } | Should -Not -Throw
-        }
-    }
+            . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
 
-    Context "When file is not found and Reason is absent" {
-        BeforeAll {
-            $script:missingFile = Join-Path $TestDrive "missing_file.txt"
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller -Path $script:missingFile
-            }
-            catch {
-                $script:caughtError = $_
+            function Invoke-Caller {
+                [CmdletBinding()]
+                param (
+                    [string]$Path,
+                    [string]$Reason
+                )
+                Assert-FileExists `
+                    -Path $Path `
+                    -Cmdlet $PSCmdlet `
+                    -Reason $Reason
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context $script:missingFileContext
+            $script:missingFileContext = "Path='<missing_file.txt>'"
         }
 
-        # 02
-        It "Throws FileNotFoundException" {
-            $script:caughtError.Exception | Should -BeOfType (
-                [FileNotFoundException]
-            )
-        }
-
-        # 03
-        It "Exception message contains the full path" {
-            $fullPath = [System.IO.Path]::GetFullPath($script:missingFile)
-
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$fullPath'*"
-        }
-
-        # 04
-        It "Exception message contains the file name" {
-            $fileName = [System.IO.Path]::GetFileName($script:missingFile)
-
-            $script:caughtError.Exception.Message | `
-                Should -BeLike "*'$fileName'*"
-        }
-
-        # 05
-        It "Error is attributed to the caller" {
-            $script:caughtError.InvocationInfo.MyCommand.Name | `
-                Should -Be "Invoke-Caller"
-        }
-
-        # 06
-        It "FullyQualifiedErrorId is 'FileNotFound,Invoke-Caller'" {
-            $script:caughtError.FullyQualifiedErrorId | `
-                Should -Be "FileNotFound,Invoke-Caller"
-        }
-    }
-
-    Context "When file is not found and Reason is present" {
-        BeforeAll {
-            $script:missingFile = Join-Path $TestDrive "missing_file.txt"
-            $script:reason = "Ensure that 'file.txt' exists."
-            $script:caughtError = $null
-
-            try {
-                Invoke-Caller `
-                    -Path $script:missingFile `
-                    -Reason $script:reason
-            }
-            catch {
-                $script:caughtError = $_
+        Context "When file exists and Reason is absent" {
+            BeforeAll {
+                $script:tempFile = Join-Path $TestDrive "temp.txt"
+                [void](New-Item -Path $script:tempFile -ItemType File)
             }
 
-            Assert-GuardThrew `
-                -Caller "Invoke-Caller" `
-                -CaughtError $script:caughtError `
-                -Context "$script:missingFileContext, with Reason"
+            # 01
+            It "Does not throw" {
+                { Invoke-Caller -Path $script:tempFile } | Should -Not -Throw
+            }
         }
 
-        # 07
-        It "ErrorDetails contains Reason" {
-            $script:caughtError.ErrorDetails.Message | `
-                Should -BeLike "*$($script:reason)"
+        Context "When file is not found and Reason is absent" {
+            BeforeAll {
+                $script:missingFile = Join-Path $TestDrive "missing_file.txt"
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller -Path $script:missingFile
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context $script:missingFileContext
+            }
+
+            # 02
+            It "Throws FileNotFoundException" {
+                $script:caughtError.Exception | Should -BeOfType (
+                    [FileNotFoundException]
+                )
+            }
+
+            # 03
+            It "Exception message contains the full path" {
+                $fullPath = [System.IO.Path]::GetFullPath($script:missingFile)
+
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'$fullPath'*"
+            }
+
+            # 04
+            It "Exception message contains the file name" {
+                $fileName = [System.IO.Path]::GetFileName($script:missingFile)
+
+                $script:caughtError.Exception.Message | `
+                    Should -BeLike "*'$fileName'*"
+            }
+
+            # 05
+            It "Error is attributed to the caller" {
+                $script:caughtError.InvocationInfo.MyCommand.Name | `
+                    Should -Be "Invoke-Caller"
+            }
+
+            # 06
+            It "FullyQualifiedErrorId is 'FileNotFound,Invoke-Caller'" {
+                $script:caughtError.FullyQualifiedErrorId | `
+                    Should -Be "FileNotFound,Invoke-Caller"
+            }
+        }
+
+        Context "When file is not found and Reason is present" {
+            BeforeAll {
+                $script:missingFile = Join-Path $TestDrive "missing_file.txt"
+                $script:reason = "Ensure that 'file.txt' exists."
+                $script:caughtError = $null
+
+                try {
+                    Invoke-Caller `
+                        -Path $script:missingFile `
+                        -Reason $script:reason
+                }
+                catch {
+                    $script:caughtError = $_
+                }
+
+                Assert-GuardThrew `
+                    -Caller "Invoke-Caller" `
+                    -CaughtError $script:caughtError `
+                    -Context "$script:missingFileContext, with Reason"
+            }
+
+            # 07
+            It "ErrorDetails contains Reason" {
+                $script:caughtError.ErrorDetails.Message | `
+                    Should -BeLike "*$($script:reason)"
+            }
         }
     }
 }
