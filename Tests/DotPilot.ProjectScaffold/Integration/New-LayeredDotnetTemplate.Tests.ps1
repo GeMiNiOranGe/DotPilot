@@ -141,6 +141,7 @@ InModuleScope "DotPilot.ProjectScaffold" {
     Describe "New-LayeredDotnetTemplate" -Tag @(
         "New-LayeredDotnetTemplate"
         "New-Layered*Template"
+        "Dotnet"
         "Integration"
     ) {
         BeforeAll {

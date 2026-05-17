@@ -88,6 +88,7 @@ InModuleScope "DotPilot.ProjectScaffold" {
         "Initialize-LayeredDotnetProject.Unit"
         "Initialize-Layered*Project"
         "Initialize-Layered*Project.Unit"
+        "Dotnet"
         "Unit"
     ) {
         BeforeAll {
