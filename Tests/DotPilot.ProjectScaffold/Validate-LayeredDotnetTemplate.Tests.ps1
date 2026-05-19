@@ -1,36 +1,35 @@
-$script:srcPath = (Get-Module DotPilot.ProjectScaffold).ModuleBase
-
 Describe "Template Validation" {
+    BeforeAll {
+        $moduleRoot = (Get-Module DotPilot.ProjectScaffold).ModuleBase
+
+        function Get-TemplatePath([string] $TemplateDir, [string]$Name) {
+            Join-Path $moduleRoot "Template" $TemplateDir $Name
+        }
+
+        function Get-SchemaPath([string]$Name) {
+            Join-Path $moduleRoot "Schemas" "$Name.schema.json"
+        }
+    }
+
     Context "Layered Dotnet Template" -Tag "Dotnet" {
-        It "Should be valid according to LayeredDotnet schema - <RawTemplate>" -TestCases @(
-            @{
-                RawTemplate = "AspNetWebApiClean.template.json"
-            }
-            @{
-                RawTemplate = "WinFormsThreeLayers.template.json"
-            }
-            @{
-                RawTemplate = "Default.template.json"
-            }
-        ) {
-            param($RawTemplate)
-
-            $architecturePath = Join-Path $srcPath "Template" "Dotnet" `
-                $RawTemplate
-
-            $isValidPath = Test-Path -Path $architecturePath
-            $isValidPath | Should -BeTrue -Because (
-                "template file '$RawTemplate' must exist"
+        BeforeDiscovery {
+            $script:cases = @(
+                "AspNetWebApiClean.template.json"
+                "WinFormsThreeLayers.template.json"
+                "Default.template.json"
             )
+        }
 
-            $schemaFilePath = Join-Path $srcPath "Schemas" `
-                "LayeredDotnet.schema.json"
-            $isValidSchema = Test-Json `
-                -Path $architecturePath `
-                -SchemaFile $schemaFilePath
-            $isValidSchema | Should -BeTrue -Because (
-                "template '$RawTemplate' must conform to LayeredDotnet schema"
-            )
+        It "Template file exists - <_>" -TestCases $cases {
+            Get-TemplatePath -TemplateDir "Dotnet" $_ | Should -Exist
+        }
+
+        It "Template conforms to LayeredDotnet schema - <_>" -TestCases $cases {
+            $templatePath = Get-TemplatePath -TemplateDir "Dotnet" $_
+            $schemaPath = Get-SchemaPath "LayeredDotnet"
+
+            Test-Json -Path $templatePath -SchemaFile $schemaPath | `
+                Should -BeTrue
         }
     }
 }
