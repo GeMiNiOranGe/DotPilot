@@ -102,6 +102,10 @@ InModuleScope "DotPilot.ProjectScaffold" {
         "Integration"
     ) {
         BeforeAll {
+            $coreModuleRoot = (Get-Module DotPilot.Core).ModuleBase
+
+            . (Join-Path $coreModuleRoot "Enums" "LogLevel.ps1")
+
             # Suppress  Write-Log entirely to isolate file-creation behavior
             # and console output side-effect.
             Mock Write-Log {}

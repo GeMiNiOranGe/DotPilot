@@ -96,6 +96,7 @@ InModuleScope "DotPilot.ProjectScaffold" {
             $testsDir = Join-Path $PSScriptRoot ".." ".."
 
             . (Join-Path $coreModuleRoot "Classes" "FileNotFoundException.ps1")
+            . (Join-Path $coreModuleRoot "Enums" "LogLevel.ps1")
             . (Join-Path $testsDir "Helper" "Assert-GuardThrew.ps1")
 
             Mock Write-Host {}
