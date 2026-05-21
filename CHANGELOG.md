@@ -6,6 +6,26 @@ This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.3.0] - May 21, 2026
+
+### Added
+- Added end-to-end tests for the Dotnet scaffolding workflow, covering template generation, solution structure, and a full `dotnet build` integrity check.
+
+### Changed
+- Scripts now follow PowerShell's `Verb-Noun` naming convention: `BuildMarkdownHelp.ps1` → `Build-MarkdownHelp.ps1`, `InvokeDotPilotTests.ps1` → `Invoke-DotPilotTests.ps1`, `Setup.ps1` → `Set-up.ps1`.
+- `Invoke-DotPilotTests.ps1` now accepts a `-Path` parameter, allowing you to run tests for a specific module or directory instead of always running the full test suite.
+- `Set-up.ps1` now shows the resolved absolute path of each module when it is imported into the PowerShell profile, making it easier to verify which installation is being used.
+
+### Fixed
+- Fixed an `Unable to find type [LogLevel]` error that could occur when running `Initialize-LayeredDotnetProject` tests in isolation.
+
+## [0.2.1] - May 9, 2026
+
+### Changed
+- Renamed the `-Architecture` parameter to `-Preset` in `New-LayeredDotnetTemplate` for clearer intent.
+- Renamed preset values: `Clean` into `AspNetWebApiClean`, reflecting its actual project type more accurately.
+- Improved error message when the .NET SDK is not installed - `Initialize-LayeredDotnetProject` now suggests where to download it.
+
 ## [0.2.0] - April 18, 2026
 <!-- MVP 2 -->
 
